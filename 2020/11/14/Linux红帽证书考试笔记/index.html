@@ -1,0 +1,710 @@
+<!doctype html>
+<html lang="zh"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"><meta><title>Linux红帽证书RHCAS考试笔记 - 山河已无恙</title><link rel="manifest" href="/manifest.json"><meta name="application-name" content="山河已无恙"><meta name="msapplication-TileImage" content="https://cdn.jsdelivr.net/gh/removeif/removeif-demo@latest/img/favicon.png"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="山河已无恙"><meta name="apple-mobile-web-app-status-bar-style" content="default"><meta description="“你当然自在了，你是被爱的那一个！” —-非流"><meta property="og:type" content="blog"><meta property="og:title" content="山河已无恙"><meta property="og:url" content="https://removeif.github.io/"><meta property="og:site_name" content="山河已无恙"><meta property="og:description" content="“你当然自在了，你是被爱的那一个！” —-非流"><meta property="og:locale" content="zh_CN"><meta property="og:image" content="https://removeif.github.io/img/头像.jpg"><meta property="article:published_time" content="2020-11-13T16:00:00.000Z"><meta property="article:modified_time" content="2021-06-26T20:39:50.156Z"><meta property="article:author" content="removeif"><meta property="article:tag" content="RHCAS"><meta property="article:tag" content="Linux"><meta property="twitter:card" content="summary"><meta property="twitter:image" content="/img/头像.jpg"><script type="application/ld+json">{"@context":"https://schema.org","@type":"BlogPosting","mainEntityOfPage":{"@type":"WebPage","@id":"http://example.com/2020/11/14/Linux%E7%BA%A2%E5%B8%BD%E8%AF%81%E4%B9%A6%E8%80%83%E8%AF%95%E7%AC%94%E8%AE%B0/"},"headline":"山河已无恙","image":["https://img-blog.csdnimg.cn/20201228195843126.png","https://img-blog.csdnimg.cn/20201228201902246.png"],"datePublished":"2020-11-13T16:00:00.000Z","dateModified":"2021-06-26T20:39:50.156Z","author":{"@type":"Person","name":"山河已无恙"},"description":"“你当然自在了，你是被爱的那一个！” —-非流"}</script><link rel="canonical" href="http://example.com/2020/11/14/Linux%E7%BA%A2%E5%B8%BD%E8%AF%81%E4%B9%A6%E8%80%83%E8%AF%95%E7%AC%94%E8%AE%B0/"><link rel="alternate" href="/path/to/atom.xml" title="山河已无恙" type="application/atom+xml"><link rel="icon" href="https://cdn.jsdelivr.net/gh/removeif/removeif-demo@latest/img/favicon.png"><meta name="referrer" content="no-referrer-when-downgrade"><link rel="stylesheet" href="https://cdnjs.loli.net/ajax/libs/font-awesome/5.12.0/css/all.min.css"><link rel="stylesheet" href="https://cdnjs.loli.net/ajax/libs/highlight.js/9.12.0/styles/solarized-light.min.css"><link rel="stylesheet" href="https://fonts.loli.net/css2?family=Ubuntu:wght@400;600&amp;family=Source+Code+Pro"><link rel="stylesheet" href="/css/default.css"><link rel="stylesheet" href="https://cdnjs.loli.net/ajax/libs/font-awesome/5.12.0/css/all.min.css"><link rel="stylesheet" href="https://fonts.loli.net/css?family=Ubuntu:400,600|Source+Code+Pro|Monda:300,300italic,400,400italic,700,700italic|Roboto Slab:300,300italic,400,400italic,700,700italic|Microsoft YaHei:300,300italic,400,400italic,700,700italic|PT Mono:300,300italic,400,400italic,700,700italic&amp;amp;subset=latin,latin-ext|Inconsolata|Itim|Lobster.css"><script src="https://cdnjs.loli.net/ajax/libs/jquery/3.3.1/jquery.min.js"></script><script src="/js/globalUtils.js"></script><style>body>.footer,body>.navbar,body>.section{opacity:0}</style><!--!--><script>var _hmt = _hmt || [];
+        (function() {
+            var hm = document.createElement("script");
+            hm.src = "//hm.baidu.com/hm.js?3f06f2b732a5b1034c989f74e28d0eea";
+            var s = document.getElementsByTagName("script")[0];
+            s.parentNode.insertBefore(hm, s);
+        })();</script><link rel="stylesheet" href="https://cdnjs.loli.net/ajax/libs/lightgallery/1.6.8/css/lightgallery.min.css"><link rel="stylesheet" href="https://cdnjs.loli.net/ajax/libs/justifiedGallery/3.7.0/css/justifiedGallery.min.css"><!--!--><!--!--><!--!--><!--!--><link rel="stylesheet" href="https://cdnjs.loli.net/ajax/libs/outdated-browser/1.1.5/outdatedbrowser.min.css"><script src="https://cdnjs.loli.net/ajax/libs/pace/1.0.2/pace.min.js"></script><meta name="generator" content="Hexo 5.4.0"></head><body class="is-3-column has-navbar-fixed-top"><nav class="navbar navbar-main is-fixed-top"><div class="container"><div class="navbar-brand justify-content-center"><a class="navbar-item navbar-logo" href="/"><img src="/img/logo.png" alt="山河已无恙" height="28"></a></div><div class="navbar-menu"><div class="navbar-start"><a class="navbar-item" href="/">首页</a><a class="navbar-item" href="/archives">归档</a><a class="navbar-item" href="/categories">分类</a><a class="navbar-item" href="/tags">标签</a></div><div class="navbar-end"><a class="navbar-item" target="_blank" rel="noopener" title="Gitee" href="https://gitee.com/liruilonger"><i class="fab fa-git-square fa-2x"></i></a><a class="navbar-item" target="_blank" rel="noopener" title="GitHub" href="https://github.com/LIRUILONGS"><i class="fab fa-github fa-2x"></i></a><a class="navbar-item is-hidden-tablet catalogue" title="目录" href="javascript:;"><i class="fas fa-list-ul"></i></a><a class="navbar-item search" title="搜索" href="javascript:;"><i class="fas fa-search"></i></a><a class="navbar-item" id="night-nav" title="Night Mode" href="javascript:;"><i class="fas fa-moon" id="night-icon"></i></a></div></div></div></nav><script type="text/javascript" src="/js/theme-setting.js"></script><section class="section"><div class="container"><div class="columns"><div class="column order-2 column-main is-8-tablet is-8-desktop is-9-widescreen"><!--!--><div class="card"><article class="card-content article" role="article"><div class="article-meta size-small is-uppercase level is-mobile"><div class="level-left"><i class="far fa-calendar-plus"> </i>2020-11-14  <a class="commentCountImg" href="/2020/11/14/Linux%E7%BA%A2%E5%B8%BD%E8%AF%81%E4%B9%A6%E8%80%83%E8%AF%95%E7%AC%94%E8%AE%B0/#comment-container"><span class="display-none-class">7f1175d590b8950217864b0a472e9cc2</span><i class="far fa-comment-dots"></i> <span class="commentCount" id="7f1175d590b8950217864b0a472e9cc2">99+</span>  </a><span class="level-item"><i class="far fa-clock"> </i>1 小时  <i class="fas fa-pencil-alt"> </i>13.1 k</span></div></div><h1 class="title is-3 is-size-4-mobile">Linux红帽证书RHCAS考试笔记</h1><div class="content"><p>“你当然自在了，你是被爱的那一个！” —-非流</p>
+<span id="more"></span>
+
+
+
+<hr>
+<h3 id="写在前面"><a href="#写在前面" class="headerlink" title="写在前面"></a>写在前面</h3><p>笔记是报班考红帽的笔记，大都是老师的笔记，有些地方有自己的补充，这是<code>CSA</code> 的笔记。<code>CE</code>的在下面</p>
+<h2 id="CE的笔记-Ansible"><a href="#CE的笔记-Ansible" class="headerlink" title="CE的笔记(Ansible)"></a><a target="_blank" rel="noopener" href="https://blog.csdn.net/sanhewuyang/article/details/109545891"><code>CE的笔记(Ansible)</code></a></h2><p><img src="https://img-blog.csdnimg.cn/20210324214316403.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3Nhbmhld3V5YW5n,size_16,color_FFFFFF,t_70" alt="在这里插入图片描述"></p>
+<hr>
+<h3 id="配置网卡"><a href="#配置网卡" class="headerlink" title="配置网卡"></a>配置网卡</h3><p>RHEL7/8的系统管理器init（systemd）</p>
+<ul>
+<li> 配置单元（unit）：<code>service(服务)、target（启动级别）</code><br>关于网络服务设置： <code>network --&gt; NetworkManager（RHEL8已经没有network服务）</code><br><img src="https://img-blog.csdnimg.cn/20201228195843126.png" alt="在这里插入图片描述"></li>
+<li><code> 临时设置：命令工具:</code><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">hostname、hostname  新主机名</span><br><span class="line"> ifconfig  [-a]、ifconfig  连接名  IP地址/掩码长度</span><br><span class="line"> route  -n、route  add|del  default  gw  默认网关地址</span><br><span class="line"> host  查询对象  [DNS服务器地址]</span><br></pre></td></tr></table></figure>
+<img src="https://img-blog.csdnimg.cn/20201228201457405.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3Nhbmhld3V5YW5n,size_16,color_FFFFFF,t_70" alt="在这里插入图片描述"></li>
+<li><code>固定/永久设置：改配置文件、重载服务</code><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">/etc/hostname</span><br><span class="line">　　/etc/sysconfig/network-scripts/ifcfg-连接名</span><br><span class="line">    hostnamectl set-hostname  新主机名</span><br></pre></td></tr></table></figure>
+<img src="https://img-blog.csdnimg.cn/20201228201902246.png" alt="在这里插入图片描述"></li>
+<li><code>辅助配置工具： nmcli（命令行）、nmtui（文本用户界面）、nm-connection-editor（图形）</code><ul>
+<li><code> 接口名</code>：内核识别的网卡设备的物理名称</li>
+<li><code>连接名</code>：网卡所使用的这一份网络配置的逻辑名称<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">nmcli基本用法：</span><br><span class="line">　　nmcli device status</span><br><span class="line">　　nmcli connection  show</span><br><span class="line">　　nmcli connection  show  <span class="string">&quot;连接名&quot;</span></span><br><span class="line">　　nmcli connection modify  <span class="string">&quot;连接名&quot;</span> ipv4.method man ipv4.addresses <span class="string">&quot;IP地址/掩码&quot;</span></span><br><span class="line">　　nmcli connection  modify  <span class="string">&quot;连接名&quot;</span>  ipv4.gateway 默认网关地址</span><br><span class="line">　　nmcli connection  modify  <span class="string">&quot;连接名&quot;</span>  ipv4.dns DNS服务器地址</span><br><span class="line">　　nmcli connection  modify  <span class="string">&quot;连接名&quot;</span>  connection.autoconnect yes</span><br><span class="line">　　nmcli connection  up  <span class="string">&quot;连接名&quot;</span></span><br><span class="line">　　nmcli connection  down  <span class="string">&quot;连接名&quot;</span></span><br><span class="line">　　</span><br><span class="line">　　nmcli connection  add  con-name  <span class="string">&quot;连接名&quot;</span>  ifname  接口名  <span class="built_in">type</span>  ethernet</span><br><span class="line">　　nmcli connection  del  <span class="string">&quot;连接名</span></span><br></pre></td></tr></table></figure>
+<img src="https://img-blog.csdnimg.cn/20201228202533761.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3Nhbmhld3V5YW5n,size_16,color_FFFFFF,t_70" alt="在这里插入图片描述"></li>
+</ul>
+</li>
+</ul>
+<p>　　</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">[root@server1 ~]$ ifconfig   <span class="comment">#查看ip地址</span></span><br><span class="line">[root@server1 ~]$ nmtui <span class="comment">#文本方式配置ip地址为ens33网卡配置ip，如果找不到ens33网卡，可按以下方式添加</span></span><br><span class="line">[root@server1 ~]$ nmcli connection add con-name ens33 ifname ens33 <span class="built_in">type</span> ethernet    <span class="comment">#添加ens33网卡</span></span><br><span class="line">[root@server1 ~]$ nmtui  <span class="comment">#然后再使用该命令配置ip，</span></span><br></pre></td></tr></table></figure>
+<p>vmnet的虚拟网络编辑器添加虚拟网卡，用来让真机和虚拟机互联，虚拟网卡构建<br><img src="https://img-blog.csdnimg.cn/20201105124831107.png#pic_center" alt="在这里插入图片描述"><br><img src="https://img-blog.csdnimg.cn/20201107174029710.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3Nhbmhld3V5YW5n,size_16,color_FFFFFF,t_70#pic_center" alt="在这里插入图片描述"><br><img src="https://img-blog.csdnimg.cn/20201107174129385.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3Nhbmhld3V5YW5n,size_16,color_FFFFFF,t_70#pic_center" alt="在这里插入图片描述"></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">[root@server1 ~]<span class="comment"># nm</span></span><br><span class="line">nm                    nm-connection-editor  nmtui                 nmtui-edit</span><br><span class="line">nmcli                 nm-online             nmtui-connect         nmtui-hostname</span><br><span class="line">[root@server1 ~]<span class="comment"># nmtui</span></span><br><span class="line">[root@server1 ~]<span class="comment"># </span></span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<p><img src="https://img-blog.csdnimg.cn/20201107172952197.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3Nhbmhld3V5YW5n,size_16,color_FFFFFF,t_70#pic_center" alt="在这里插入图片描述"><br>配置网卡分三步，配置ip。网关，激活网卡，修改域名<br><img src="https://img-blog.csdnimg.cn/20201107173446382.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3Nhbmhld3V5YW5n,size_16,color_FFFFFF,t_70#pic_center" alt="在这里插入图片描述"><br>修改获取方式为手动，Manual， 配置IP/掩码、网关、DNS、demo: 192.168.1.8/24、192.168.1.254、192.168.1.254<br><img src="https://img-blog.csdnimg.cn/20201107173716773.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3Nhbmhld3V5YW5n,size_16,color_FFFFFF,t_70#pic_center" alt="在这里插入图片描述"><br>激活<br>或者使用命令行的方式配置<br><img src="https://img-blog.csdnimg.cn/20201107180216882.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3Nhbmhld3V5YW5n,size_16,color_FFFFFF,t_70#pic_center" alt="在这里插入图片描述"></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">nmcli connection modify enp1s0 ipv4.method manual ipv4.addresses 172.25.0.25/24      命令行修改ip</span><br><span class="line">nmcli connection up enp1s0    命令行激活网卡</span><br><span class="line">显示所有包括不活动连接：nmcli con show</span><br><span class="line">显示所有活动连接： nmcli con show –active</span><br><span class="line">显示网络连接配置：nmcli con show <span class="string">&quot;System eth0“</span></span><br><span class="line"><span class="string">显示设备状态：nmcli dev status</span></span><br><span class="line"><span class="string">显示网络接口属性：nmcli dev show eno16777736</span></span><br></pre></td></tr></table></figure>
+<p><img src="https://img-blog.csdnimg.cn/20201107175724744.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3Nhbmhld3V5YW5n,size_16,color_FFFFFF,t_70#pic_center" alt="在这里插入图片描述"><br><img src="https://img-blog.csdnimg.cn/20210306090547422.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3Nhbmhld3V5YW5n,size_16,color_FFFFFF,t_70" alt="在这里插入图片描述"></p>
+<h3 id="linux常见目录"><a href="#linux常见目录" class="headerlink" title="linux常见目录"></a>linux常见目录</h3><p> 图形环境，通过 Activities -&gt; Files -&gt; Other Locations -&gt; Computer</p>
+<ul>
+<li> 命令行环境，ls  /<br>Linux目录的层次分隔：斜杠 /    + 最顶层 就是 一个 / ，表示根目录</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th>名称</th>
+<th>描述</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>bin、sbin</td>
+<td>存放可执行文件</td>
+</tr>
+<tr>
+<td>home</td>
+<td>存放普通用户的家目录</td>
+</tr>
+<tr>
+<td>dev</td>
+<td>存放硬件设备</td>
+</tr>
+<tr>
+<td>mnt</td>
+<td>可挂载外部设备</td>
+</tr>
+<tr>
+<td>media</td>
+<td>自动识别并挂载的目录</td>
+</tr>
+<tr>
+<td>proc</td>
+<td>内存数据的映射，临时数据，不占硬盘空间</td>
+</tr>
+<tr>
+<td>tmp</td>
+<td>存放临时文件的目录</td>
+</tr>
+<tr>
+<td>var</td>
+<td>存放经常变化的数据  ，比如日志、邮件</td>
+</tr>
+<tr>
+<td>boot</td>
+<td>存放内核文件</td>
+</tr>
+<tr>
+<td>etc</td>
+<td>存放配置文件</td>
+</tr>
+<tr>
+<td>opt</td>
+<td>可以存放第三方文件</td>
+</tr>
+<tr>
+<td>usr</td>
+<td>存放用户相关数据</td>
+</tr>
+</tbody></table>
+<p>命令行的基本格式：<br>命令名字    [-选项…]  [参数…]</p>
+<ul>
+<li>选项的作用，控制命令的执行方式、效果</li>
+<li>参数的作用，为命令提供操作对象<h3 id="基本命令"><a href="#基本命令" class="headerlink" title="基本命令"></a>基本命令</h3></li>
+</ul>
+<p><strong>命令行常用的快捷键</strong></p>
+<ul>
+<li><code>CTRL-A</code>    将光标移到行首（在命令行下）</li>
+<li><code>CTRL-E</code>    将光标移动到行尾（在命令行下）</li>
+<li><code>CTRL-U</code>    擦除从光标位置开始到行首的所有字符内容。在某些设置下，CTRL-U会不以光标位置为参考而删除整行的输入。</li>
+<li><code>CTRL+ K</code>  ·：  从光标处向后删除指令串</li>
+<li><code>CTRL-J</code>    新行(换行[line feed]并到行首)。在脚本中，也可能表示为八进制形式(‘/012′)或十六进制形式(‘/x0a’)。</li>
+<li><code>CTRL-B</code>    退格 (非破坏性的)，这个只是将光标位置往回移动一个位置。</li>
+<li><code>CTRL-H</code>    擦除(Rubout)(破坏性的退格)。在光标往回移动的时候，同时擦除光标前的一个字符。</li>
+<li><code>CTRL-C</code>    中断，终结一个前台作业。</li>
+<li><code>CTRL-D</code>    “EOF” (文件结尾：end of file)。它用于表示标准输入（stdin）的结束。在控制台或xterm 窗口输入文本时，CTRL-D 删除在光标下的字符。从一个shell中退出 (类似于exit)。如果没有字符存在，CTRL-D 则会登出该会话。在一个xterm窗口中，则会产生关闭此窗口的效果。</li>
+<li>CTRL-F    将光标向前移动一个字符（在命令行下）</li>
+<li>CTRL-G    BEL。在一些老式打印机终端上，这会引发一个响铃。在xterm终端上可能是哔的一声。</li>
+<li>CTRL-I    水平制表符。</li>
+<li><code>CTRL-O</code>    产生一个新行（在命令行下）。</li>
+<li><code> CTRL-P</code>    从history缓冲区召回上一次的命令（在命令行下）。此快捷键召回的顺序是由近及远的召回，即按一次，召回的是前一次的命令，再按一次，是召回上一次之前的命令，这和CTRL-N都是以当前的输入为起点，但是两个命令操作刚好相反，CTRL-N是从起点开始由远及近（如果起点是历史命令的话）。</li>
+<li><code> CTRL-Q</code>    Resume (XON)。恢复/解冻，这个命令是恢复终端的stdin用的，可参见CTRL-S。</li>
+<li>CTRL-R    回溯搜索(Backwards search)history缓冲区内的文本（在命令行下）。注意：按下之后，提示符会变成(reverse-i-search)”:输入的搜索内容出现在单引号内，同时冒号后面出现最近最匹配的历史命令。</li>
+<li><code>CTRL-S</code>    Suspend(XOFF)，挂起。这个是冻结终端的stdin。要恢复可以按CTRL-Q。</li>
+<li>CTRL-T    交换光标位置与光标的前一个位置的字符内容（在命令行下）。比如：echo $var;，假设光标在a上，那么，按下C-T之后，v和a将会交换位置：echo $avr;。</li>
+<li>CTRL-V    在输入文本的时候，按下C-V之后，可以插入控制字符。比如：echo -e ‘/x0a’;和echo <CTRL-V><CTRL-J>;这两种效果一样。这点功能在文本编辑器内非常有效。</li>
+<li>CTRL-W    当在控制台或一个xterm窗口敲入文本时, CTRL-W 会删除从在光标处往后（回）的第一个空白符之间的内容。在某些设置里,</li>
+<li>CTRL-W 删除光标往后（回）到第一个非文字和数字之间的字符。</li>
+<li>CTRL-X    在某些文字处理程序中，这个控制字符将会剪切高亮的文本并且将它复制到剪贴板中。</li>
+<li><code>CTRL-Y</code>    将之前已经清除的文本粘贴回来（主要针对CTRL-U或CTRL-W）。</li>
+<li><code>CTRL-Z</code>    暂停一个前台的作业；在某些文本处理程序中也作为替换操作；在MSDOS文件系统中作为EOF（End-of-file)字符。</li>
+</ul>
+<hr>
+<table>
+<thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead>
+<tbody><tr>
+<td>ctrl+l</td>
+<td>清屏</td>
+</tr>
+<tr>
+<td>ctrl+c</td>
+<td>终止任务</td>
+</tr>
+<tr>
+<td>tab键</td>
+<td>补全命令   (如果不好用，要装bash-completion软件包)</td>
+</tr>
+<tr>
+<td>esc+.</td>
+<td>调用上个指令的最后一个参数，使用alt+.可以实现相同效果</td>
+</tr>
+</tbody></table>
+<table>
+<thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead>
+<tbody><tr>
+<td>ls -l</td>
+<td>查看文件详细信息</td>
+</tr>
+<tr>
+<td>ls -lh</td>
+<td>详细信息+易读容量单位</td>
+</tr>
+<tr>
+<td>ls -ld /opt</td>
+<td>查看opt目录本身的详细信息</td>
+</tr>
+<tr>
+<td>ls -A</td>
+<td>查看隐藏文件</td>
+</tr>
+</tbody></table>
+<table>
+<thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead>
+<tbody><tr>
+<td>pwd</td>
+<td>看当前所在位置</td>
+</tr>
+<tr>
+<td>cd  /opt</td>
+<td>切换到/opt目录</td>
+</tr>
+<tr>
+<td>mkdir  a</td>
+<td>创建a目录</td>
+</tr>
+<tr>
+<td>mkdir -p e/e</td>
+<td>创建多级目录</td>
+</tr>
+<tr>
+<td>touch x</td>
+<td>创建普通文件，名字叫x</td>
+</tr>
+<tr>
+<td>cat x</td>
+<td>查看x文件里面的内容</td>
+</tr>
+<tr>
+<td>cat  /etc/hosts</td>
+<td>查看ip域名对应关系</td>
+</tr>
+<tr>
+<td>less /etc/passwd</td>
+<td>查看长篇文档，可以使用键盘方向键手动翻页，而不是像cat命令直接看到最后一页</td>
+</tr>
+<tr>
+<td>su - test</td>
+<td>切换到名为test的账户，管理员切换到其他账户无需密码，但是普通账户切换到其他账户需要密码</td>
+</tr>
+<tr>
+<td>rm a</td>
+<td>删除a文件</td>
+</tr>
+<tr>
+<td>rm -r a</td>
+<td>如果a是个目录，需要加r选项</td>
+</tr>
+<tr>
+<td>rm -rf  a</td>
+<td>强制删除无提示</td>
+</tr>
+<tr>
+<td>rm -rf  *</td>
+<td>删除当前目录下所有文件，高风险命令，慎用！！</td>
+</tr>
+<tr>
+<td>cp /etc/passwd /opt</td>
+<td>拷贝etc下的passwd文件，到根目录下opt，常用选项  -r，recursive，复制多级目录的时候需要加</td>
+</tr>
+<tr>
+<td>mv passwd  /root</td>
+<td>移动passwd文件到管理员的家目录</td>
+</tr>
+<tr>
+<td>mv passwd abc</td>
+<td>为passwd文件改名为abc</td>
+</tr>
+</tbody></table>
+<h3 id="获取命令的帮助man"><a href="#获取命令的帮助man" class="headerlink" title="获取命令的帮助man"></a>获取命令的帮助man</h3><ul>
+<li>执行 man  命令名 来获取这个命令的使用帮助</li>
+<li>重点看<code>SYNOPSIS（语法格式）</code>、<code>DESCRIPTION（选项的含义和用法描述）</code></li>
+<li>按<code>/word</code>查找包含word的文字描述，按<code> n或N</code>来切换不同查找结果</li>
+<li>按<code> PgUp、PgDn</code>翻页，按<code>q键退出</code><h3 id="文本编辑器"><a href="#文本编辑器" class="headerlink" title="文本编辑器"></a>文本编辑器</h3>vi  /  vim<br>三种工作模式：</li>
+<li>1，命令模式   刚进入编辑器时，可以查看文档内容，可以进行复制yy、粘贴p操作、剪切dd（可以当删除使用），u可以撤销上一次操作</li>
+<li>2，输入模式   在命令模式按i 键 ，再按esc可以返回命令模式</li>
+<li>3，末行模式   在命令模式输入：<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">yum  -y  install  vim-enhanced 可以安装增强版的vim编辑器</span><br></pre></td></tr></table></figure>
+客户端配置文件：<code>/etc/yum.conf、/etc/yum.repos.d/*.repo</code></li>
+</ul>
+<p><img src="https://img-blog.csdnimg.cn/20210218002202113.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3Nhbmhld3V5YW5n,size_16,color_FFFFFF,t_70" alt="在这里插入图片描述"><br><img src="https://img-blog.csdnimg.cn/20210302212342433.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3Nhbmhld3V5YW5n,size_16,color_FFFFFF,t_70" alt="在这里插入图片描述"></p>
+<hr>
+<h3 id="配置软件仓库"><a href="#配置软件仓库" class="headerlink" title="配置软件仓库"></a>配置软件仓库</h3><p>用途：软件仓库/YUM源为其他客户机集中提供软件包及关联信息 ,RHEL8光盘预设源：BaseOS、AppStream</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">[仓库1标识]</span><br><span class="line">    name  =  仓库描述</span><br><span class="line">    baseurl = 仓库的地址</span><br><span class="line">    enabled = 1|0</span><br><span class="line">    gpgcheck = 1|0</span><br><span class="line">    <span class="comment">#gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-redhat-release</span></span><br><span class="line">[仓库2标识]</span><br></pre></td></tr></table></figure>
+<hr>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">cd</span> /etc/yum.repos.d/</span><br><span class="line">vi abc.repo</span><br><span class="line">[BaseOS]		仓库名称</span><br><span class="line">name=BaseOS		仓库描述</span><br><span class="line">baseurl=http://server1.net0.example.com/rhel8/BaseOS		 仓库软件来源</span><br><span class="line">enabled=1	仓库是否开启 ，1是开启0是关闭，默认不写这行也行，不写就是开启</span><br><span class="line">gpgcheck=0      检测软件合法性，通常是0无需检测</span><br><span class="line">[AppStream]</span><br><span class="line">name=AppStream</span><br><span class="line">baseurl=http://server1.net0.example.com/rhel8/AppStream</span><br><span class="line">enabled=1</span><br><span class="line">gpgcheck=0</span><br></pre></td></tr></table></figure>
+<p>常见的软件包安装：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># yum  -y  install  bash-completion  net-tools  vim-enhanced  bind-utils</span></span><br></pre></td></tr></table></figure>
+<p><img src="https://img-blog.csdnimg.cn/20201107180950866.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3Nhbmhld3V5YW5n,size_16,color_FFFFFF,t_70#pic_center" alt="在这里插入图片描述"><br>阿里云 yum文件</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">yum repolist   查询仓库</span><br><span class="line">yum -y install vim    利用仓库安装vim软件</span><br><span class="line">yum -y install bash-completion   安装支持tab键的软件，安装完后需要退出，再登陆</span><br><span class="line">yum provides ifconfig  查询ifconfig命令来自于哪个软件包</span><br><span class="line">yum -y install  net-tools   安装支持ifconfig等命令的软件包</span><br><span class="line"><span class="comment">#yum配置好之后使用yum或者dnf命令都可以调用仓</span></span><br><span class="line">yum clean all    清除软件仓库缓存</span><br><span class="line">yum repolist    查询软件仓库信息</span><br><span class="line">yum -y install vsftpd   安装软件包（vsftpd服务）</span><br><span class="line">yum -y remove vsftpd   删除软件包</span><br><span class="line">yum provides ifconfig   查询ifconfig命令来自哪个软件包</span><br><span class="line">yum  search  关键词 //根据关键词搜索相关的软件</span><br><span class="line">yum   -y  update  软件名.. .. //升级软件包</span><br></pre></td></tr></table></figure>
+<p><img src="https://img-blog.csdnimg.cn/20201107181303905.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3Nhbmhld3V5YW5n,size_16,color_FFFFFF,t_70#pic_center" alt="在这里插入图片描述"></p>
+<ul>
+<li><p>systemctl服务控制：</p>
+<ul>
+<li>systemctl，系统控制器，用来管理Linux系统的开机/关机/服务资源运行状态</li>
+<li><code>直接执行 systemctl </code>列出可以管理的系统资源，包括各种系统服务</li>
+<li>控制服务<code>当前运行状态</code>：<code>systemctl  start|stop|restart|status  服务名.. ..</code></li>
+<li>控制服务<code>开机自启</code>状态：<code>systemctl  enable|disable  服务名.. ..  [--now]</code></li>
+</ul>
+</li>
+<li><p>firewalld、SELinux安全开关：</p>
+<ul>
+<li><p>防火墙的作用，<code>内核的一套网络保护机制，通过firewalld服务来控制</code></p>
+</li>
+<li><p>如何停止防火墙：<code>systemctl  disable  firewalld  --now</code></p>
+</li>
+<li><p>SELinux的作用，<code>内核的一套系统保护机制</code>，通过内核启动参数或者启动配置来控制</p>
+</li>
+<li><p>如何关闭SELinux机制<code>（三种状态 —— Enforcing强制保护、Permissive宽松模式、Disabled禁用</code><br><img src="https://img-blog.csdnimg.cn/20201230202307439.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3Nhbmhld3V5YW5n,size_16,color_FFFFFF,t_70" alt="在这里插入图片描述"></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># vi  /etc/selinux/config</span></span><br><span class="line">SELINUX=Permissive     ==》重启后生效</span><br><span class="line"><span class="comment"># setenforce  0|1       ==》立即变成宽松|强制模式</span></span><br><span class="line"><span class="comment"># getenforce               ==》查看结果</span></span><br></pre></td></tr></table></figure></li>
+</ul>
+</li>
+</ul>
+<h3 id="服务管理："><a href="#服务管理：" class="headerlink" title="服务管理："></a>服务管理：</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">systemctl start vsftpd  	开启服务</span><br><span class="line">systemctl stop vsftpd  	关闭服务</span><br><span class="line">systemctl restart httpd    重启服务</span><br><span class="line">systemctl status vsftpd   查服务详细状态，可以看到服务是否开启等信息</span><br><span class="line">systemctl is-active  vsftpd  查服务精简状态，仅仅看是否开启</span><br><span class="line">systemctl is-enabled vsftpd     查看服务是否开机自启</span><br><span class="line">systemctl <span class="built_in">enable</span> vsftpd   设置服务开机自启</span><br><span class="line">systemctl <span class="built_in">disable</span> firewalld --now   取消服务的开机自启，并关闭服务</span><br><span class="line">systemctl <span class="built_in">enable</span> firewalld --now   设置开机自启，并且开启服务</span><br></pre></td></tr></table></figure>
+<hr>
+<p>忘记服务名字查看</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">[root@liruilong tmp]<span class="comment"># systemctl list-unit-files | grep  ^fire*</span></span><br><span class="line">firewalld.service                             disabled</span><br><span class="line">[root@liruilong tmp]<span class="comment"># </span></span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>防火墙 ：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">systemctl stop firewalld  关闭</span><br><span class="line">systemctl <span class="built_in">disable</span> firewalld  取消开机自启</span><br></pre></td></tr></table></figure>
+<hr>
+<h3 id="selinux-："><a href="#selinux-：" class="headerlink" title="selinux ："></a>selinux ：</h3><blockquote>
+<p>美国NSA国家安全局提供的一套基于内核的增强的强制安全保护机制，主要针对用户、进程、文档做了一些安全标签及相关限制。<br>getenforce    查selinux是否开启，可以看到下列3种状态<br>Enforcing是开启状态 ，Permissive是关闭(宽松)，disabled是永久关闭<br>setenforce  1   临时设置selinux，1是开启，0是关闭</p>
+</blockquote>
+<ul>
+<li>安全策略谁来提供：NSA、RedHat</li>
+<li>查看文件、进程的安全上下文：<ul>
+<li>ls  -Z  .. ..</li>
+<li>ps  -Z  .. ..</li>
+</ul>
+</li>
+</ul>
+<hr>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">vim /etc/selinux/config     此配置文件决定了服务器重启后，selinux处于什么状态，永久设置</span><br></pre></td></tr></table></figure>
+
+<h3 id="可设置项目："><a href="#可设置项目：" class="headerlink" title="可设置项目："></a>可设置项目：</h3><ul>
+<li>1，设置布尔值（对某些软件工具提前预设的开关）  <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"> getsebool -a    查看布尔值</span><br><span class="line">setsebool -P ftpd_anon_write=on   修改某服务对应的布尔值开关on是开启，off是关闭</span><br></pre></td></tr></table></figure></li>
+<li>2，设置安全的上下文<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">ls -Z  abc.html   查看某文件上下文值</span><br><span class="line">chcon -t admin_home_t  abc.html    修改文件上下文值，-t是指定文件的归属</span><br><span class="line">restorecon abc.html   根据服务的预设值自定定义abc文件的上下文值</span><br></pre></td></tr></table></figure></li>
+<li>3，设置端口  <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">yum -y install setroubleshoot-server    selinux排错工具包</span><br><span class="line">semanage  port  -l    查询</span><br><span class="line">semanage port -l | grep http    过滤查询，只看http相关内容</span><br><span class="line">semanage port -a -t http_port_t -p tcp 82    在selinux管理的服务端口中，为http添加82端口</span><br><span class="line">-a 是添加，如果是-d 就是删除</span><br><span class="line">-t 指定某服务类型 </span><br><span class="line">-p 是定义协议和要添加的端口</span><br></pre></td></tr></table></figure></li>
+</ul>
+<hr>
+<h3 id="防火墙系统服务："><a href="#防火墙系统服务：" class="headerlink" title="防火墙系统服务："></a>防火墙系统服务：</h3><pre><code>firewalld  预设安全区域：
+</code></pre>
+<ul>
+<li>block：阻止所有数据包</li>
+<li>drop：丢弃所有数据包</li>
+<li>public：公共区域，允许SSH等极个别服务，默认区域</li>
+<li>rusted：信任区域，允许任何访问</li>
+<li>work：办公区域，允许SSH、Samba少数几个服务</li>
+</ul>
+<p>预设保护服务：</p>
+<ul>
+<li> http、https、dns……</li>
+</ul>
+<p>防火墙管理工具：</p>
+<ul>
+<li> firewall-cmd、firewall-config</li>
+</ul>
+<p>防火墙规则的作用范围：</p>
+<ul>
+<li>运行配置 —— 当前有效，重启firewalld服务后失效</li>
+<li>永久配置 —— 当前无效，重启firewalld服务后有效 ，通过添加 –permanent 选项设置</li>
+</ul>
+<p>查看/修改默认区域：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># firewall-cmd  --get-default-zone</span></span><br><span class="line"><span class="comment"># firewall-cmd  --set-default-zone=trusted</span></span><br></pre></td></tr></table></figure>
+<p>如何设置具体的防火墙规则：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># firewall-cmd  --add-service=服务名  --zone=区域名</span></span><br><span class="line"><span class="comment"># firewall-cmd  --add-source=源地址  --zone=区域名</span></span><br></pre></td></tr></table></figure>
+<p>常用配置</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#执行如下命令，查看防火墙状态，是否为running。</span></span><br><span class="line">firewall-cmd --state</span><br><span class="line"><span class="comment">#执行如下命令，重新载入配置。比如在添加规则等之后，需要执行此命令。</span></span><br><span class="line">firewall-cmd --reload</span><br><span class="line"><span class="comment">#执行如下命令，列出支持的zone。</span></span><br><span class="line">firewall-cmd --get-zones</span><br><span class="line"><span class="comment">#执行如下命令，列出支持的服务，在列表中的服务是放行的。</span></span><br><span class="line">firewall-cmd --get-services</span><br><span class="line"><span class="comment">#执行如下命令，查看FTP服务是否支持，返回yes表示支持，返回no表示不支持。</span></span><br><span class="line">firewall-cmd --query-service ftp</span><br><span class="line"><span class="comment">#执行如下命令，临时开放FTP服务。</span></span><br><span class="line">firewall-cmd --add-service=ftp</span><br><span class="line"><span class="comment">#执行如下命令，永久开放FTP服务。</span></span><br><span class="line">firewall-cmd --add-service=ftp --permanent</span><br><span class="line"><span class="comment">#执行如下命令，永久移除FTP服务。</span></span><br><span class="line">firewall-cmd --remove-service=ftp --permanent</span><br><span class="line"><span class="comment">#执行如下命令，永久添加80端口。</span></span><br><span class="line">firewall-cmd --add-port=80/tcp --permanent</span><br><span class="line"><span class="comment">#执行如下命令，查看规则，此命令和iptables相同。</span></span><br><span class="line">iptables -L -n</span><br><span class="line"><span class="comment">#执行如下命令，查看帮助。</span></span><br><span class="line">man firewall-cmd</span><br></pre></td></tr></table></figure>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#查看 firewalld 服务当前所使用的区域： </span></span><br><span class="line">firewall-cmd --get-default-zone </span><br><span class="line"><span class="comment">#查询 eno16777728 网卡在 firewalld 服务中的区域： </span></span><br><span class="line">firewall-cmd --get-zone-of-interface=eno16777728 </span><br><span class="line"><span class="comment">#把 firewalld 服务中 eno16777728 网卡的默认区域修改为 external，并在系统重启后生效。分 别查看当前与永久模式下的区域名称：</span></span><br><span class="line">firewall-cmd --permanent --zone=external --change-interface= eno16777728</span><br><span class="line">firewall-cmd --get-zone-of-interface=eno16777728 </span><br><span class="line">firewall-cmd --permanent --get-zone-of-interface=eno16777728 </span><br><span class="line"><span class="comment">#把 firewalld 服务的当前默认区域设置为 public： </span></span><br><span class="line"> firewall-cmd --set-default-zone=public </span><br><span class="line"><span class="comment">#启动/关闭 firewalld 防火墙服务的应急状况模式，阻断一切网络连接（当远程控制服务器 时请慎用）：</span></span><br><span class="line">firewall-cmd --panic-on </span><br><span class="line">firewall-cmd --panic-off </span><br><span class="line"><span class="comment">#查询 public 区域是否允许请求 SSH 和 HTTPS 协议的流量： </span></span><br><span class="line">firewall-cmd --zone=public --query-service=ssh </span><br><span class="line">firewall-cmd --zone=public --query-service=https </span><br><span class="line"><span class="comment">#把 firewalld 服务中请求 HTTP 协议的流量设置为永久拒绝，并立即生效： </span></span><br><span class="line">firewall-cmd --permanent --zone=public --remove-service=http </span><br><span class="line">firewall-cmd --reload  </span><br><span class="line"><span class="comment">#把在 firewalld 服务中访问 8080 和 8081 端口的流量策略设置为允许，但仅限当前生效： </span></span><br><span class="line">firewall-cmd --zone=public --add-port=8080-8081/tcp </span><br><span class="line">firewall-cmd --zone=public --list-ports </span><br></pre></td></tr></table></figure>
+<hr>
+<h3 id="账户管理："><a href="#账户管理：" class="headerlink" title="账户管理："></a>账户管理：</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">useradd   abc   添加账户</span><br><span class="line">userdel -r xyz01   删除用户，-r是删除与用户有关的文件</span><br><span class="line"><span class="built_in">echo</span>  xxxxx   |  passwd  --stdin  abc  为abc账户非交互式配置密码 xxxxx</span><br><span class="line">id   abcd   查看用户基本信息  uid是用户id号码   gid是用户所在基本组的号码  groups是用户附加组信息</span><br><span class="line">---------------------------</span><br><span class="line">tail  -1   /etc/passwd    查看系统刚刚创建的用户信息</span><br><span class="line">grep abc: /etc/passwd   查看系统种名字包含abc字符串的用户信息</span><br><span class="line">usermod -u 1600 xyz02   为已经创建好的xyz02账户修改id号</span><br><span class="line">usermod -d /opt  xyz03  修改xyz03的家目录为/opt</span><br><span class="line">gpasswd -a xyz03 xyz02    为xyz03添加一个附加组(附属组)xyz02</span><br><span class="line">gpasswd -d xyz03 xyz02   为xyz03从附加组xyz02中删除</span><br><span class="line">usermod -s /sbin/nologin abcd    修改abcd账户的解释器为不可交互的状态</span><br><span class="line">groupadd admins    创建组admins</span><br><span class="line">useradd -G admins zhsan  创建账户zhsan的同时添加附加组admins组</span><br><span class="line">su -  zhsan   切换账户      </span><br><span class="line">--------------------------------</span><br></pre></td></tr></table></figure>
+<h3 id="定义计划任务："><a href="#定义计划任务：" class="headerlink" title="定义计划任务："></a>定义计划任务：</h3><p><img src="https://img-blog.csdnimg.cn/20210102155155834.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3Nhbmhld3V5YW5n,size_16,color_FFFFFF,t_70" alt="在这里插入图片描述"></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">crontab -e  为当前账户添加计划任务</span><br><span class="line">crontab -e -u lisi  指定lisi账户添加计划任务</span><br><span class="line">* * * * * date &gt;&gt; /opt/<span class="built_in">test</span>     每分钟执行date任务</span><br><span class="line">5-15 * * * * date &gt;&gt; /opt/<span class="built_in">test</span>     每小时的5-15分钟</span><br><span class="line">10,13,17 * * * * date &gt;&gt; /opt/<span class="built_in">test</span>   每小时的10，13，17分钟执行</span><br><span class="line">*/5 * * * * date &gt;&gt; /opt/<span class="built_in">test</span>    每隔3分支执行一次</span><br><span class="line">10-15/2 * * * * date &gt;&gt; /opt/<span class="built_in">test</span>   每小时的10-15分钟里，每隔2分钟执行一次</span><br><span class="line">crontab -r    删除计划任务</span><br><span class="line">systemctl is-enabled crond.service   检测计划任务服务是否开机自启</span><br></pre></td></tr></table></figure>
+<p><img src="https://img-blog.csdnimg.cn/20210102155208131.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3Nhbmhld3V5YW5n,size_16,color_FFFFFF,t_70" alt="在这里插入图片描述"></p>
+<hr>
+<h3 id="设置基本权限："><a href="#设置基本权限：" class="headerlink" title="设置基本权限："></a>设置基本权限：</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line">基本权限   r 读     w写      x执行（目录是进入权限）</span><br><span class="line">chmod o+w abcd     为abcd文件的其他人添加写权限</span><br><span class="line">chmod u-x abcd   为abcd文件的所属主删除x权限</span><br><span class="line">chmod g+x abcd   为abcd文件的所属组 添加x权限</span><br><span class="line"></span><br><span class="line">所属主   所属组   其他人</span><br><span class="line">u		g	     o</span><br><span class="line">------------------</span><br><span class="line">数字方式定义文件权限</span><br><span class="line">r=4       w=2	x=1</span><br><span class="line">chmod 777 abcd       将abcd文件的所属主   所属组   其他人 的权限都设置成拥有rwx</span><br><span class="line">chmod 700 abcd      将abcd文件的所属主设置成拥有rwx权限  而所属组与其他人没有任何权限</span><br><span class="line">-----------------------</span><br><span class="line">修改所属</span><br><span class="line">chown lisi <span class="built_in">test</span>     只修改所属用户</span><br><span class="line">chown :lisi <span class="built_in">test</span>   只修改所属组</span><br><span class="line">chown abcd:abcd <span class="built_in">test</span>   修改用户:组  </span><br><span class="line">chown -R lisi abc   递归修改abc目录以及目录中所有文件的所属主为lisi	  -R表示递归，对chmod命令也适用</span><br><span class="line">--------------------</span><br></pre></td></tr></table></figure>
+<h3 id="acl-访问控制列表"><a href="#acl-访问控制列表" class="headerlink" title="acl 访问控制列表"></a>acl 访问控制列表</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">setfacl -m user:zhsan:rw /var/tmp/hosts    给zhsan用户单独针对hots文件的rw权限</span><br><span class="line">setfacl -m group:zhsan:rw /var/tmp/hosts  给zhsan组单独针对hots文件的rw权限</span><br><span class="line">setfacl -b /var/tmp/hosts    清除acl权限</span><br><span class="line">getfacl /var/tmp/hosts 查看acl权限</span><br></pre></td></tr></table></figure>
+<p><img src="https://img-blog.csdnimg.cn/20201219144146441.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3Nhbmhld3V5YW5n,size_16,color_FFFFFF,t_70"></p>
+<hr>
+<h3 id="特殊权限-创建共用目录"><a href="#特殊权限-创建共用目录" class="headerlink" title="特殊权限,创建共用目录"></a>特殊权限,创建共用目录</h3><p><img src="https://img-blog.csdnimg.cn/20201107183400852.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3Nhbmhld3V5YW5n,size_16,color_FFFFFF,t_70#pic_center" alt="在这里插入图片描述"></p>
+<h4 id="附加权限："><a href="#附加权限：" class="headerlink" title="附加权限："></a>附加权限：</h4><ul>
+<li>4   set uid：附加到 “属主” 的x位上，变成 s<pre><code>使普通的程序具有特殊属性（任何人在执行这个程序的时候，自动拥有这个程序的所有者的权限）
+</code></pre>
+</li>
+<li>2   set gid：附加到 “属组” 的x位上，变成 s<pre><code>使普通的程序具有特殊属性（任何人在执行这个程序的时候，自动拥有这个程序的所属组的权限）
+使普通的目录的属组权限能够自动往下继承（在目录下新建的文档自动属于这个目录的属组）
+</code></pre>
+</li>
+<li>1   粘滞位：附加到 “其他人” 的x位上，变成 t<pre><code>使用户在拥有w权限的目录下不能够删除其他人的文件
+</code></pre>
+<blockquote>
+<p>附加权限设置示例：</p>
+</blockquote>
+</li>
+<li>　chmod  u+s  文件.. ..  //比如：/usr/bin/passwd</li>
+<li>　　chmod  g+s  文件.. .. </li>
+<li>　　chmod  o+t  文件.. .. //比如：/tmp</li>
+<li>　　chmod  4755  文件.. ..</li>
+<li>　　chmod  1777  目录.. ..</li>
+<li>　　chmod  2770  目录.. ..</li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">set</span> uid   可以使某用户在执行拥有此权限的文件时自动拥有此文件所属主的权限</span><br><span class="line"><span class="built_in">set</span> gid   可以使某用户在执行此文件时，自动拥有此文件的所属组权限，如果是目录拥有此权限，表示在该目录下创建的文件自动属于此目录的属组</span><br><span class="line">粘滞位（t权限） 在一个拥有w权限的目录中，使用户之间不可以任意删除别人的文件</span><br></pre></td></tr></table></figure>
+<hr>
+<h3 id="配置时间同步"><a href="#配置时间同步" class="headerlink" title="配置时间同步"></a>配置时间同步</h3><p>NTP，Network  Time  Protocol,时间同步：将计算机与指定服务器的时间保持一致</p>
+<ul>
+<li>NTP服务端（考试服务器）：<code>ntpd或chronyd</code></li>
+<li>NTP客户端：<code>软件包chrony（系统服务chronyd）</code></li>
+<li>客户端配置文件：<code>/etc/chrony.conf</code></li>
+<li>pool   时间服务器的域名  iburst //适合一个域名解析为多个IP地址的情况（服务器池）</li>
+<li>server   时间服务器的域名  iburst //适合一个域名解析为单个服务器IP地址的情况<h4 id="iburst-参数的作用："><a href="#iburst-参数的作用：" class="headerlink" title="iburst 参数的作用："></a>iburst 参数的作用：</h4><ul>
+<li>1）第一次同步时，头4个包的间隔为2秒，以便能更快的获得标准时间。</li>
+<li>2）如果在一个标准轮询间隔内没有应答，会向NTP服务器再发送8个包（而不是通常的一个）。</li>
+<li>3）如果NTP 服务器仍没有给出可识别的应答，那么本机的时间将不会变化。</li>
+</ul>
+</li>
+</ul>
+<h4 id="NTP验证-设置工具："><a href="#NTP验证-设置工具：" class="headerlink" title="NTP验证/设置工具："></a>NTP验证/设置工具：</h4><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">timedatectl 			        //查看时间日期状态信息</span><br><span class="line"> chronyc sources  -v//检查当前使用的NTP源信息</span><br></pre></td></tr></table></figure>
+<h4 id="手动设置系统日期、时间："><a href="#手动设置系统日期、时间：" class="headerlink" title="手动设置系统日期、时间："></a>手动设置系统日期、时间：</h4>   <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">date  -s  <span class="string">&#x27;HH:MM&#x27;</span></span><br><span class="line">date  -s  <span class="string">&#x27;HH:MM:SS&#x27;</span></span><br><span class="line">date  -s  <span class="string">&#x27;yyyy-mm-dd&#x27;</span></span><br><span class="line">date  -s  <span class="string">&#x27;yyyy-mm-dd HH:MM&#x27;</span></span><br></pre></td></tr></table></figure>
+<p>补充：</p>
+<ul>
+<li>根据BIOS时间设置系统时间： hwclock  -s</li>
+<li>根据系统时间设置BIOS时间：hwclock  -w<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">systemctl status chronyd    查看同步服务状态，通常都是开启状态</span><br><span class="line">vim /etc/chrony.conf   修改配置文件</span><br><span class="line">server server1.net0.example.com iburst      将有iburst字样那行注释掉，从新添加此内容</span><br><span class="line">systemctl restart chronyd     重启服务</span><br><span class="line">chronyc sources -v   检查结果   带^*表示同步时间成功 </span><br><span class="line">date -s 20:20:00   随意修改时间后，在重启服务器检测是否同步</span><br></pre></td></tr></table></figure>
+<img src="https://img-blog.csdnimg.cn/20201107183634623.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3Nhbmhld3V5YW5n,size_16,color_FFFFFF,t_70#pic_center" alt="在这里插入图片描述"></li>
+</ul>
+<p><strong>远程复制：</strong><br><img src="https://img-blog.csdnimg.cn/20210103205009637.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3Nhbmhld3V5YW5n,size_16,color_FFFFFF,t_70" alt="在这里插入图片描述"></p>
+<hr>
+<h3 id="配置autofs自动挂载，"><a href="#配置autofs自动挂载，" class="headerlink" title="配置autofs自动挂载，"></a>配置autofs自动挂载，</h3><p>在网络资源使用时自动挂载，不使用时自动卸载，达到节约资源的目的。</p>
+<ul>
+<li>本地文件系统：文档存放在本机连接的磁盘上<code>EXT4、XFS、SWAP,FAT32</code></li>
+<li>网络文件系统：文档存放在网络中的一台服务器上，通过共享方式提供（比如NFS）<code>NFS，Network File System</code><h4 id="mount挂载（本地）："><a href="#mount挂载（本地）：" class="headerlink" title="mount挂载（本地）："></a>mount挂载（本地）：</h4><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">　　mount  /dev/cdrom   /mnt/dvd</span><br><span class="line">　　mount  /dev/sda1   /mnt/tdir</span><br></pre></td></tr></table></figure>
+NFS客户端 ——查看共享资源列表：</li>
+<li>   showmount  -e  目标主机             //需要软件包 nfs-utils<br>挂载NFS共享资源：</li>
+<li>　　mount  服务器地址:共享文件夹路径  /mnt/tdir</li>
+</ul>
+<h4 id="文件系统的挂载方式"><a href="#文件系统的挂载方式" class="headerlink" title="文件系统的挂载方式"></a>文件系统的挂载方式</h4><ul>
+<li><p>1）手动挂载：<code>mount   设备路径   挂载点目录</code></p>
+</li>
+<li><p>2）开机自动挂载：<code>修改 /etc/fstab 配置文件</code><br>  <code>设备路径   挂载点目录  文件系统类型  defaults,_netdev  0 0</code></p>
+</li>
+<li><p>3）半自动挂载（已经配置好/etc/fstab）：</p>
+<ul>
+<li>mount  设备路径</li>
+<li>mount  挂载点目录</li>
+</ul>
+</li>
+<li><p>4）触发挂载（按需自动挂载）：<code>autofs服务</code></p>
+</li>
+<li><p>软件包/系统服务：<code>autofs nfs-utils</code></p>
+</li>
+<li><p>主配置：<code>/etc/auto.master</code><br><code>目标文件夹监控策略配置文件</code></p>
+</li>
+<li><p>监控策略配置：<code>/etc/*</code><br>子目录名 -挂载选项:设备路径<br>子目录名 -挂载选项NFS服务器地址:共享目录绝对路径</p>
+</li>
+</ul>
+<p>通过部署autofs服务，可以代替管理员按需、自动完成以下任务：</p>
+<ul>
+<li>1）当有用户需要使用 /rhome/ 目录下的 ldapuser0 子目录时，提前创建此目录，并将服务器上的 classroom.example.com:/rhome/ldapuser0 挂载到本机的 /rhome/ldapuser0</li>
+<li>2）当用户不再使用 /rhome/ 目录下的 ldapuser0 子目录时，自动卸载此目录上已挂载的资源，并删除此目录</li>
+</ul>
+<p>本地账号：存放在本机的/etc/passwd、/etc/shadow，家目录一般位于 /home/用户名<br>网络账号：存放在网络（AD域、LDAP域）中的认证服务器上，家目录也存在认证服务器上</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">showmount  -e server1</span><br><span class="line">yum -y install autofs nfs-utils   安装所需软件包</span><br><span class="line">vim /etc/auto.master      修改主配置文件</span><br><span class="line">/rhome /etc/rhome.rule   在第一行添加，/rhome是在本地什么位置作为远程资源的挂载目录，/etc/rhome.rule是远程资源配置文件所在路径，可以自定义</span><br><span class="line">vim /etc/rhome.rule   修改上一步定义的远程资源配置文件，添加以下内容：</span><br><span class="line">ldapuser0 -fstype=nfs 172.25.0.254:/rhome/ldapuser0 定义账户、文件系统类型、远程资源路径</span><br><span class="line">systemctl restart autofs   重启服务</span><br><span class="line">ls /rhome   查看原本没有的/rhome目录，发现已经自动生成</span><br><span class="line">ls rhome/ldapuser0   再查看里面的内容，报权限错误 ，正常，已经激活自动挂载</span><br><span class="line">ls /rhome  再次查看目录，已经看到远程资源，成功</span><br></pre></td></tr></table></figure>
+
+<h3 id="find搜索"><a href="#find搜索" class="headerlink" title="find搜索"></a>find搜索</h3><h4 id="按照条件查找系统当中的任何文件："><a href="#按照条件查找系统当中的任何文件：" class="headerlink" title="按照条件查找系统当中的任何文件："></a>按照条件查找系统当中的任何文件：</h4><pre><code>find  [目录范围]  [查找条件1]  -o  [查找条件2] .. ..
+find  [目录范围]  [查找条件1]  -a  [查找条件2] .. ..
+</code></pre>
+<h4 id="常见的查找条件表示："><a href="#常见的查找条件表示：" class="headerlink" title="常见的查找条件表示："></a>常见的查找条件表示：</h4><ul>
+<li> -name  文档名称</li>
+<li>-type  文档类型  【f、d、l、b、c】</li>
+<li> -size  +|-文档大小</li>
+<li>-mtime  +|-修改时间 【1  之前24小时~48小时】</li>
+<li> -user  所属用户</li>
+<li> -group  所属组<h4 id="处理find查找结果："><a href="#处理find查找结果：" class="headerlink" title="处理find查找结果："></a>处理find查找结果：</h4></li>
+<li>-exec   命令行（嵌入 {} 替代查找结果）   ;</li>
+</ul>
+<p>修改文件的时间戳：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">touch  -d  <span class="string">&#x27;2015-12-31  12:30&#x27;</span>  f2.txt</span><br></pre></td></tr></table></figure>
+<h4 id="demo"><a href="#demo" class="headerlink" title="demo"></a>demo</h4><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">可以按条件查找文件</span><br><span class="line">-<span class="built_in">type</span>  按文件类型搜索</span><br><span class="line"> f   普通文件    d  目录     l 连接文件   b 块设备 </span><br><span class="line">find /opt -<span class="built_in">type</span> f	 //在/opt下查找所有普通文件</span><br><span class="line">-name 按名称搜索    </span><br><span class="line">find  /opt  -name  abc     //在/opt下查找名字叫abc的文件</span><br><span class="line">-size  + -   按文件大小搜索</span><br><span class="line">find / -size +50M     //在根目录下找大于50M的文件</span><br><span class="line">-user  按用户名搜索</span><br><span class="line">find . -user root    //再当前目录找所属主是root的文件</span><br><span class="line">----------------------------------</span><br><span class="line">-o 或者    -a 并且      可以实现多个条件的逻辑组合  </span><br><span class="line"> find . -<span class="built_in">type</span> f -a -name abc   // 找当前目录下的普通文件并且名字叫abc，此处的-a也也可省略不写</span><br><span class="line"> find . -<span class="built_in">type</span> f -o -name abc   //找当前目录下的普通文件或者名字叫abc的文件</span><br><span class="line">----------------------------------</span><br><span class="line"><span class="comment">#找出/etc/目录下大小超过 5MB 的文件，并将其副本放入/root/findfiles 目录。</span></span><br><span class="line">find /etc -size +5M -<span class="built_in">exec</span> cp -p &#123;&#125; /root/findfiles \;     </span><br><span class="line">-<span class="built_in">exec</span>代表有继续执行的指令  cp 是拷贝   -p保持原文件属性权限，&#123;&#125;是find搜索到的文件  \;是结束</span><br></pre></td></tr></table></figure>
+<hr>
+<h3 id="grep查找字符串"><a href="#grep查找字符串" class="headerlink" title="grep查找字符串"></a>grep查找字符串</h3><p>可以找到文档中的字符串，并且以行为单位输出.</p>
+<h4 id="grep基本用法："><a href="#grep基本用法：" class="headerlink" title="grep基本用法："></a>grep基本用法：</h4><ul>
+<li>grep  ‘关键词’   文件.. ..</li>
+<li>grep  ‘正则表达式’   文件.. ..<h4 id="常见的选项："><a href="#常见的选项：" class="headerlink" title="常见的选项："></a>常见的选项：</h4><ul>
+<li>-v：将条件取反</li>
+<li>–color：突出显示结果</li>
+<li>-w：单词匹配</li>
+<li>-c：统计匹配行数</li>
+</ul>
+</li>
+</ul>
+<h4 id="简单正则表达式："><a href="#简单正则表达式：" class="headerlink" title="简单正则表达式："></a>简单正则表达式：</h4><ul>
+<li> ^word：查找以word开头</li>
+<li>word$：查找以word结尾</li>
+<li> ^$：查找空行</li>
+<li>-E：支持使用扩展正则表达式（egrep）<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"> grep <span class="string">&quot;abc&quot;</span>  abc	//在abc文档中找有abc字符串的行</span><br><span class="line">grep <span class="string">&quot;ab&quot;</span>  abc      //在abc文档中找有ab字符串的行</span><br><span class="line"> grep <span class="string">&quot;^ab&quot;</span>  abc   //在abc文档中找以ab字符串开头的行</span><br><span class="line"> grep <span class="string">&quot;ab$&quot;</span>  abc   //在abc文档中找以ab字符串结尾的行</span><br></pre></td></tr></table></figure>
+找到的内容还可以利用重定向保存到文件中<h3 id="重定向-gt-，-gt-gt"><a href="#重定向-gt-，-gt-gt" class="headerlink" title="重定向 &gt;，  &gt;&gt;"></a>重定向 &gt;，  &gt;&gt;</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">echo</span> 123 &gt; xyz.txt    //喊出123 覆盖保存在文件xyz.txt中，如果xyz.txt中之前有内容，将会被覆盖</span><br><span class="line"><span class="built_in">echo</span> 123 &gt;&gt; xyz.txt   //喊出123 追加保存在文件xyz.txt中，不会覆盖原有内容</span><br><span class="line">grep <span class="string">&quot;sbin&quot;</span>  /etc/man_db.conf  &gt;  /root/out.txt       //使用grep在man_db.conf 文件中搜索到的包含sbin的行都保存到 out.txt文件中</span><br></pre></td></tr></table></figure></li>
+</ul>
+<hr>
+<h3 id="tar归档"><a href="#tar归档" class="headerlink" title="tar归档"></a>tar归档</h3><p>将多个文件合成一个文件，方便保存和管理 ,还可以配合gzip、bzip2 、xz三种压缩工具进行压缩</p>
+<blockquote>
+<p>-c 创建   -f指定文件名   -x 释放  <code>-P 保存原始路径</code><br>-z 使用gzip方式在归档时压缩，扩展名可以写.gz<br>-j 使用bzip2 方式在归档时压缩，扩展名可以写.bz2<br>-J  使用xz 方式在归档时压缩，扩展名可以写.xz</p>
+</blockquote>
+<ul>
+<li>归档：把很多文件归纳到一起 tar</li>
+<li>压缩：减小文件占用空间的大小 gzip、bzip2、xz</li>
+</ul>
+<blockquote>
+<p>tar命令的选项：<br>   -<code>c：创建新文档</code><br>   -<code>x：释放备份文档</code><br>   -<code>f：指定文档名称</code><br>   -z：处理 .gz 格式<br>   -j：处理 .bz2 格式<br>   -J：处理 .xz 格式<br>   -<code>t：显示文档列表</code><br>   -<code>p：保持原有权限</code><br>   -<code>P：保持绝对路径</code><br>   -C：指定释放备份文件时的目标位置<br>   –exclude=排除的子目录</p>
+</blockquote>
+<h4 id="tar-制作备份文件："><a href="#tar-制作备份文件：" class="headerlink" title="tar 制作备份文件："></a>tar 制作备份文件：</h4><ul>
+<li>tar  -zcf  备份文件名.tar.gz  被备份的文档….</li>
+<li>tar  -jcf  备份文件名.tar.bz2  被备份的文档….</li>
+<li>tar  -Jcf  备份文件名.tar.xz  被备份的文档….</li>
+</ul>
+<h4 id="tar-从备份文件恢复："><a href="#tar-从备份文件恢复：" class="headerlink" title="tar 从备份文件恢复："></a>tar 从备份文件恢复：</h4><p>   tar  -xf  备份文件名   [-C  目标文件夹]</p>
+<h4 id="tar-查看备份文件内容："><a href="#tar-查看备份文件内容：" class="headerlink" title="tar 查看备份文件内容："></a>tar 查看备份文件内容：</h4><p>   tar  -tf  备份文件名</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">yum -y install tar		//安装tar工具</span><br><span class="line">yum -y install bzip2		//安装压缩工具</span><br><span class="line">tar -czPf test.tar.gz /var/<span class="built_in">log</span>   //将/var/<span class="built_in">log</span>打包压缩成test.tar.gz，使用的压缩方式是gzip</span><br><span class="line">tar -cjPf test.tar.bz2 /var/<span class="built_in">log</span></span><br><span class="line">tar -cJPf test.tar.xz /var/<span class="built_in">log</span></span><br></pre></td></tr></table></figure>
+<h3 id="破解密码"><a href="#破解密码" class="headerlink" title="破解密码"></a>破解密码</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">//重启 系统，按 e 键打断启动过程</span><br><span class="line">//修改 linux 行（ro 改 rw，末尾添加 rd.break）然后按 ctrl+x 启动</span><br><span class="line">按ctrl+x     //以无需密码的方式启动系统</span><br><span class="line">chroot  /sysroot/      //切换到根系统</span><br><span class="line"><span class="built_in">echo</span>  redhat  |  passwd --stdin  root    //改密码</span><br><span class="line">touch   /.autorelabel    //重置selinux标记</span><br><span class="line"><span class="built_in">exit</span></span><br><span class="line">reboot    //重启  </span><br><span class="line">yum -y install vim  net-tools  bash-completion    //在blue主机安装常用软件包</span><br></pre></td></tr></table></figure>
+<p><img src="https://img-blog.csdnimg.cn/2021022814085894.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3Nhbmhld3V5YW5n,size_16,color_FFFFFF,t_70" alt="在这里插入图片描述"></p>
+<p><img src="https://img-blog.csdnimg.cn/20201120205226745.png#pic_center" alt="在这里插入图片描述"></p>
+<hr>
+<h3 id="磁盘的使用"><a href="#磁盘的使用" class="headerlink" title="磁盘的使用"></a><code>磁盘的使用</code></h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">lsblk    //查看分区状态</span><br><span class="line">fdisk /dev/vdc     //使用fdisk分区工具，对/dev/vdc硬盘进行分区</span><br><span class="line">p 查询分区状态 			</span><br><span class="line">q 不保存退出</span><br><span class="line">n 新建分区</span><br><span class="line">Select (default p):      //回车，默认是主分区</span><br><span class="line">Partition number (1-4, default 1):     //第一个分区默认序号是1</span><br><span class="line">First sector ：    //起始扇区，直接回车</span><br><span class="line">Last sector       +500M      //创建500M分区</span><br><span class="line">w    //保存退出</span><br><span class="line">mkfs.xfs /dev/vdc1     //使用xfs文件系统为vdc1这个分区格式化</span><br><span class="line">mount   /dev/vdc1   /mnt    //将新分区挂载到/mnt目录</span><br><span class="line">df -h   </span><br><span class="line">umount   /dev/vdc1   //卸载分区</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<p><img src="https://img-blog.csdnimg.cn/20201121161914207.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3Nhbmhld3V5YW5n,size_16,color_FFFFFF,t_70#pic_center" alt="正常的实体机使用的都是/dev/sd[a-]的硬盘档名
+虚拟机可能会使用/dev/vd[a-p]这种装置档名"></p>
+<h4 id="调整逻辑卷大小"><a href="#调整逻辑卷大小" class="headerlink" title="调整逻辑卷大小"></a>调整逻辑卷大小</h4><p>在计算机上使用磁盘空间的过程：</p>
+<p>识别磁盘   –&gt;   分区                                                                                                          –&gt; 格式化     –&gt; 挂载  –&gt; 访问挂载点<br>lsblk          –&gt;  fdisk -l  –&gt;  fdisk(MSDOS分区表)/gdisk(GPT分区表 &gt;2.2TB磁盘)/parted –&gt; mkfs相关 –&gt; mount –&gt; ls、vim</p>
+<p>磁盘分区操作 ——<br>fdisk  -l<br>fdisk  /dev/vdb<br>parted  /dev/vdb</p>
+<p>分区模式msdos：四个主分区、扩展分区、逻辑分区<br>分区模式gpt（支持&gt;2T空间）：主分区（操作系统支持一般&lt;128个）</p>
+<p>刷新硬盘分区表：<br>     partprobe  /dev/vdb 或者 partx  -a  /dev/vdb<br>     reboot<br>格式化操作：</p>
+<ul>
+<li>mkfs.ext3   分区设备 </li>
+<li>mkfs.ext4   分区设备 </li>
+<li>mkfs.xfs   分区设备 </li>
+<li>mkfs.vfat   分区设备<h4 id="逻辑卷管理"><a href="#逻辑卷管理" class="headerlink" title="逻辑卷管理"></a>逻辑卷管理</h4><code>LVM逻辑卷</code>管理机制 —— <code>化零（物理卷PV）为整（卷组VG）、动态扩容伸缩，按需（逻辑卷LV）分配</code></li>
+</ul>
+<p>把零散的分区（PV物理设备(物理卷)） ===》整编的大卷组（VG虚拟磁盘） ===》 根据需要获取空间（虚拟分区LV）<br>游击队                                                    ===》 八路军                                     ===》按需增编/简编人员</p>
+<blockquote>
+<p>识别磁盘 –&gt; 分区 –&gt; 卷组 –&gt; 逻辑卷 –&gt; 格式化 –&gt; 挂载  –&gt; 访问挂载点</p>
+</blockquote>
+<h4 id="实现方式："><a href="#实现方式：" class="headerlink" title="实现方式："></a>实现方式：</h4><p><strong><code>分区/物理卷（2G、4G、6G）</code> –&gt;<code> 卷组（12G）</code> –&gt; <code>逻辑卷（10G、1G）</code></strong></p>
+<h4 id="LVM管理工具"><a href="#LVM管理工具" class="headerlink" title="LVM管理工具"></a>LVM管理工具</h4><ul>
+<li>物理卷操作（不常用）：pvscan、pvdisplay、pvcreate</li>
+<li>卷组操作：vgscan(扫描)、vgdisplay（显示）、vgcreate、vgremove、vgextend（扩容）</li>
+<li>逻辑卷操作：lvscan、lvdisplay、lvcreate、lvremove、lvextend</li>
+</ul>
+<p><code>PE</code>：分配逻辑卷空间的时候，最小的单位,默认为4M</p>
+<p>创建卷组：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">vgcreate  [-s  PE大小]  卷组名  分区.. ..</span><br></pre></td></tr></table></figure>
+<p>创建逻辑卷：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">lvcreate  -L  大小  -n  名称   卷组名</span><br><span class="line">lvcreate  -l  PE个数  -n  名称   卷组名</span><br></pre></td></tr></table></figure>
+<p>扩展逻辑卷：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">lvextend  -L  +大小  /dev/卷组名/逻辑卷名</span><br></pre></td></tr></table></figure>
+<p>扩展卷组：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">vgextend  卷组名  分区.. ..</span><br></pre></td></tr></table></figure>
+
+<p>通知内核新的文件系统大小：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">resize2fs  /dev/卷组名/逻辑卷名 //适用于EXT2/3/4文件系统（blkid检查）</span><br><span class="line">xfs_growfs  逻辑卷名的挂载点//适用于XFS文件系统（blkid检查）</span><br></pre></td></tr></table></figure>
+<p>逻辑卷的设备位置：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">/dev/卷组名/逻辑卷名</span><br><span class="line">或者</span><br><span class="line">/dev/mapper/卷组名-逻辑卷名</span><br></pre></td></tr></table></figure>
+<p><img src="https://img-blog.csdnimg.cn/20201121152810601.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3Nhbmhld3V5YW5n,size_16,color_FFFFFF,t_70#pic_center" alt="在这里插入图片描述"></p>
+<hr>
+<p>​​<img src="https://img-blog.csdnimg.cn/20201121142820319.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3Nhbmhld3V5YW5n,size_16,color_FFFFFF,t_70#pic_center" alt="在这里插入图片描述"></p>
+<hr>
+<p><img src="https://img-blog.csdnimg.cn/20201121150917308.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3Nhbmhld3V5YW5n,size_16,color_FFFFFF,t_70#pic_center" alt="在这里插入图片描述"></p>
+<hr>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line">[root@blue ~]<span class="comment"># vgscan </span></span><br><span class="line">  Reading all physical volumes.  This may take a <span class="keyword">while</span>...</span><br><span class="line">  Found volume group <span class="string">&quot;myvg&quot;</span> using metadata <span class="built_in">type</span> lvm2</span><br><span class="line">  Found volume group <span class="string">&quot;test&quot;</span> using metadata <span class="built_in">type</span> lvm2</span><br><span class="line">  Found volume group <span class="string">&quot;rhel&quot;</span> using metadata <span class="built_in">type</span> lvm2</span><br><span class="line">[root@blue ~]<span class="comment"># pvscan</span></span><br><span class="line">  PV /dev/vdb2   VG myvg            lvm2 [1008.00 MiB / 208.00 MiB free]</span><br><span class="line">  PV /dev/vdb1   VG <span class="built_in">test</span>            lvm2 [&lt;2.00 GiB / &lt;1.67 GiB free]</span><br><span class="line">  PV /dev/vda2   VG rhel            lvm2 [&lt;29.00 GiB / 0    free]</span><br><span class="line">  Total: 3 [&lt;31.98 GiB] / <span class="keyword">in</span> use: 3 [&lt;31.98 GiB] / <span class="keyword">in</span> no VG: 0 [0   ]</span><br><span class="line">[root@blue ~]<span class="comment"># lvscan </span></span><br><span class="line">  ACTIVE            <span class="string">&#x27;/dev/myvg/mylv&#x27;</span> [800.00 MiB] inherit</span><br><span class="line">  ACTIVE            <span class="string">&#x27;/dev/test/vo&#x27;</span> [336.00 MiB] inherit</span><br><span class="line">  ACTIVE            <span class="string">&#x27;/dev/rhel/swap&#x27;</span> [&lt;2.17 GiB] inherit</span><br><span class="line">  ACTIVE            <span class="string">&#x27;/dev/rhel/root&#x27;</span> [&lt;26.83 GiB] inherit</span><br><span class="line">[root@blue ~]<span class="comment"># lsblk </span></span><br><span class="line">NAME          MAJ:MIN RM  SIZE RO TYPE MOUNTPOINT</span><br><span class="line">sr0            11:0    1 1024M  0 rom  </span><br><span class="line">vda           252:0    0   30G  0 disk </span><br><span class="line">├─vda1        252:1    0    1G  0 part /boot</span><br><span class="line">└─vda2        252:2    0   29G  0 part </span><br><span class="line">  ├─rhel-root 253:0    0 26.8G  0 lvm  /</span><br><span class="line">  └─rhel-swap 253:1    0  2.2G  0 lvm  [SWAP]</span><br><span class="line">vdb           252:16   0   10G  0 disk </span><br><span class="line">├─vdb1        252:17   0    2G  0 part </span><br><span class="line">│ └─test-vo   253:2    0  336M  0 lvm  /vo</span><br><span class="line">└─vdb2        252:18   0    1G  0 part </span><br><span class="line">  └─myvg-mylv 253:3    0  800M  0 lvm  </span><br><span class="line">vdc           252:32   0   10G  0 disk </span><br><span class="line">└─vdc1        252:33   0  500M  0 part /mnt</span><br><span class="line">[root@blue ~]<span class="comment"># </span></span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<p><img src="https://img-blog.csdnimg.cn/20210102185228744.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3Nhbmhld3V5YW5n,size_16,color_FFFFFF,t_70" alt="在这里插入图片描述"></p>
+<hr>
+<h3 id="创建卷组"><a href="#创建卷组" class="headerlink" title="创建卷组"></a><code>创建卷组</code></h3><p>逻辑卷   化零为整   更自由的使用磁盘空间     <code>创建逻辑卷之前先要创建卷组</code>，然后从<code>卷组中划分空间给逻辑卷</code></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">vgcreate /dev/myvg /dev/vdb2     //正常创建卷组，默认扩展单元是4M（不满足目前题意，目前要求是16M）</span><br><span class="line">vgdisplay  /dev/myvg   //可以在PE一栏中看到扩张单元的大小</span><br><span class="line">vgremove /dev/myvg   //删除卷组myvg</span><br><span class="line">vgcreate -s 16MiB /dev/myvg /dev/vdb2    //创建扩展单元为16MiB的卷组（目前练习题要求），之后可以用vgdisplay查看PE的大小</span><br></pre></td></tr></table></figure>
+<h3 id="创建逻辑卷"><a href="#创建逻辑卷" class="headerlink" title="创建逻辑卷"></a><code>创建逻辑卷</code></h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">lvcreate -n mylv -L 800M /dev/myvg    //正常创建</span><br><span class="line">lvcreate -n mylv -l 50 /dev/myvg    //按照扩展单元的数量创建（目前练习题要求），之后可以用vgs查看</span><br><span class="line">vgs     // 查看邏輯卷</span><br></pre></td></tr></table></figure>
+<ol start="19">
+<li>创建逻辑卷<br>根据以下要求，创建新的逻辑卷：<br>1）    逻辑卷的名字为mylv，属于myvg卷组，大小为50个扩展单元<br>2）    卷组myvg中的逻辑卷的扩展块大小应当为16MiB<br>3）    使用vfat文件系统将逻辑卷mylv格式化<br>4）    此逻辑卷应当在系统启动时自动挂载到/mnt/mydata目录下</li>
+</ol>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br></pre></td><td class="code"><pre><span class="line">[root@blue ~]<span class="comment"># fdisk /dev/vdb</span></span><br><span class="line"></span><br><span class="line">Welcome to fdisk (util-linux 2.32.1).</span><br><span class="line">Changes will remain <span class="keyword">in</span> memory only, until you decide to write them.</span><br><span class="line">Be careful before using the write <span class="built_in">command</span>.</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">Command (m <span class="keyword">for</span> <span class="built_in">help</span>): n</span><br><span class="line">Partition <span class="built_in">type</span></span><br><span class="line">   p   primary (2 primary, 0 extended, 2 free)</span><br><span class="line">   e   extended (container <span class="keyword">for</span> logical partitions)</span><br><span class="line">Select (default p): </span><br><span class="line"></span><br><span class="line">Using default response p.</span><br><span class="line">Partition number (3,4, default 3): </span><br><span class="line">First sector (2074624-20971519, default 2074624): </span><br><span class="line">Last sector, +sectors or +size&#123;K,M,G,T,P&#125; (2074624-20971519, default 20971519): +1000M</span><br><span class="line"></span><br><span class="line">Created a new partition 3 of <span class="built_in">type</span> <span class="string">&#x27;Linux&#x27;</span> and of size 1000 MiB.</span><br><span class="line"></span><br><span class="line">Command (m <span class="keyword">for</span> <span class="built_in">help</span>): w</span><br><span class="line">The partition table has been altered.</span><br><span class="line">Syncing disks.</span><br><span class="line"></span><br><span class="line">[root@blue ~]<span class="comment"># part</span></span><br><span class="line">parted     partprobe  partx      </span><br><span class="line">[root@blue ~]<span class="comment"># partprobe /dev/vdb</span></span><br><span class="line">[root@blue ~]<span class="comment"># vgcreate -s 16MiB myvg /dev/vdb3</span></span><br><span class="line">  Physical volume <span class="string">&quot;/dev/vdb3&quot;</span> successfully created.</span><br><span class="line">  Volume group <span class="string">&quot;myvg&quot;</span> successfully created</span><br><span class="line">[root@blue ~]<span class="comment"># lvcreate -l 50 -n mylv myvg</span></span><br><span class="line">  Logical volume <span class="string">&quot;mylv&quot;</span> created.</span><br><span class="line">[root@blue ~]<span class="comment"># lvscan</span></span><br><span class="line">  ACTIVE            <span class="string">&#x27;/dev/myvg/mylv&#x27;</span> [800.00 MiB] inherit</span><br><span class="line">  ACTIVE            <span class="string">&#x27;/dev/test/vo&#x27;</span> [300.00 MiB] inherit</span><br><span class="line">  ACTIVE            <span class="string">&#x27;/dev/rhel/swap&#x27;</span> [2.16 GiB] inherit</span><br><span class="line">  ACTIVE            <span class="string">&#x27;/dev/rhel/root&#x27;</span> [&lt;46.84 GiB] inherit</span><br><span class="line">[root@blue ~]<span class="comment"># vgscan</span></span><br><span class="line">  Found volume group <span class="string">&quot;myvg&quot;</span> using metadata <span class="built_in">type</span> lvm2</span><br><span class="line">  Found volume group <span class="string">&quot;test&quot;</span> using metadata <span class="built_in">type</span> lvm2</span><br><span class="line">  Found volume group <span class="string">&quot;rhel&quot;</span> using metadata <span class="built_in">type</span> lvm2</span><br><span class="line">[root@blue ~]<span class="comment"># lsblik</span></span><br><span class="line">-bash: lsblik: <span class="built_in">command</span> not found</span><br><span class="line">[root@blue ~]<span class="comment"># lsblk</span></span><br><span class="line">NAME          MAJ:MIN RM  SIZE RO TYPE MOUNTPOINT</span><br><span class="line">sr0            11:0    1 1024M  0 rom  </span><br><span class="line">vda           252:0    0   50G  0 disk </span><br><span class="line">├─vda1        252:1    0    1G  0 part /boot</span><br><span class="line">└─vda2        252:2    0   49G  0 part </span><br><span class="line">  ├─rhel-root 253:0    0 46.9G  0 lvm  /</span><br><span class="line">  └─rhel-swap 253:1    0  2.2G  0 lvm  [SWAP]</span><br><span class="line">vdb           252:16   0   10G  0 disk </span><br><span class="line">├─vdb1        252:17   0  500M  0 part </span><br><span class="line">│ └─test-vo   253:2    0  300M  0 lvm  /vo</span><br><span class="line">├─vdb2        252:18   0  512M  0 part [SWAP]</span><br><span class="line">└─vdb3        252:19   0 1000M  0 part </span><br><span class="line">  └─myvg-mylv 253:3    0  800M  0 lvm  </span><br><span class="line">vdc           252:32   0   10G  0 disk </span><br><span class="line">[root@blue ~]<span class="comment"># mkfs.vfat /dev/myvg/mylv </span></span><br><span class="line">-bash: mkfs.vfat: <span class="built_in">command</span> not found</span><br><span class="line">[root@blue ~]<span class="comment"># yum -y install dosfstools</span></span><br><span class="line">Updating Subscription Management repositories.</span><br><span class="line">Unable to <span class="built_in">read</span> consumer identity</span><br><span class="line">.......</span><br><span class="line">[root@blue ~]<span class="comment"># mkfs.vfat /dev/myvg/mylv </span></span><br><span class="line">mkfs.fat 4.1 (2017-01-24)</span><br><span class="line">[root@blue ~]<span class="comment"># vim /etc/fstab </span></span><br><span class="line"></span><br><span class="line">[1]+  Stopped                 vim /etc/fstab</span><br><span class="line">[root@blue ~]<span class="comment"># mkdir /mnt/mydata</span></span><br><span class="line">[root@blue ~]<span class="comment"># fg</span></span><br><span class="line">vim /etc/fstab</span><br><span class="line">[root@blue ~]<span class="comment"># mount -a</span></span><br><span class="line">[root@blue ~]<span class="comment"># df</span></span><br><span class="line">Filesystem            1K-blocks    Used Available Use% Mounted on</span><br><span class="line">devtmpfs                 483592       0    483592   0% /dev</span><br><span class="line">tmpfs                    501328       0    501328   0% /dev/shm</span><br><span class="line">tmpfs                    501328    6880    494448   2% /run</span><br><span class="line">tmpfs                    501328       0    501328   0% /sys/fs/cgroup</span><br><span class="line">/dev/mapper/rhel-root  49087060 1765620  47321440   4% /</span><br><span class="line">/dev/vda1               1038336  163540    874796  16% /boot</span><br><span class="line">/dev/mapper/test-vo      301728   12732    288996   5% /vo</span><br><span class="line">tmpfs                    100264       0    100264   0% /run/user/0</span><br><span class="line">/dev/mapper/myvg-mylv    817584       4    817580   1% /mnt/mydata</span><br><span class="line">[root@blue ~]<span class="comment"># </span></span><br></pre></td></tr></table></figure>
+<hr>
+<h3 id="逻辑卷扩容"><a href="#逻辑卷扩容" class="headerlink" title="逻辑卷扩容"></a><code>逻辑卷扩容</code></h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">lvextend -L 300M /dev/<span class="built_in">test</span>/vo    //将名字叫vo的逻辑卷扩容到300M</span><br><span class="line">blkid /dev/<span class="built_in">test</span>/vo    //查看vo逻辑卷的文件系统</span><br><span class="line">lsblk    //再查看该逻辑卷的挂载点</span><br><span class="line">xfs_growfs /vo    //刷新大小，如果是xfs的文件系统</span><br><span class="line">resize2fs  /vo     //刷新大小，如果是ext的文件系统</span><br></pre></td></tr></table></figure>
+<hr>
+<h3 id="交换分区"><a href="#交换分区" class="headerlink" title="交换分区"></a><code>交换分区</code></h3><p>相当于<code>win的虚拟内存</code>，在<code>物理内存不足时借用硬盘空间,硬盘中预先划分一定的空间</code>，然后将把<code>内存中暂时不常 用的数据临时存放到硬盘中</code>，以便腾出物理内存空间让更活跃的程序服务来使用的技术，其设计目的是为了解决真实物理内存不足的问题。<br>但由于<code>交换分区</code>毕竟是通过硬盘设备读写数据的， 速<code>度肯定要比物理内存慢</code>，所以只有当<code>真实的物理内存耗尽后才会调用交换分区的资源</code>.</p>
+<ul>
+<li>交换分区：虚拟内存，一般设置成物理内存的1~2倍，&lt;16G </li>
+</ul>
+<p> <code>格式化交换分区</code></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">swapon -s    //查询交换分区状态，通常有可能会存在个默认的交换分区，不能删除</span><br><span class="line">先用fdisk /dev/vdb  //再创建一个512M的分区比如创建了vdb3</span><br><span class="line">mkswap  /dev/vdb3    //格式化交换分区</span><br><span class="line">vim /etc/fstab   //修改开机挂载磁盘的文件</span><br><span class="line">/dev/vdb3   swap     swap    defaults        0 0</span><br><span class="line">swapon  -a  //测试上述文件是否修改正确</span><br><span class="line">swapon -s  //再次查看会多出swap分区</span><br></pre></td></tr></table></figure>
+<p><code>启用/停止控制：</code></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">swapon   设备路径</span><br><span class="line">swapoff   设备路径</span><br></pre></td></tr></table></figure>
+<p>查看交换分区使用情况：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">swapon  -s</span><br><span class="line">free</span><br></pre></td></tr></table></figure>
+<ol start="18">
+<li>添加交换分区<br>为你的系统额外添加一个512MiB的交换分区，此交换分区应在系统启动时自动挂载，不要删除或以任何方式改动系统上原有的交换分区。 </li>
+</ol>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br></pre></td><td class="code"><pre><span class="line">[root@blue ~]<span class="comment"># fdisk /dev/vdb</span></span><br><span class="line"></span><br><span class="line">Welcome to fdisk (util-linux 2.32.1).</span><br><span class="line">Changes will remain <span class="keyword">in</span> memory only, until you decide to write them.</span><br><span class="line">Be careful before using the write <span class="built_in">command</span>.</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">Command (m <span class="keyword">for</span> <span class="built_in">help</span>): n</span><br><span class="line">Partition <span class="built_in">type</span></span><br><span class="line">   p   primary (1 primary, 0 extended, 3 free)</span><br><span class="line">   e   extended (container <span class="keyword">for</span> logical partitions)</span><br><span class="line">Select (default p): </span><br><span class="line"></span><br><span class="line">Using default response p.</span><br><span class="line">Partition number (2-4, default 2): </span><br><span class="line">First sector (1026048-20971519, default 1026048): </span><br><span class="line">Last sector, +sectors or +size&#123;K,M,G,T,P&#125; (1026048-20971519, default 20971519): +512M</span><br><span class="line"></span><br><span class="line">Created a new partition 2 of <span class="built_in">type</span> <span class="string">&#x27;Linux&#x27;</span> and of size 512 MiB.</span><br><span class="line"></span><br><span class="line">Command (m <span class="keyword">for</span> <span class="built_in">help</span>): w</span><br><span class="line">The partition table has been altered.</span><br><span class="line">Syncing disks.</span><br><span class="line"></span><br><span class="line">[root@blue ~]<span class="comment"># part</span></span><br><span class="line">parted     partprobe  partx      </span><br><span class="line">[root@blue ~]<span class="comment"># part</span></span><br><span class="line">parted     partprobe  partx      </span><br><span class="line">[root@blue ~]<span class="comment"># partprobe  /dev/vd</span></span><br><span class="line">vda   vda1  vda2  vdb   vdb1  vdb2  vdc   </span><br><span class="line">[root@blue ~]<span class="comment"># partprobe  /dev/vdb</span></span><br><span class="line">[root@blue ~]<span class="comment"># lsblk</span></span><br><span class="line">NAME          MAJ:MIN RM  SIZE RO TYPE MOUNTPOINT</span><br><span class="line">sr0            11:0    1 1024M  0 rom  </span><br><span class="line">vda           252:0    0   50G  0 disk </span><br><span class="line">├─vda1        252:1    0    1G  0 part /boot</span><br><span class="line">└─vda2        252:2    0   49G  0 part </span><br><span class="line">  ├─rhel-root 253:0    0 46.9G  0 lvm  /</span><br><span class="line">  └─rhel-swap 253:1    0  2.2G  0 lvm  [SWAP]</span><br><span class="line">vdb           252:16   0   10G  0 disk </span><br><span class="line">├─vdb1        252:17   0  500M  0 part </span><br><span class="line">│ └─test-vo   253:2    0  300M  0 lvm  /vo</span><br><span class="line">└─vdb2        252:18   0  512M  0 part </span><br><span class="line">vdc           252:32   0   10G  0 disk </span><br><span class="line">[root@blue ~]<span class="comment"># mkswap /dev/vd</span></span><br><span class="line">vda   vda1  vda2  vdb   vdb1  vdb2  vdc   </span><br><span class="line">[root@blue ~]<span class="comment"># mkswap /dev/vd</span></span><br><span class="line">vda   vda1  vda2  vdb   vdb1  vdb2  vdc   </span><br><span class="line">[root@blue ~]<span class="comment"># mkswap /dev/vdb2</span></span><br><span class="line">Setting up swapspace version 1, size = 512 MiB (536866816 bytes)</span><br><span class="line">no label, UUID=ac1a1ba6-7f1a-4b92-80bc-11836d4236c0</span><br><span class="line">[root@blue ~]<span class="comment"># vim /etc/fstab</span></span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<p><img src="https://img-blog.csdnimg.cn/20210228184805716.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3Nhbmhld3V5YW5n,size_16,color_FFFFFF,t_70" alt="在这里插入图片描述"></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">[root@blue ~]<span class="comment"># swapon -a</span></span><br><span class="line">[root@blue ~]<span class="comment"># swapon -s</span></span><br><span class="line">Filename				Type		SizeUsed	Priority</span><br><span class="line">/dev/dm-1                              	partition	2265084	0	-2</span><br><span class="line">/dev/vdb2                              	partition	524284	0	-3</span><br><span class="line">[root@blue ~]<span class="comment"># </span></span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<hr>
+<h3 id="VDO卷"><a href="#VDO卷" class="headerlink" title="VDO卷"></a><code>VDO卷</code></h3><p>虚拟数据优化器，可以对数据进行重删过滤,<br>VDO（Virtual Data Optimize）是RHEL8/Centos8上新推出的一个存储相关技术（最早在7.5测试版中开始测试），是Redhat收购的Permabit公司的技术。<br>VDO的主要作用是节省磁盘空间，比如让1T的磁盘能装下1.5T的数据，从而降低数据中心的成本。<br>那vdo是如何实现的呢，关键原理主要是<code>重删和压缩</code>，重删就是硬盘里拷贝来相同的数据，以前要占多份空间，现在只需要1份空间就可以了。类似我们在百度网盘中上传一个大型软件安装包，能实现秒传，其实是之前就有，所以无需再传一遍，也无需再占百度一份空间。另一方面是数据压缩，类似于压缩软件的算法，也可以更加节省磁盘空间。<br><code>VDO是一个内核模块</code>，目的是通过<code>重删减少磁盘的空间占用，以及减少复制带宽</code>，VDO是<code>基于块设备层之上</code>的，也就是在原设备基础上映射出mapper虚拟设备，然后直接使用即可，功能的实现主要基于以下技术。</p>
+<ul>
+<li>1）零区块的排除：在初始化阶段，整块为0的会被元数据记录下来，这个可以用水杯里面的水和沙子混合的例子来解释，使用滤纸（零块排除），把沙子（非零空间）给过滤出来，然后就是下一个阶段的处理。</li>
+<li> 2）重复数据删除：在第二阶段，对于输入的数据会判断是不是冗余数据（在写入之前就判断），这个部分的数据通过UDS内核模块来判断（Universal Deduplication Service），被判断为重复数据的部分不会被写入，然后对元数据进行更新，直接指向原始已经存储的数据块即可。    + 3）压缩：一旦消零和重删完成，LZ4压缩会对每个单独的数据块进行处理，然后压缩好的数据块会以固定大小4KB的数据块存储在介质上，由于一个物理块可以包含很多的压缩块，这个也可以加速读取的性能。</li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">yum  -y  install  vdo     //装包</span><br><span class="line">systemctl restart vdo   //启动服务，并设置开机自启</span><br><span class="line">找到vdc磁盘（此盘之前不能有配置）</span><br><span class="line">man  vdo   //搜索 /example ，在例子中查找相关配置命令</span><br><span class="line"> vdo create --name=vdo0 --device=/dev/sdb1 --vdoLogicalSize=10T    //然后按题目稍作修改，name是vdo卷的名称，device是使用哪个物理磁盘，最后是定义虚拟磁盘大小</span><br><span class="line">格式化 mkfs.xfs  -K   /dev/mapper/myvdo      // `-K可以加快速度`</span><br><span class="line">设置/etc/fstab文件，并且使用mount  -a检测</span><br><span class="line">/dev/mapper/myvdo /vblock xfs _netdev 0 0      //	_netdev的作用是等待网络相关程序启动后再执行挂载任务，通常网络启动之后vdo服务也就起来了，就可以挂载了</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<p>　　<br>vdo基本操作：<br>　　vdo  create  –name=VDO卷名称 –device=设备路径 –vdoLogicalSize=逻辑大小<br>　　vdo  list<br>　　vdo  status  -n VDO卷名称<br>　　vdostats  [–human-readable]  [/dev/mapper/VDO卷名称]<br>　　vdo  remove  -n VDO卷名称</p>
+<hr>
+<h3 id="系统调优"><a href="#系统调优" class="headerlink" title="系统调优"></a><code>系统调优</code></h3><p>使用tuned服务,<code>RHEL7/8的调优服务tuned</code>：提供了大量预设的调优方案，旨在于简化调优的实施，充分利用系统资源与能效。<br>管理员可以针对不同的业务选择不同的优化策略</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">tuned-adm  命令直接回车 可以看到选项提示信息</span><br><span class="line">tuned-adm  list //列出可用的优化方案</span><br><span class="line">tuned-adm recommend   查询建议的优化方案</span><br><span class="line">tuned-adm profile   XXXXX     使用某优化方案</span><br><span class="line">tuned-adm active   查看当前使用的优化方案</span><br></pre></td></tr></table></figure>
+
+<h3 id="CocKpit驾驶舱"><a href="#CocKpit驾驶舱" class="headerlink" title="CocKpit驾驶舱"></a>CocKpit驾驶舱</h3><p>于SSH类似，用于远程控制，类似于阿里云的控制台。为初级管理员提供基本操作，通过web端的控制台，访问地址：服务器IP:9090</p>
+<p>yum包安装并开启服务：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">yum  -y  install  cockpit  cockpit-dashboard  cockpit-machines</span><br><span class="line"></span><br><span class="line">systemctl  <span class="built_in">enable</span>  cockpit.socket  --now</span><br></pre></td></tr></table></figure>
+<p>Web浏览器访问 https://虚拟机的IP地址:9090：<br><img src="https://img-blog.csdnimg.cn/20201206113528997.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3Nhbmhld3V5YW5n,size_16,color_FFFFFF,t_70" alt="在这里插入图片描述"><br><img src="https://img-blog.csdnimg.cn/20201206113752466.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3Nhbmhld3V5YW5n,size_16,color_FFFFFF,t_70" alt="在这里插入图片描述"><br>本机访问虚拟机的cockpit：<br>本机的虚拟机网卡的ip要和虚拟机的网卡ip设置为同一个网段的才可以访问。<br><img src="https://img-blog.csdnimg.cn/2020120611501928.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3Nhbmhld3V5YW5n,size_16,color_FFFFFF,t_70" alt="在这里插入图片描述"><br><img src="https://img-blog.csdnimg.cn/20201206115358709.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3Nhbmhld3V5YW5n,size_16,color_FFFFFF,t_70" alt="在这里插入图片描述"></p>
+<h3 id="实战"><a href="#实战" class="headerlink" title="实战"></a>实战</h3></div><div class="article-licensing box"><div class="licensing-title"><p>Linux红帽证书RHCAS考试笔记</p><p><a href="http://example.com/2020/11/14/Linux红帽证书考试笔记/">http://example.com/2020/11/14/Linux红帽证书考试笔记/</a></p></div><div class="licensing-meta level is-mobile"><div class="level-left"><div class="level-item is-narrow"><div><h6>作者</h6><a href="http://example.com"><p>山河已无恙</p></a></div></div><div class="level-item is-narrow"><div><h6>发布于</h6><p>2020-11-14</p></div></div><div class="level-item is-narrow"><div><h6>更新于</h6><p>2021-06-27</p></div></div><div class="level-item is-narrow"><div><h6>许可协议</h6><p><a class="icon" rel="noopener" target="_blank" title="Creative Commons" href="https://creativecommons.org/"><i class="fab fa-creative-commons"></i></a><a class="icon" rel="noopener" target="_blank" title="Attribution" href="https://creativecommons.org/licenses/by/4.0/"><i class="fab fa-creative-commons-by"></i></a><a class="icon" rel="noopener" target="_blank" title="Noncommercial" href="https://creativecommons.org/licenses/by-nc/4.0/"><i class="fab fa-creative-commons-nc"></i></a></p></div></div></div></div></div><div class="recommend-area"></div><link rel="stylesheet" href="https://cdnjs.loli.net/ajax/libs/social-share.js/1.0.16/css/share.min.css"><div class="social-share"></div><script src="https://cdnjs.loli.net/ajax/libs/social-share.js/1.0.16/js/social-share.min.js"></script></article></div><div class="card"><div class="card-content"><h3 class="menu-label has-text-centered">喜欢这篇文章？打赏一下作者吧</h3><div class="buttons is-centered"><a class="button donate" data-type="alipay"><span class="icon is-small"><i class="fab fa-alipay"></i></span><span>支付宝</span><span class="qrcode"><img src="/img/alipay%EF%BF%A5.png" alt="支付宝"></span></a><a class="button donate" data-type="wechat"><span class="icon is-small"><i class="fab fa-weixin"></i></span><span>微信</span><span class="qrcode"><img src="/img/wechat%EF%BF%A5.png" alt="微信"></span></a></div></div></div><nav class="post-navigation mt-4 level is-mobile"><div class="level-start"><a class="article-nav-prev level level-item link-muted" href="/2021/03/25/%E4%BC%81%E4%B8%9A%E7%BA%A7%E7%BD%91%E7%BB%9C%E6%9E%B6%E6%9E%84(%E6%90%AD%E5%BB%BA)%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0(%E7%BD%91%E7%AE%A1)/"><i class="level-item fas fa-chevron-left"></i><span class="level-item">企业级网络架构(搭建)学习笔记(网管)</span></a></div><div class="level-end"><a class="article-nav-next level level-item link-muted" href="/2013/07/13/kubernetes(K8S)%20%E5%AE%B9%E5%99%A8%E7%AE%A1%E7%90%86%E2%80%9C%E6%89%AB%E7%9B%B2%E2%80%9C%20%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/"><span class="level-item">kubernetes(K8S) 容器管理“扫盲“ 学习笔记</span><i class="level-item fas fa-chevron-right"></i></a></div></nav><!--!--><div class="card"><div class="card-content"><div class="title is-5">评论</div><div id="comment-container"></div><link rel="stylesheet" href="https://cdnjs.loli.net/ajax/libs/gitalk/1.6.0/gitalk.css"><script> $.getScript('/js/gitalk.min.js', function () { 
+            var gitalk = new Gitalk({
+            language:'zh-CN',
+            id: '7f1175d590b8950217864b0a472e9cc2',
+            repo: 'blog_comment',
+            owner: 'removeif',
+            clientID: '46a9f3481b46ea0129d8',
+            clientSecret: '79c7c9cb847e141757d7864453bcbf89f0655b24',
+            admin: ["removeif"],
+            createIssueManually: true,
+            distractionFreeMode: false,
+            perPage: 10,
+            pagerDirection: 'last',
+            proxy: 'https://cors-anywhere.azm.workers.dev/https://github.com/login/oauth/access_token',
+            
+            enableHotKey: true,
+            isLocked: false
+        })
+        gitalk.render('comment-container')});</script></div></div></div><div class="column column-left is-4-tablet is-4-desktop is-3-widescreen  order-1 is-sticky"><div class="card widget" id="toc" data-type="toc"><div class="card-content"><div class="menu"><h3 class="menu-label">目录</h3><ul class="menu-list"><ul class="menu-list"><li><a class="is-flex is-mobile" href="#写在前面"><span class="mr-2">1.1</span><span>写在前面</span></a></li></ul><li><a class="is-flex is-mobile" href="#CE的笔记-Ansible"><span class="mr-2">2</span><span>CE的笔记(Ansible)</span></a><ul class="menu-list"><li><a class="is-flex is-mobile" href="#配置网卡"><span class="mr-2">2.1</span><span>配置网卡</span></a></li><li><a class="is-flex is-mobile" href="#linux常见目录"><span class="mr-2">2.2</span><span>linux常见目录</span></a></li><li><a class="is-flex is-mobile" href="#基本命令"><span class="mr-2">2.3</span><span>基本命令</span></a></li><li><a class="is-flex is-mobile" href="#获取命令的帮助man"><span class="mr-2">2.4</span><span>获取命令的帮助man</span></a></li><li><a class="is-flex is-mobile" href="#文本编辑器"><span class="mr-2">2.5</span><span>文本编辑器</span></a></li><li><a class="is-flex is-mobile" href="#配置软件仓库"><span class="mr-2">2.6</span><span>配置软件仓库</span></a></li><li><a class="is-flex is-mobile" href="#服务管理："><span class="mr-2">2.7</span><span>服务管理：</span></a></li><li><a class="is-flex is-mobile" href="#selinux-："><span class="mr-2">2.8</span><span>selinux ：</span></a></li><li><a class="is-flex is-mobile" href="#可设置项目："><span class="mr-2">2.9</span><span>可设置项目：</span></a></li><li><a class="is-flex is-mobile" href="#防火墙系统服务："><span class="mr-2">2.10</span><span>防火墙系统服务：</span></a></li><li><a class="is-flex is-mobile" href="#账户管理："><span class="mr-2">2.11</span><span>账户管理：</span></a></li><li><a class="is-flex is-mobile" href="#定义计划任务："><span class="mr-2">2.12</span><span>定义计划任务：</span></a></li><li><a class="is-flex is-mobile" href="#设置基本权限："><span class="mr-2">2.13</span><span>设置基本权限：</span></a></li><li><a class="is-flex is-mobile" href="#acl-访问控制列表"><span class="mr-2">2.14</span><span>acl 访问控制列表</span></a></li><li><a class="is-flex is-mobile" href="#特殊权限-创建共用目录"><span class="mr-2">2.15</span><span>特殊权限,创建共用目录</span></a><ul class="menu-list"><li><a class="is-flex is-mobile" href="#附加权限："><span class="mr-2">2.15.1</span><span>附加权限：</span></a></li></ul></li><li><a class="is-flex is-mobile" href="#配置时间同步"><span class="mr-2">2.16</span><span>配置时间同步</span></a><ul class="menu-list"><li><a class="is-flex is-mobile" href="#iburst-参数的作用："><span class="mr-2">2.16.1</span><span>iburst 参数的作用：</span></a></li><li><a class="is-flex is-mobile" href="#NTP验证-设置工具："><span class="mr-2">2.16.2</span><span>NTP验证/设置工具：</span></a></li><li><a class="is-flex is-mobile" href="#手动设置系统日期、时间："><span class="mr-2">2.16.3</span><span>手动设置系统日期、时间：</span></a></li></ul></li><li><a class="is-flex is-mobile" href="#配置autofs自动挂载，"><span class="mr-2">2.17</span><span>配置autofs自动挂载，</span></a><ul class="menu-list"><li><a class="is-flex is-mobile" href="#mount挂载（本地）："><span class="mr-2">2.17.1</span><span>mount挂载（本地）：</span></a></li><li><a class="is-flex is-mobile" href="#文件系统的挂载方式"><span class="mr-2">2.17.2</span><span>文件系统的挂载方式</span></a></li></ul></li><li><a class="is-flex is-mobile" href="#find搜索"><span class="mr-2">2.18</span><span>find搜索</span></a><ul class="menu-list"><li><a class="is-flex is-mobile" href="#按照条件查找系统当中的任何文件："><span class="mr-2">2.18.1</span><span>按照条件查找系统当中的任何文件：</span></a></li><li><a class="is-flex is-mobile" href="#常见的查找条件表示："><span class="mr-2">2.18.2</span><span>常见的查找条件表示：</span></a></li><li><a class="is-flex is-mobile" href="#处理find查找结果："><span class="mr-2">2.18.3</span><span>处理find查找结果：</span></a></li><li><a class="is-flex is-mobile" href="#demo"><span class="mr-2">2.18.4</span><span>demo</span></a></li></ul></li><li><a class="is-flex is-mobile" href="#grep查找字符串"><span class="mr-2">2.19</span><span>grep查找字符串</span></a><ul class="menu-list"><li><a class="is-flex is-mobile" href="#grep基本用法："><span class="mr-2">2.19.1</span><span>grep基本用法：</span></a></li><li><a class="is-flex is-mobile" href="#常见的选项："><span class="mr-2">2.19.2</span><span>常见的选项：</span></a></li><li><a class="is-flex is-mobile" href="#简单正则表达式："><span class="mr-2">2.19.3</span><span>简单正则表达式：</span></a></li></ul></li><li><a class="is-flex is-mobile" href="#重定向-gt-，-gt-gt"><span class="mr-2">2.20</span><span>重定向 &gt;，  &gt;&gt;</span></a></li><li><a class="is-flex is-mobile" href="#tar归档"><span class="mr-2">2.21</span><span>tar归档</span></a><ul class="menu-list"><li><a class="is-flex is-mobile" href="#tar-制作备份文件："><span class="mr-2">2.21.1</span><span>tar 制作备份文件：</span></a></li><li><a class="is-flex is-mobile" href="#tar-从备份文件恢复："><span class="mr-2">2.21.2</span><span>tar 从备份文件恢复：</span></a></li><li><a class="is-flex is-mobile" href="#tar-查看备份文件内容："><span class="mr-2">2.21.3</span><span>tar 查看备份文件内容：</span></a></li></ul></li><li><a class="is-flex is-mobile" href="#破解密码"><span class="mr-2">2.22</span><span>破解密码</span></a></li><li><a class="is-flex is-mobile" href="#磁盘的使用"><span class="mr-2">2.23</span><span>磁盘的使用</span></a><ul class="menu-list"><li><a class="is-flex is-mobile" href="#调整逻辑卷大小"><span class="mr-2">2.23.1</span><span>调整逻辑卷大小</span></a></li><li><a class="is-flex is-mobile" href="#逻辑卷管理"><span class="mr-2">2.23.2</span><span>逻辑卷管理</span></a></li><li><a class="is-flex is-mobile" href="#实现方式："><span class="mr-2">2.23.3</span><span>实现方式：</span></a></li><li><a class="is-flex is-mobile" href="#LVM管理工具"><span class="mr-2">2.23.4</span><span>LVM管理工具</span></a></li></ul></li><li><a class="is-flex is-mobile" href="#创建卷组"><span class="mr-2">2.24</span><span>创建卷组</span></a></li><li><a class="is-flex is-mobile" href="#创建逻辑卷"><span class="mr-2">2.25</span><span>创建逻辑卷</span></a></li><li><a class="is-flex is-mobile" href="#逻辑卷扩容"><span class="mr-2">2.26</span><span>逻辑卷扩容</span></a></li><li><a class="is-flex is-mobile" href="#交换分区"><span class="mr-2">2.27</span><span>交换分区</span></a></li><li><a class="is-flex is-mobile" href="#VDO卷"><span class="mr-2">2.28</span><span>VDO卷</span></a></li><li><a class="is-flex is-mobile" href="#系统调优"><span class="mr-2">2.29</span><span>系统调优</span></a></li><li><a class="is-flex is-mobile" href="#CocKpit驾驶舱"><span class="mr-2">2.30</span><span>CocKpit驾驶舱</span></a></li><li><a class="is-flex is-mobile" href="#实战"><span class="mr-2">2.31</span><span>实战</span></a></li></ul></li></ul></div></div><style>.menu-list > li > a.is-active + .menu-list { display: block; }.menu-list > li > a + .menu-list { display: none; }</style><script src="/js/toc.js" defer></script></div><div class="card widget" data-type="profile"><div class="card-content"><nav class="level"><div class="level-item has-text-centered flex-shrink-1"><div><figure class="image is-128x128 mx-auto mb-2"><img class="avatar is-rounded" src="/img/%E5%A4%B4%E5%83%8F.jpg" alt="意必固我"></figure><p class="title is-size-4 is-block" style="line-height:inherit;">意必固我</p><p class="is-size-6 is-block">尚未执佩剑，转眼即江湖</p><p class="is-size-6 is-flex justify-content-center"><i class="fas fa-map-marker-alt mr-1"></i><span>内蒙古·呼和浩特</span></p></div></div></nav><nav class="level is-mobile"><div class="level-item has-text-centered is-marginless"><div><p class="heading">文章</p><a href="/archives"><p class="title">9</p></a></div></div><div class="level-item has-text-centered is-marginless"><div><p class="heading">分类</p><a href="/categories"><p class="title">8</p></a></div></div><div class="level-item has-text-centered is-marginless"><div><p class="heading">标签</p><a href="/tags"><p class="title">16</p></a></div></div></nav><div class="level"><a class="level-item button is-primary is-rounded" href="https://github.com/LIRUILONGS" target="_blank" rel="noopener">关注我</a></div><div class="level is-mobile"><a class="level-item button is-transparent is-marginless" target="_blank" rel="noopener" title="Github" href="https://github.com/LIRUILONGS"><i class="fab fa-github"></i></a><a class="level-item button is-transparent is-marginless" target="_blank" rel="noopener" title="Weibo" href="https://weibo.com/removeif"><i class="fab fa-weibo"></i></a><a class="level-item button is-transparent is-marginless" target="_blank" rel="noopener" title="Email" href="mailto:1224965096@qq.com"><i class="fa fa-envelope"></i></a></div></div></div><div class="card widget" data-type="links"><div class="card-content"><div class="menu"><h3 class="menu-label">链接</h3><ul class="menu-list"><li><a class="level is-mobile" href="https://blog.csdn.net/sanhewuyang" target="_blank" rel="noopener"><span class="level-left"><span class="level-item">CSDN</span></span><span class="level-right"><span class="level-item tag">blog.csdn.net</span></span></a></li><li><a class="level is-mobile" href="https://www.cnblogs.com/liruilong/" target="_blank" rel="noopener"><span class="level-left"><span class="level-item">博客园</span></span><span class="level-right"><span class="level-item tag">www.cnblogs.com</span></span></a></li><li><a class="level is-mobile" href="https://github.com/LIRUILONGS" target="_blank" rel="noopener"><span class="level-left"><span class="level-item">Githup</span></span><span class="level-right"><span class="level-item tag">github.com</span></span></a></li><li><a class="level is-mobile" href="https://gitee.com/liruilonger" target="_blank" rel="noopener"><span class="level-left"><span class="level-item">码云</span></span><span class="level-right"><span class="level-item tag">gitee.com</span></span></a></li></ul></div></div></div><!--!--><div class="card widget"><div class="card-content"><h3 class="menu-label">最新文章</h3><article class="media"><div class="media-content"><p class="date"><time dateTime="2021-06-25T16:00:00.000Z">2021-06-26</time></p><p class="title"><a href="/2021/06/26/%E5%85%B3%E4%BA%8E%20MVVM%E5%92%8CMVC%E7%9A%84%E4%B8%80%E4%BA%9B%E6%80%BB%E7%BB%93/">关于 MVVM和MVC的一些总结</a></p><p class="categories"><a href="/categories/%E9%9D%A2%E8%AF%95/">面试</a></p></div></article><article class="media"><div class="media-content"><p class="date"><time dateTime="2021-06-25T16:00:00.000Z">2021-06-26</time></p><p class="title"><a href="/2021/06/26/%E5%85%B3%E4%BA%8EJAVA%20%E5%8F%8D%E5%B0%84%20%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86_%E7%BC%96%E7%A0%81%E7%BB%8F%E9%AA%8C%E7%9A%84%E4%B8%80%E4%BA%9B%E6%80%BB%E7%BB%93/">关于JAVA 反射 基础知识_编码经验的一些总结</a></p><p class="categories"><a href="/categories/%E9%9D%A2%E8%AF%95/">面试</a></p></div></article><article class="media"><div class="media-content"><p class="date"><time dateTime="2021-06-19T16:00:00.000Z">2021-06-20</time></p><p class="title"><a href="/2021/06/20/%E7%A8%8B%E5%BA%8F%E4%BA%BA%E7%94%9F%E4%B9%8B%E7%BC%98%E8%B5%B7/">程序人生之缘起</a></p><p class="categories"><a href="/categories/%E7%A8%8B%E5%BA%8F%E4%BA%BA%E7%94%9F/">程序人生</a></p></div></article><article class="media"><div class="media-content"><p class="date"><time dateTime="2021-06-17T16:00:00.000Z">2021-06-18</time></p><p class="title"><a href="/2021/06/18/%E3%80%8ASpring%20Boot+Vue%E5%85%A8%E6%A0%88%E5%BC%80%E5%8F%91%E5%AE%9E%E6%88%98%E3%80%8B%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/">《Spring Boot+Vue全栈开发实战》读书笔记</a></p><p class="categories"><a href="/categories/Spring-Boot-%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/">Spring Boot 学习笔记</a></p></div></article><article class="media"><div class="media-content"><p class="date"><time dateTime="2021-06-14T16:00:00.000Z">2021-06-15</time></p><p class="title"><a href="/2021/06/15/Openstack%20%E4%BA%91%E8%AE%A1%E7%AE%97%E7%AE%A1%E7%90%86%E5%B9%B3%E5%8F%B0%E2%80%9C%E6%89%AB%E7%9B%B2%E2%80%9C%20%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/">Openstack 云计算管理平台“扫盲“ 学习笔记</a></p><p class="categories"><a href="/categories/%E4%BA%91%E8%AE%A1%E7%AE%97%E7%AE%A1%E7%90%86%E5%B9%B3%E5%8F%B0/">云计算管理平台</a></p></div></article></div></div><div class="card widget"><div class="card-content"><div class="menu"><h3 class="menu-label">分类</h3><ul class="menu-list"><li><a class="level is-mobile is-marginless" href="/categories/Python/"><span class="level-start"><span class="level-item">Python</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/Spring-Boot-%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/"><span class="level-start"><span class="level-item">Spring Boot 学习笔记</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/%E4%BA%91%E8%AE%A1%E7%AE%97%E7%AE%A1%E7%90%86%E5%B9%B3%E5%8F%B0/"><span class="level-start"><span class="level-item">云计算管理平台</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/%E5%AE%B9%E5%99%A8/"><span class="level-start"><span class="level-item">容器</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/%E7%A8%8B%E5%BA%8F%E4%BA%BA%E7%94%9F/"><span class="level-start"><span class="level-item">程序人生</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/%E7%BD%91%E7%BB%9C%E6%9E%B6%E6%9E%84/"><span class="level-start"><span class="level-item">网络架构</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/%E8%AF%81%E4%B9%A6%E8%80%83%E8%AF%95%E7%AC%94%E8%AE%B0/"><span class="level-start"><span class="level-item">证书考试笔记</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/%E9%9D%A2%E8%AF%95/"><span class="level-start"><span class="level-item">面试</span></span><span class="level-end"><span class="level-item tag">2</span></span></a></li></ul></div></div></div><div class="card widget"><div class="card-content"><div class="menu"><h3 class="menu-label">归档</h3><ul class="menu-list"><li><a class="level is-mobile is-marginless" href="/archives/2021/06/"><span class="level-start"><span class="level-item">六月 2021</span></span><span class="level-end"><span class="level-item tag">5</span></span></a></li><li><a class="level is-mobile is-marginless" href="/archives/2021/04/"><span class="level-start"><span class="level-item">四月 2021</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li><li><a class="level is-mobile is-marginless" href="/archives/2021/03/"><span class="level-start"><span class="level-item">三月 2021</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li><li><a class="level is-mobile is-marginless" href="/archives/2020/11/"><span class="level-start"><span class="level-item">十一月 2020</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li><li><a class="level is-mobile is-marginless" href="/archives/2013/07/"><span class="level-start"><span class="level-item">七月 2013</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li><a class="level is-mobile is-marginless" href="/archives/"><span class="level-start"><span class="level-item">查看全部&gt;&gt;</span></span></a></ul></div></div></div><div class="card widget"><div class="card-content"><div class="menu"><h3 class="menu-label">标签</h3><div class="field is-grouped is-grouped-multiline"><div class="control"><a class="tags has-addons" href="/tags/JAVA/"><span class="tag">JAVA</span><span class="tag is-grey-lightest">2</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%E9%9D%A2%E8%AF%95/"><span class="tag">面试</span><span class="tag is-grey-lightest">2</span></a></div><div class="control"><a class="tags has-addons" href="/tags/K8S/"><span class="tag">K8S</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Linux/"><span class="tag">Linux</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Openstack/"><span class="tag">Openstack</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Python/"><span class="tag">Python</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/RHCAS/"><span class="tag">RHCAS</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Spring-Boot/"><span class="tag">Spring Boot</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/kubernetes/"><span class="tag">kubernetes</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%E4%BA%91%E8%AE%A1%E7%AE%97%E7%AE%A1%E7%90%86%E5%B9%B3%E5%8F%B0/"><span class="tag">云计算管理平台</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%E4%BC%81%E4%B8%9A%E7%BA%A7%E7%BD%91%E7%BB%9C%E6%9E%B6%E6%9E%84/"><span class="tag">企业级网络架构</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%E5%8C%97%E6%BC%82/"><span class="tag">北漂</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%E5%AE%B9%E5%99%A8%E7%AE%A1%E7%90%86/"><span class="tag">容器管理</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%E7%A8%8B%E5%BA%8F%E4%BA%BA%E7%94%9F/"><span class="tag">程序人生</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%E7%B3%BB%E7%BB%9F%E6%9E%B6%E6%9E%84/"><span class="tag">系统架构</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%E7%BD%91%E7%AE%A1/"><span class="tag">网管</span><span class="tag is-grey-lightest">1</span></a></div></div></div></div></div><div class="card widget" data-type="subscribe-email"><div class="card-content"><div class="menu"><h3 class="menu-label">订阅更新</h3><form action="https://feedburner.google.com/fb/a/mailverify" method="post" target="popupwindow" onsubmit="window.open(&#039;https://feedburner.google.com/fb/a/mailverify?uri=&#039;,&#039;popupwindow&#039;,&#039;scrollbars=yes,width=550,height=520&#039;);return true"><input type="hidden" value="" name="uri"><input type="hidden" name="loc" value="en_US"><div class="field has-addons"><div class="control has-icons-left is-expanded"><input class="input" name="email" type="email" placeholder="Email"><span class="icon is-small is-left"><i class="fas fa-envelope"></i></span></div><div class="control"><input class="button" type="submit" value="订阅"></div></div></form></div></div></div><!--!--><div class="column-right-shadow is-hidden-widescreen is-sticky"></div></div></div></div></section><footer class="footer"><div class="container"><div class="level"><div class="level-start"><a class="footer-logo is-block mb-2" href="/"><img src="/img/logo.png" alt="山河已无恙" height="28"></a><p class="size-small"><span>&copy; 2021 山河已无恙</span>  Powered by <a href="https://hexo.io/" target="_blank">Hexo</a> &amp; <a href="https://github.com/ppoffice/hexo-theme-icarus" target="_blank">Icarus</a> &amp; <a href="https://github.com/removeif/hexo-theme-amazing" target="_blank">Amazing</a> <br><span>© <a href="http://www.beian.miit.gov.cn/" target="_blank">备案号</a><br></span><span>© 版权说明：[本网站所有内容均收集于互联网或自己创作,<br />&nbsp;&nbsp;&nbsp;&nbsp;方便于网友与自己学习交流，如有侵权，请<a href="/message" target="_blank">留言</a>，立即处理]<br /></span><span><span id="statistic-times">loading...</span><script>function createTime(time) {
+            var n = new Date(time);
+            now.setTime(now.getTime() + 250),
+                days = (now - n) / 1e3 / 60 / 60 / 24,
+                dnum = Math.floor(days),
+                hours = (now - n) / 1e3 / 60 / 60 - 24 * dnum,
+                hnum = Math.floor(hours),
+            1 == String(hnum).length && (hnum = "0" + hnum),
+                minutes = (now - n) / 1e3 / 60 - 1440 * dnum - 60 * hnum,
+                mnum = Math.floor(minutes),
+            1 == String(mnum).length && (mnum = "0" + mnum),
+                seconds = (now - n) / 1e3 - 86400 * dnum - 3600 * hnum - 60 * mnum,
+                snum = Math.round(seconds),
+            1 == String(snum).length && (snum = "0" + snum),
+                document.getElementById("statistic-times").innerHTML = "❤️本站自 <strong>"+time.split(" ")[0].replace(/\//g,".")+"</strong> 已运行 <strong>" + dnum + "</strong> 天 <strong>" + hnum + "</strong> 小时 <strong>" + mnum + "</strong> 分 <strong>" + snum + "</strong> 秒！❤️";
+        }var now = new Date();setInterval("createTime('2021/6/26 21:27:00')", 250,"");</script><br></span></p></div><div class="level-end"><div class="field has-addons"><p class="control"><a class="button is-transparent is-large" target="_blank" rel="noopener" title="Creative Commons" href="https://creativecommons.org/"><i class="fab fa-creative-commons"></i></a></p><p class="control"><a class="button is-transparent is-large" target="_blank" rel="noopener" title="Attribution 4.0 International" href="https://creativecommons.org/licenses/by/4.0/"><i class="fab fa-creative-commons-by"></i></a></p><p class="control"><a class="button is-transparent is-large" target="_blank" rel="noopener" title="Download on GitHub" href="https://github.com/removeif/hexo-theme-amazing"><i class="fab fa-github"></i></a></p></div><div class="sideMusic"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/aplayer/dist/APlayer.min.css"><script src="/js/APlayer.min.js"></script><script src="https://cdn.jsdelivr.net/npm/meting@2/dist/Meting.min.js"></script><meting-js style="width: auto;height: 2000px;" server="netease" type="playlist" id="2364053447" theme="#2980b9" loop="all" autoplay="false" order="list" storageName="aplayer-setting" lrctype="0" list-max-height="400px" fixed="true"></meting-js></div></div></div></div></footer><script src="https://cdnjs.loli.net/ajax/libs/moment.js/2.22.2/moment-with-locales.min.js"></script><script src="https://cdnjs.loli.net/ajax/libs/clipboard.js/2.0.4/clipboard.min.js" async></script><script>moment.locale("zh-CN");</script><script>var IcarusThemeSettings = {
+            article: {
+                highlight: {
+                    clipboard: true,
+                    fold: 'unfolded'
+                }
+            }
+        };</script><script src="/js/column.js"></script><script src="/js/animation.js"></script><a id="back-to-top" title="回到顶端" href="javascript:;"><i class="fas fa-chevron-up"></i></a><script src="/js/back_to_top.js" defer></script><!--!--><script src="https://cdnjs.loli.net/ajax/libs/lightgallery/1.6.8/js/lightgallery.min.js" defer></script><script src="https://cdnjs.loli.net/ajax/libs/justifiedGallery/3.7.0/js/jquery.justifiedGallery.min.js" defer></script><script>window.addEventListener("load", () => {
+            if (typeof $.fn.lightGallery === 'function') {
+                $('.article').lightGallery({ selector: '.gallery-item' });
+            }
+            if (typeof $.fn.justifiedGallery === 'function') {
+                if ($('.justified-gallery > p > .gallery-item').length) {
+                    $('.justified-gallery > p > .gallery-item').unwrap();
+                }
+                $('.justified-gallery').justifiedGallery();
+            }
+        });</script><!--!--><!--!--><link rel="stylesheet" href="https://cdnjs.loli.net/ajax/libs/KaTeX/0.11.1/katex.min.css"><script src="https://cdnjs.loli.net/ajax/libs/KaTeX/0.11.1/katex.min.js" defer></script><script src="https://cdnjs.loli.net/ajax/libs/KaTeX/0.11.1/contrib/auto-render.min.js" defer></script><script src="https://cdnjs.loli.net/ajax/libs/KaTeX/0.11.1/contrib/mhchem.js" defer></script><script>window.addEventListener("load", function() {
+            document.querySelectorAll('[role="article"] > .content').forEach(function(element) {
+                renderMathInElement(element);
+            });
+        });</script><script type="text/x-mathjax-config">MathJax.Hub.Config({
+            'HTML-CSS': {
+                matchFontHeight: false
+            },
+            SVG: {
+                matchFontHeight: false
+            },
+            CommonHTML: {
+                matchFontHeight: false
+            },
+            tex2jax: {
+                inlineMath: [
+                    ['$','$'],
+                    ['\\(','\\)']
+                ]
+            }
+        });</script><script src="https://cdnjs.loli.net/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-MML-AM_CHTML" defer></script><div id="outdated"><h6>Your browser is out-of-date!</h6><p>Update your browser to view this website correctly.&amp;npsb;<a id="btnUpdateBrowser" target="_blank" rel="noopener" href="http://outdatedbrowser.com/">Update my browser now </a></p><p class="last"><a href="#" id="btnCloseUpdateBrowser" title="Close">×</a></p></div><script src="https://cdnjs.loli.net/ajax/libs/outdated-browser/1.1.5/outdatedbrowser.min.js" defer></script><script>window.addEventListener("load", function () {
+            outdatedBrowser({
+                bgColor: '#f25648',
+                color: '#ffffff',
+                lowerThan: 'object-fit' // display on IE11 or below
+            });
+        });</script><!--!--><script src="/js/main.js" defer></script><script>$.getScript('/js/comment-issue-data.js',function(){loadIssueData('46a9f3481b46ea0129d8','79c7c9cb847e141757d7864453bcbf89f0655b24','removeif','blog_comment',false);})</script><div class="searchbox"><div class="searchbox-container"><div class="searchbox-header"><div class="searchbox-input-container"><input class="searchbox-input" type="text" placeholder="想要查找什么..."></div><a class="searchbox-close" href="javascript:;">×</a></div><div class="searchbox-body"></div></div></div><script src="/js/insight.js" defer></script><script>document.addEventListener('DOMContentLoaded', function () {
+            loadInsight({"contentUrl":"/content.json"}, {"hint":"想要查找什么...","untitled":"(无标题)","posts":"文章","pages":"页面","categories":"分类","tags":"标签"});
+        });</script><script src="https://cdn.jsdelivr.net/npm/pjax@0.2.8/pjax.js"></script><script type="text/javascript">var pjax = new Pjax({
+            elements: "a",//代表点击链接就更新
+            selectors: [  //代表要更新的节点
+                ".section",
+                "title"
+            ],
+            cache: true,
+            cacheBust:false
+        })
+
+        function loadBusuanzi(){
+        $.getScript("//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js", function () {});
+        }
+
+        function loadMathJax() { //加载mathjax
+            $.getScript("//cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.4/MathJax.js?config=TeX-MML-AM_CHTML", function () {
+                MathJax.Hub.Config({ tex2jax: { inlineMath: [['$', '$'], ['\(', '\)']] } });
+                var math = document.getElementsByClassName("entry-content")[0];
+                MathJax.Hub.Queue(["Typeset", MathJax.Hub, math]);
+            });
+        };
+
+        // 开始 PJAX 执行的函数
+        document.addEventListener('pjax:send', function () {
+        });
+        
+        // PJAX 完成之后执行的函数，可以和上面的重载放在一起
+        document.addEventListener('pjax:complete', function () {
+            $(".section").css({opacity:1});
+            if(false){
+                $.getScript('/js/comment-issue-data.js',function(){loadIssueData('46a9f3481b46ea0129d8','79c7c9cb847e141757d7864453bcbf89f0655b24','removeif','blog_comment',false);});
+            }
+            if(false){
+                loadMathJax();
+            }
+            loadMainJs(jQuery, window.moment, window.ClipboardJS, window.IcarusThemeSettings);
+            loadBackTop();
+            loadBusuanzi();
+            if(typeof loadBanner == 'function'){
+                loadBanner();
+            }
+        });</script></body></html>

@@ -12601,17 +12601,6 @@ hr {
 .hljs-quote {
   color: #42bb35 !important;
 }
-.menu-list li ul {
-  margin-right: 0;
-}
-+ .menu-list a .menu-list a.level,
-+ transition: background-color 0.3s ease-in-out .menu-list a.level {
-  display: flex;
-}
-+ .menu-list a .has-text-centered figure.image,
-+ transition: background-color 0.3s ease-in-out .has-text-centered figure.image {
-  margin: auto;
-}
 body {
   counter-reset: card;
 }
