@@ -1,0 +1,435 @@
+<!doctype html>
+<html lang="zh"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"><meta><title>《从Paxos到Zookper分布式一致性原理与实践》读书笔记 - 山河已无恙</title><link rel="manifest" href="/manifest.json"><meta name="application-name" content="山河已无恙"><meta name="msapplication-TileImage" content="https://cdn.jsdelivr.net/gh/removeif/removeif-demo@latest/img/favicon.png"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="山河已无恙"><meta name="apple-mobile-web-app-status-bar-style" content="default"><meta description="笔记主要是关于《从Paxos到Zookper分布式一致性原理与实践》的学习笔记，从而对分布式有个大概的了解。"><meta property="og:type" content="blog"><meta property="og:title" content="山河已无恙"><meta property="og:url" content="https://removeif.github.io/"><meta property="og:site_name" content="山河已无恙"><meta property="og:description" content="笔记主要是关于《从Paxos到Zookper分布式一致性原理与实践》的学习笔记，从而对分布式有个大概的了解。"><meta property="og:locale" content="zh_CN"><meta property="og:image" content="https://removeif.github.io/img/头像.jpg"><meta property="article:published_time" content="2021-06-30T03:44:22.000Z"><meta property="article:modified_time" content="2021-07-01T08:54:00.739Z"><meta property="article:author" content="LIRUILONGS"><meta property="article:tag" content="分布式"><meta property="article:tag" content="Zookper"><meta property="twitter:card" content="summary"><meta property="twitter:image" content="/img/头像.jpg"><script type="application/ld+json">{"@context":"https://schema.org","@type":"BlogPosting","mainEntityOfPage":{"@type":"WebPage","@id":"https://liruilongs.github.io/2021/06/30/%E3%80%8A%E4%BB%8EPaxos%E5%88%B0Zookper%E5%88%86%E5%B8%83%E5%BC%8F%E4%B8%80%E8%87%B4%E6%80%A7%E5%8E%9F%E7%90%86%E4%B8%8E%E5%AE%9E%E8%B7%B5%E3%80%8B%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/"},"headline":"山河已无恙","image":["https://liruilongs.github.io/img/og_image.png"],"datePublished":"2021-06-30T03:44:22.000Z","dateModified":"2021-07-01T08:54:00.739Z","author":{"@type":"Person","name":"山河已无恙"},"description":"笔记主要是关于《从Paxos到Zookper分布式一致性原理与实践》的学习笔记，从而对分布式有个大概的了解。"}</script><link rel="canonical" href="https://liruilongs.github.io/2021/06/30/%E3%80%8A%E4%BB%8EPaxos%E5%88%B0Zookper%E5%88%86%E5%B8%83%E5%BC%8F%E4%B8%80%E8%87%B4%E6%80%A7%E5%8E%9F%E7%90%86%E4%B8%8E%E5%AE%9E%E8%B7%B5%E3%80%8B%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/"><link rel="alternate" href="/path/to/atom.xml" title="山河已无恙" type="application/atom+xml"><link rel="icon" href="https://cdn.jsdelivr.net/gh/removeif/removeif-demo@latest/img/favicon.png"><meta name="referrer" content="no-referrer-when-downgrade"><link rel="stylesheet" href="https://cdnjs.loli.net/ajax/libs/font-awesome/5.12.0/css/all.min.css"><link rel="stylesheet" href="https://cdnjs.loli.net/ajax/libs/highlight.js/9.12.0/styles/solarized-light.min.css"><link rel="stylesheet" href="https://fonts.loli.net/css2?family=Ubuntu:wght@400;600&amp;family=Source+Code+Pro"><link rel="stylesheet" href="/css/default.css"><link rel="stylesheet" href="https://cdnjs.loli.net/ajax/libs/font-awesome/5.12.0/css/all.min.css"><link rel="stylesheet" href="https://fonts.loli.net/css?family=Ubuntu:400,600|Source+Code+Pro|Monda:300,300italic,400,400italic,700,700italic|Roboto Slab:300,300italic,400,400italic,700,700italic|Microsoft YaHei:300,300italic,400,400italic,700,700italic|PT Mono:300,300italic,400,400italic,700,700italic&amp;amp;subset=latin,latin-ext|Inconsolata|Itim|Lobster.css"><script src="https://cdnjs.loli.net/ajax/libs/jquery/3.3.1/jquery.min.js"></script><script src="/js/globalUtils.js"></script><script src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js" defer></script><style>body>.footer,body>.navbar,body>.section{opacity:0}</style><!--!--><script>var _hmt = _hmt || [];
+        (function() {
+            var hm = document.createElement("script");
+            hm.src = "//hm.baidu.com/hm.js?3f06f2b732a5b1034c989f74e28d0eea";
+            var s = document.getElementsByTagName("script")[0];
+            s.parentNode.insertBefore(hm, s);
+        })();</script><link rel="stylesheet" href="https://cdnjs.loli.net/ajax/libs/lightgallery/1.6.8/css/lightgallery.min.css"><link rel="stylesheet" href="https://cdnjs.loli.net/ajax/libs/justifiedGallery/3.7.0/css/justifiedGallery.min.css"><!--!--><!--!--><!--!--><!--!--><link rel="stylesheet" href="https://cdnjs.loli.net/ajax/libs/outdated-browser/1.1.5/outdatedbrowser.min.css"><script src="https://cdnjs.loli.net/ajax/libs/pace/1.0.2/pace.min.js"></script><meta name="generator" content="Hexo 5.4.0"></head><body class="is-3-column has-navbar-fixed-top"><nav class="navbar navbar-main is-fixed-top"><div class="container"><div class="navbar-brand justify-content-center"><a class="navbar-item navbar-logo" href="/"><img src="/img/logo.png" alt="山河已无恙" height="28"></a></div><div class="navbar-menu"><div class="navbar-start"><a class="navbar-item" href="/">首页</a><a class="navbar-item" href="/archives">归档</a><a class="navbar-item" href="/categories">分类</a><a class="navbar-item" href="/tags">标签</a><a class="navbar-item" href="/media">影音</a><a class="navbar-item" href="/album">相册</a><a class="navbar-item" href="/friend">友链</a><a class="navbar-item" href="/self-talking">生活小记</a><a class="navbar-item" href="/message">留言墙</a><a class="navbar-item" href="/about">关于</a></div><div class="navbar-end"><a class="navbar-item" target="_blank" rel="noopener" title="Gitee" href="https://gitee.com/liruilonger"><i class="fab fa-git-square fa-1x"></i></a><a class="navbar-item" target="_blank" rel="noopener" title="GitHub" href="https://github.com/LIRUILONGS"><i class="fab fa-github fa-1x"></i></a><a class="navbar-item is-hidden-tablet catalogue" title="目录" href="javascript:;"><i class="fas fa-list-ul fa-1x"></i></a><a class="navbar-item search" title="搜索" href="javascript:;"><i class="fas fa-search fa-1x"></i></a><a class="navbar-item" id="night-nav" title="Night Mode" href="javascript:;"><i class="fas fa-moon fa-1x" id="night-icon"></i></a></div></div></div></nav><script type="text/javascript" src="/js/theme-setting.js"></script><section class="section"><div class="container"><div class="columns"><div class="column order-2 column-main is-8-tablet is-8-desktop is-9-widescreen"><!--!--><div class="card"><article class="card-content article" role="article"><div class="article-meta size-small is-uppercase level is-mobile"><div class="level-left"><i class="far fa-calendar-plus"> </i>2021-06-30  <a class="commentCountImg" href="/2021/06/30/%E3%80%8A%E4%BB%8EPaxos%E5%88%B0Zookper%E5%88%86%E5%B8%83%E5%BC%8F%E4%B8%80%E8%87%B4%E6%80%A7%E5%8E%9F%E7%90%86%E4%B8%8E%E5%AE%9E%E8%B7%B5%E3%80%8B%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/#comment-container"><span class="display-none-class">f381f6f655b09178272310a799f16b99</span><i class="far fa-comment-dots"></i> <span class="commentCount" id="f381f6f655b09178272310a799f16b99">99+</span>  </a><span class="level-item"><i class="far fa-clock"> </i>1 小时  <i class="fas fa-pencil-alt"> </i>12.5 k</span><span class="level-item" id="busuanzi_container_page_pv"><span id="busuanzi_value_page_pv">0</span>次访问</span></div></div><h1 class="title is-3 is-size-4-mobile">《从Paxos到Zookper分布式一致性原理与实践》读书笔记</h1><div class="content"><blockquote>
+<p>笔记主要是关于《从Paxos到Zookper分布式一致性原理与实践》的学习笔记，从而对分布式有个大概的了解。</p>
+</blockquote>
+<span id="more"></span>
+<p><strong>写在前面</strong></p>
+<hr>
+<p>嗯，一直听人家说<code>分布式</code>，奈何这个概念一直不清晰，不知道和<code>微服务</code>有啥区别，而且问大佬，也总是听的一知半解的，一直听人家讲<code>Zookeeper</code>,奈何工作中遇不到，很早就想系统的学习一下，奈何时间挤不出来，除了工作就是不开心，哈哈，没时间学习。现在离职准备找工作，留了点时间系统的学习一下。而且我这性格，忍受不了一知半解。要不就不学，要学就形成一个大概的知识体系，和已有的体系建立连接。至于学了有用没有，那就不重要了，也不考虑时间成本问题，要是这点任性都没有的，那活着多憋屈呀。哈哈…</p>
+<p><strong><font color="009688"> 傍晚时分，你坐在屋檐下，看着天慢慢地黑下去，心里寂寞而凄凉，感到自己的生命被剥夺了。当时我是个年轻人，但我害怕这样生活下去，衰老下去。在我看来，这是比死亡更可怕的事。——–王小波</strong></font></p>
+<hr>
+<h1 id="第1章分布式架构"><a href="#第1章分布式架构" class="headerlink" title="第1章分布式架构"></a>第1章分布式架构</h1><p>随着计算机<code>系统规模</code>变得越来越大,将所有的<code>业务单元集中部署</code>在<code>一个</code>或<code>若干个</code>大型机上的体系结构,已经越来越不能满足当今计算机系统.</p>
+<h2 id="1-1从集中式到分布式"><a href="#1-1从集中式到分布式" class="headerlink" title="1.1从集中式到分布式"></a>1.1从集中式到分布式</h2><p>伴随着<code>大型主机</code>时代的到来,<code>集中式</code>的<code>计算机系统架构</code>也成为了<code>主流</code>。在那个时候,由于大型主机卓越的性能和良好的稳定性,其在单机处理能力方面的优势非常明显,使得<code>IT系统</code>快速进入了<code>集中式处理阶段</code>,其对应的计算机系统称为<code>集中式系统</code>。但从20世纪80年代以来,计算机系统向<code>网络化</code>和<code>微型化</code>的发展日趋明显,传统的<code>集中式处理模式</code>越来越不能适应人们的需求。(<font color=orange>找重点，计算机系统架构</font>,<code>即分布式是一种系统计算机架构</code>)</p>
+<ul>
+<li>学习成本高</li>
+<li>大型主机贵</li>
+<li>容错性差，扩容困难</li>
+</ul>
+<p>为了解决<code>业务快速发展</code>给<code>IT系统</code>带来的巨大挑战,从2009年开始,阿里集团启动了<code>去IOE</code>计划,其电商系统开始正式迈入<code>分布式系统时代</code>。</p>
+<h3 id="1-1-1集中式的特点"><a href="#1-1-1集中式的特点" class="headerlink" title="1.1.1集中式的特点"></a>1.1.1集中式的特点</h3><p>集中式系统:指由<code>一台</code>或<code>多台主计算机</code>组成<code>中心节点</code>,数据<code>集中存储</code>于这个<code>中心节点</code>中,并且整个系统的<code>所有业务单元</code>都<code>集中部署</code>在这个<code>中心节点</code>上,系统的<code>所有功能</code>均由其<code>集中处理</code>。</p>
+<p>在集中式系统中:每个<code>终端</code>或<code>客户端</code>机器仅仅负责数据的<code>录入和输出</code>,而数据的<code>存储与控制处理</code>完全交由<code>主机</code>来完成。集中式系统最大的特点就是<code>部署结构简单</code>。由于集中式系统往往基于<code>底层性能卓越</code>的<code>大型主机</code>,因此无须考虑如何对<code>服务进行多个节点的部署</code>,也就不用考虑<code>多个节点之间</code>的<code>分布式协作</code>问题。</p>
+<h3 id="1-1-2分布式的特点"><a href="#1-1-2分布式的特点" class="headerlink" title="1.1.2分布式的特点"></a>1.1.2分布式的特点</h3><p>在<code>《分布式系统概念与设计》</code>生一书中,对<code>分布式系统</code>做了如下定义:</p>
+<p><strong><font color="#409EFF"><code>分布式系统</code>是一个<code>硬件或软件组件</code>分布在不同的<code>网络计算机</code>上,彼此之间<code>仅仅</code>通过<code>消息传递</code>进行<code>通信和协调</code>的系统。</font></strong></p>
+<p>一个<code>标准的分布式系统</code>在没有任何特定业务逻辑约束的情况下,都会有如下几个<code>特征</code>。</p>
+<ul>
+<li><p><font color="#409EFF">分布性</font>:多台计算机都会在<code>空间上随意分布</code></p>
+</li>
+<li><p><font color="#409EFF">对等性</font>:计算机<code>没有主/从之分</code></p>
+<ul>
+<li><font color=brown>副本(Replica)</font>最常见的概念之一,对数据和服务提供的一种冗余方式。为了对外提供<font color=camel>高可用</font>的服务,我们往往会对数据和服务进行<font color=red>副本处理</font>。</li>
+<li><font color=plum>数据副本</font>是指在不同的节点上持久化同一份数据,当某一个节点上存储的数据丢失时,可以从副本上读取到该数据,这是解决分布式系统数据丢失问题最为有效的手段。</li>
+<li><font color=royalblue>服务副本</font>指多个节点提供同样的服务,每个节点都有能力接收来自外部的请求并进行相应的处理。</li>
+</ul>
+</li>
+<li><p><font color=green>并发性</font>:在一个计算机网络中,程序运行过程中的<code>并发性操作</code>是非常常见的行为,例如同一个分布式系统中的<code>多个节点</code>,可能会<code>并发</code>地操作一些<code>共享的资源</code>,诸如数据库或分布式存储等.</p>
+</li>
+<li><p><font color=orange>缺乏全局时钟</font>一个典型的分布式系统是由一系列在<code>空间上随意分布</code>的<code>多个进程组成</code>的,具有明显的<code>分布性</code>,这些进程之间通过<code>交换消息</code>来进行<code>相互通信</code>。因此,在分布式系统中,很难定义两个事件究竟谁先谁后,原因就是因为分布式系统<code>缺乏</code>一个全局的<code>时钟序列控制</code>。</p>
+</li>
+<li><p><font color=brown>故障总是会发生</font>:任何在<code>设计阶段</code>考虑到的异常情况,一定会在<code>系统实际</code>运行中发生,并且,在系统实际运行过程中还会遇到很多在设计时未能考虑到的<code>异常故障</code>。所以,除非需求指标允许,在系统设计时<code>不能放过任何异常情况</code>。  </p>
+<h3 id="1-1-3分布式环境的各种问题"><a href="#1-1-3分布式环境的各种问题" class="headerlink" title="1.1.3分布式环境的各种问题"></a>1.1.3分布式环境的各种问题</h3></li>
+</ul>
+<h4 id="通信异常"><a href="#通信异常" class="headerlink" title="通信异常"></a><font color=royalblue>通信异常</font></h4><p>分布式系统需要在各个节点之间进行<code>网络通信</code>,因此每次网络通信都会伴随着网络不可用的风险,<code>网络光纤、路由器或是DNS等硬件设备</code>或是<code>系统不可用</code>都会导致最终分布式系统无法顺利完成一次网络通信。</p>
+<p>即使分布式系统各节点之间的网络通信能够正常进行,其<code>延时也会远大于单机操作</code>。通常我们认为在现代计算机体系结构中,单机内存访问的延时在<code>纳秒数量级</code>(通常是10ns左右),而正常的一次<code>网络通信</code>的延迟在<code>0.1~1ms左右</code>(相当于内存访问延时的105-106倍),如此巨大的延时差别,也会影响消息的收发的过程,因此<code>消息丢失</code>和<code>消息延迟</code>变得非常普遍。</p>
+<h4 id="网络分区"><a href="#网络分区" class="headerlink" title="网络分区"></a><font color=blue>网络分区</font></h4><p>当网络由于发生异常情况,导致分布式系统中部分节点之间的网络延时不断增大,最终导致组成分布式系统的<code>所有节点中</code>,<code>只有部分节点之间能够进行正常通信,而另一些节点则不能</code>–我们将这个现象称为<code>网络分区</code>,就是俗称的<code>脑裂</code>。当网络分区出现时,分布式系统会出现<code>局部小集群</code>,在极端情况下,这些<code>局部小集群</code>会独立完成原本需要整个分布式系统才能完成的功能,包括对数据的事务处理等。</p>
+<h4 id="三态"><a href="#三态" class="headerlink" title="三态"></a><font color=amber>三态</font></h4><p>分布式系统的每一次<code>请求与响应</code>,存在特有的<code>三态</code>概念,即<code>成功、失败与超时</code>。在传统的<code>单机系统</code>中,应用程序在调用一个函数之后,能够得到一个非常明确的<code>响应</code>:成功或失败</p>
+<p>分布式系统中当网络出现异常的情况下,就可能会出现<code>超时</code>现象,通常有以下两种情况:</p>
+<ul>
+<li><font color=amber>由于网络原因,该请求(消息)并没有被成功地发送到接收方,而是在发送过程就发生了消息丢失现象。</font></li>
+<li><font color=brown>该请求(消息)成功的被接收方接收后,并进行了处理,但是在将响应反馈给发送方的过程中,发生了消息丢失现象。</font></li>
+</ul>
+<p>当出现这样的<font color=royalblue>超时现象</font>时,网络通信的发起方是无法确定当前请求是否被成功处理的。</p>
+<h3 id="节点故障"><a href="#节点故障" class="headerlink" title="节点故障"></a><font color=brown>节点故障</font></h3><p>节点故障则是比较常见的问题,组成分布式系统的<code>服务器节点</code>出现的<code>宕机或“僵死”现象</code>。通常根据经验来说,每个节点都有可能会出现故障,并且每天都在发生。</p>
+<h2 id="1-2从ACID到CAP-BASE"><a href="#1-2从ACID到CAP-BASE" class="headerlink" title="1.2从ACID到CAP/BASE"></a>1.2从ACID到CAP/BASE</h2><h3 id="1-2-1-ACID"><a href="#1-2-1-ACID" class="headerlink" title="1.2.1 ACID"></a>1.2.1 ACID</h3><p><code>事务(Transaction)</code>是由一系列对系统中<code>数据进行访问与更新的操作</code>所组成的一个<code>程序执行逻辑单元(Unit)</code>,狭义上的事务特指<code>数据库事务</code>。</p>
+<ul>
+<li>一方面,当多个应用程序并发访,问数据库时,事务可以在这些应用程序之间提供一个<code>隔离方法</code>,以防止彼此的操作互相干扰。</li>
+<li>另一方面,事务为数据库操作序列提供了一个<code>从失败中恢复到正常状态的方法</code>,同时提供了数据库即使在<code>异常状态下</code>仍能保持数据<code>一致性</code>的方法。</li>
+</ul>
+<p>事务具有四个特征,分别是<code>原子性(Atomicity)</code>、<code>一致性(Consistency)</code>、<code>隔离性(Isolation)</code>和<code>持久性(Durability)</code>,简称为事务的ACID特性。</p>
+<ul>
+<li><font color=amber>原子性</font>: 事务的原子性是指<code>事务</code>必须是一个<code>原子的操作序列单元</code>。事务中包含的各项操作在<code>一次执行过程中</code>,只允许出现以下<code>两种状态之一</code>。<font color=green>全部成功执行。全部不执行</font>。任何一项操作失败都将导致整个事务失败,同时其他<font color=chocolate>已经被执行的操作都将被撤销并回滚</font>,只有所有的操作<font color=red>全部成功</font>,整个事务才算是<font color=brown>成功完成</font>。</li>
+<li><font color=chocolate>一致性</font>: 事务的一致性是指<code>事务的执行</code>不能破坏<code>数据库数据的完整性和一致性</code>,一个事务在执行之前和执行之后,数据库都<font color=blue>必须处于一致性状态</font>。也就是说,事务执行的结果必须是**<font color=blue>使数据库从一个一致性状态转变到另一个一致性状态</font>,**因此当数据库只包含成功事务提交的结果时,就能说数据库处于一致性状态。而如果数据库系统在运行过程中发生故障,有些事务尚未完成就被迫中断,这些未完成的事务对数据库所做的修改有一部分已写入物理数据库,这时数据库就处于一种<font color=amber>不正确</font>的状态,或者说是<font color=royalblue>不一致的状态</font>。</li>
+<li><font color=blue>持久性</font>: 事务的<code>持久性</code>也被称为<code>永久性</code>,是指<code>一个事务一旦提交</code>,它对数据库中对应数据的状态变更就应该是<code>永久性</code>的。换句话说,一旦某个事务成功结束,那么它对数据库所做的更新就必须<code>被永久保存下来</code>-即使发生系统崩溃或机器宕机等故障,只要数据库能够重新启动,那么一定能够将其恢复到事务成功结束时的状态。</li>
+<li><font color=plum>隔离性</font>: 事务的隔离性是指在<font color=green>并发环境</font>中,并发的事务是<font color=red>相互隔离</font>的,<code>一个事务的执行不能被其他事务干扰</code>。也就是说,不同的事务并发操纵相同的数据时,<font color=green>每个事务都有各自完整的数据空间</font>,即一个事务内部的操作及使用的数据对其他并发事务是隔离的,并发执行的各个事务之间不能互相干扰。在标准<code>SQL</code>规范中,定义了<code>4个事务隔离级别</code>,<strong><font color=green>不同的隔离级别对事务的处理不同:</font></strong></li>
+</ul>
+<table>
+<thead>
+<tr>
+<th>隔离级别</th>
+<th>描述</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>未授权读取</code></td>
+<td>未授权读取也被称为<code>读未提交(Read Uncommitted)</code>该隔离级别允许<code>脏读</code>取,其<code>隔离级别最低</code>。换句话说,如果<code>一个事务</code>正在处理某一数据,并对其进行了<code>更新</code>,但同时<code>尚未完成事务</code>,因此还没有进行<code>事务提交</code>;而与此同时,允许另一个事务也能够访问该数据。举个例子来说,事务A和事务B同时进行,事务A在整个执行阶段,会将某数据项的值从1开始,做一系列加法操作(比如说加1操作)直到变成10之后进行事务提交,此时,事务B能够看到这个数据项在事务A操作过程中的所有中间值(如1变成2、2变成3等),而对这一系列的中间值的读取就是<code>未授权读取</code>。</td>
+</tr>
+<tr>
+<td><code>授权读取</code></td>
+<td>授权读取也被称为<code>读已提交(Read Committed)</code>它和<code>未授权读取</code>非常相近,唯一的区别就是授权读取只允许获取<code>已经被提交的数据</code>。同样以上面的例子来说,事务A和事务B同时进行,事务A进行与上述同样的操作,此时,事务B无法看到这个数据项在事务A操作过程中的所有中间值,只能看到最终的10,另外,如果说有一个事务C,和事务A进行非常类似的操作,只是事务C是将数据项从10加到20,此时事务B也同样可以读取到20,即<code>授权读取允许不可重复读取</code>。</td>
+</tr>
+<tr>
+<td><code>可重复读取(Repeatable Read)</code></td>
+<td>简单地说,就是保证在<code>事务处理过程中</code>,<code>多次读取同一个数据时</code>,其<code>值都和事务开始时刻是一致</code>的。因此该事务级别禁止了<code>不可重复读取</code>和<code>脏读取</code>,但是有可能出现<code>幻影数据</code>。所谓<font color=purple>幻影数据</font>,就是指同样的事务操作,在<font color=seagreen>前后两个时间段内执行对同一个数据项的读取,可能出现不一致的结果</font>。在上面的例子,可重复读取隔离级别能够保证事务B在第一次事务操作过程中,始终对<code>数据项读取到1</code>,但是在下一次事务操作中,即使事务B(注意,事务名字虽然相同,但是指的是另一次事务操作)采用同样的查询方式,就可能会读取到<font color=brown>10或20.</font></td>
+</tr>
+<tr>
+<td><code>串行化(Serializable)</code></td>
+<td>是<font color=green>最严格的事务隔离级别</font>。它要求<font color=purple>所有事务都被串行执行,即事务只能一个接一个地进行处理,不能并发执行。</font>类似于java的同步块同步方法</td>
+</tr>
+</tbody></table>
+<p><a target="_blank" rel="noopener" href="https://pic.imgdb.cn/item/60dc0ea45132923bf8953bcf.jpg"></a></p>
+<table>
+<thead>
+<tr>
+<th>隔离级别</th>
+<th>脏读</th>
+<th>可重复读</th>
+<th>幻读</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>未授权读取</td>
+<td>存在</td>
+<td>不可以</td>
+<td>存在</td>
+</tr>
+<tr>
+<td>授权读取</td>
+<td>不存在</td>
+<td>不可以</td>
+<td>存在</td>
+</tr>
+<tr>
+<td>可重复读取</td>
+<td>不存在</td>
+<td>可以</td>
+<td>存在</td>
+</tr>
+<tr>
+<td>串行化</td>
+<td>不存在</td>
+<td>不存在</td>
+<td>不存在</td>
+</tr>
+</tbody></table>
+<p><code>事务隔离级别越高,就越能保证数据的完整性和一致性,但同时对并发性能的影响也越大</code>。通常,对于绝大多数的应用程序来说,可以优先考虑将<code>数据库系统的隔离级别</code>设置为<code>授权读取</code>,这能够在<code>避免脏读取</code>的同时保证<code>较好的并发性能</code>。</p>
+<p><strong><font color=camel>尽管这种事务隔离级别会导致不可重复读、虚读和第二类丢失更新等并发问题,但较为科学的做法是在可能出现这类问题的个别场合中,由应用程序主动采用悲观锁或乐观锁来进行事务控制。</font></strong></p>
+<h3 id="1-2-2分布式事务"><a href="#1-2-2分布式事务" class="headerlink" title="1.2.2分布式事务"></a>1.2.2分布式事务</h3><p><code>分布式事务</code>是指事务的<code>参与者</code>、支持事务的<code>服务器</code>、<code>资源服务器</code>以及<code>事务管理器</code>分别位于分布式系统的<code>不同节点之上</code>。通常一个<code>分布式事务</code>中会涉及对<code>多个数据源或业务系统</code>的操作。</p>
+<h3 id="1-2-3-CAP和BASE理论"><a href="#1-2-3-CAP和BASE理论" class="headerlink" title="1.2.3 CAP和BASE理论"></a>1.2.3 CAP和BASE理论</h3><p>在可用性和一致性之间永远无法存在一个两全其美的方案,于是如何构建一个兼顾可用性和一致性”的分布式系统成为了无数工程师探讨的难题,出现了诸如CAP和BASE这样的分布式系统经典理论。</p>
+<h4 id="CAP定理"><a href="#CAP定理" class="headerlink" title="CAP定理"></a><font color=blue>CAP定理</font></h4><p><code>CAP定理</code>:CAP理论告诉我们,<font color=red>一个分布式系统不可能同时满足<code>一致性(C: Consistency)</code>、<code>可用性(A: Availability)</code>和<code>分区容错性(P: Partition tolerance)</code>这三个基本需求,<code>最多只能同时满足其中的两项</code>。</font></p>
+<p><font color=royalblue>一致性</font>:在分布式环境中,一致性是指数据在多个副本之间是否能够保持一致的特性。在一致性的需求下,当一个系统在数据一致的状态下执行更新操作后,应该保证系统的数据仍然处于一致的状态。那么这样的系统就被认为<code>具有强一致性(或严格的一致性)</code>。</p>
+<p><font color=yellowgreen>可用性</font>:可用性是指系统提供的服务<code>必须一直处于可用的状态</code>,对于用户的每一个操作请求总是能够在<code>有限的时间内返回结果</code>。对于用户的一个操作请求,系统必须能够在指定的时间(即响应时间)内返回对应的处理结果,如果超过了这个时间范围,那么系统就被认为<font color=purple>不可用。</font></p>
+<p><font color=blue>分区容错性</font>:分区容错性 <strong><font color=tomato>约束</font></strong> 了一个分布式系统需要具有如下<code>特性</code>:</p>
+<ul>
+<li>分布式系统在遇到<font color=brown>任何网络分区故障</font>的时候,仍然需要能够保证对外提供满足<code>一致性和可用性</code>的<font color=camel>服务</font>,除非是整个网络环境都发生了故障。</li>
+<li><code>网络分区</code>是指在分布式系统中,<font color=royalblue>不同的节点分布在不同的子网络(机房或异地网络等)中</font>,由于一些特殊的原因导致这些子网络之间出现网络不连通的状况,但各个子网络的内部网络是正常的,从而导致整个系统的网络环境被切分成了若干个孤立的区域。需要注意的是,组成一个分布式系统的每个节点的加入与退出都可以看作是一个特殊的<code>网络分区</code>。</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th>放弃CAP定理</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>放弃P(分区容错性)</code></td>
+<td>如果希望能够避免系统出现分区容错性问题,一种较为简单的做法是将所有的数据(或者仅仅是那些与事务相关的数据)都放在一个分布式节点上。这样的做法虽然无法100%地保证系统不会出错,但至少不会碰到由于网络分区带来的负面影响。但同时需要注意的是,放弃P的同时也就意味着放弃了系统的可扩展性,<code>分区容错性可以说是一个最基本的要求</code></td>
+</tr>
+<tr>
+<td><code>放弃A(可用性)</code></td>
+<td>相对于放弃“分区容错性”来说,放弃可用性则正好相反,其做法是一旦系统遇到网络分区或其他故障时,那么受到影响的服务需要等待一定的时间,因.此在等待期间系统无法对外提供正常的服务,即不可用</td>
+</tr>
+<tr>
+<td><code>放弃C(一致性)</code></td>
+<td>这里所说的放弃一致性,并不是完全不需要数据一致性,如果真是这样的话,那么系统的数据都是没有意义的,整个系统也是没有价值的。<font color=seagreen>事实上,放弃一致性指的是放弃數据的强一致性,而保留數据的最终一致性。这样的系统无法保证数据保持实时的一致性,但是能够承诺的是,数据最终会达到一个一致的状态。</font>这就引入了一个<code>时间窗口</code>的概念,具体多久能够达到<code>数据一致</code>取决于<code>系统的设计</code>,主要包<code>括数据副本在不同节点之间的复制时间长短</code></td>
+</tr>
+</tbody></table>
+<p><strong><font color=tomato>而对于分布式系统而言,网络问题又是一个必定会出现的异常情况,因此<code>分区容错性</code>也就成为了一个分布式系统必然需要面对和解决的问题。因此系统架构设计师往往需要把精力花在如何根据业务特点在<code>C(一致性)和A (可用性)之间寻求平衡</code>。</font></strong></p>
+<h4 id="BASE理论"><a href="#BASE理论" class="headerlink" title="BASE理论"></a><font color=camel>BASE理论</font></h4><p><code>BASE</code>是<code>Basically Available (基本可用)</code>, <code>Soft state (软状态)</code>和<code>Eventually consistent(最终一致性)</code>三个短语的简写.</p>
+<p><strong><font color=orange>BASE是对CAP中一致性和可用性权衡的结果</font></strong>,其来源于对大规模互联网系统分布式实践的总结,是基于CAP定理逐步演化而来的,<strong><font color=yellowgreen>其核心思想是即使无法做到强一致性(Strong consistency),但每个应用都可以根据自身的业务特点,采用适当的方式来使系统达到最终一致性(Eventual consistency)</font></strong>,</p>
+<p><strong><font color=seagreen><code>BASE</code>中的三要素</font></strong>:</p>
+<ul>
+<li><code>基本可用</code>:是指分布式系统在<code>出现不可预知故障</code>的时候,<code>允许损失部分可用性</code>-但请注意,这绝不等价于系统不可用。以下两个就是“<code>基本可用</code>”的典型例子。<ul>
+<li><code>响应时间上的损失</code>:正常情况下,一个在线搜索引擎需要在0.5秒之内返回给用户相应的查询结果,但由于出现故障(比如系统部分机房发生断电或断网故障) ,查询结果的响应时间增加到了1-2秒。</li>
+<li><code>功能上的损失</code>:正常情况下,在一个电子商务网站上进行购物,消费者几乎能够顺利地完成每一笔订单,但是在一些节日大促购物高峰的时候,由于消费者的购物行为激增,为了保护购物系统的稳定性,部分消费者可能会被引导到一个<code>降级页面</code>。</li>
+</ul>
+</li>
+<li><code>弱状态</code>:<font color=amber>弱状态也称为软状态</font>,和硬状态相对,是指允许<font color=seagreen>系统中的数据存在中间状态,并认为该中间状态的存在不会影响系统的整体可用性,即允许系统在不同节点的数据副本之间进行数据同步的过程存在延时</font>。</li>
+<li><code>最终一致性</code>:最终一致性强调的是系统中所有的数据副本,在经过一段时间的同步后,最终能够达到一个一致的状态。因此,最终一致性的本质是<font color=green>需要系统保证最终数据能够达到一致</font>,而不需要实时保证系统数据的强一致性。</li>
+</ul>
+<p><code>亚马逊首席技术官Werner Vogels在于2008年发表的一篇经典文章</code>：对最终一致性进行了非常详细的介绍。他认为最终一致性是一种<code>特殊的弱一致性</code>:<font color=camel>系统能够保证在没有其他新的更新操作的情况下,数据最终一定能够达到一致的状态,因此所有客户端对系统的数据访问都能够获取到最新的值</font>。同时,在没有发生故障的前提下,<font color=orange>数据达到一致状态的时间延迟,取决于网络延迟、系统负载和数据复制方案设计等</font></p>
+<p><strong>最终一致性变种：</strong></p>
+<p><strong><code>因果一致性( Causal consistency )</code></strong><br><font color=blue>因果一致性</font>是指,如果进程A在更新完某个数据项后通知了进程B,那么进程B之后对该数据项的访问都应该能够获取到进程A更新后的最新值,并且如果进程B要对该数据项进行更新操作的话,务必基于进程A更新后的最新值,<code>即不能发生丢失更新情况</code>。与此同时,与进程A无因果关系的进程C的数据访问则没有这样的限制。</p>
+<p><strong><code>读已之所写( Read your writes)</code></strong><br><font color=blue>读己之所写</font>是指,进程A更新一个数据项之后,它自己总是能够访问到更新过的最新值,而不会看到旧值。也就是说,对于单个数据获取者来说,其读取到的数据,一定不会比自己上次写入的值旧。因此,读己之所写也可以看作是一种特殊的因果一致性。</p>
+<p><strong><code>会话一致性(Session consistency )</code></strong><br><font color=tomato>会话一致性</font>将对系统数据的访问过程框定在了一个会话当中:<font color=blue>系统能保证在同一个有效的会话中实现“读己之所写”的一致性,也就是说,执行更新操作之后,客户端能够在同一个会话中始终读取到该数据项的最新值。</font><br><strong><code>单调读一致性( Monotonic read consistency )</code></strong><br><font color=green>单调读一致性</font>是指如果一个进程从系统中读取出一个数据项的某个值后,那么系统对于该进程后续的任何数据访问都不应该返回更旧的值。**<font color=brown>单调写一致性是指,一个系统需要能够保证来自同一个进程的写操作被顺序地执行。</font>**</p>
+<p>总的来说, <code>BASE</code>理论面向的是<font color=chocolate>大型高可用可扩展的分布式系统</font>,和<font color=chocolate>传统事务的ACID特性是相反的</font>,它完全不同于<code>ACID的强一致性模型</code>,而是提出通过<code>牺牲强一致性来获,得可用性</code>,并允许数据在一段时间内是不一致的,但最终达到一致状态。但同时,<strong><font color=amber>在实际的分布式场景中,不同业务单元和组件对数据一致性的要求是不同的,因此在具体的分布式系统架构设计过程中, <code>ACID</code>特性与<code>BASE</code>理论往往又会结合在一起使用。</font></strong></p>
+<h1 id="第2章一致性协议"><a href="#第2章一致性协议" class="headerlink" title="第2章一致性协议"></a>第2章一致性协议</h1><p>为了解决分布式一致性问题,在长期的探索研究过程中,涌现出了一大批经典的<code>一致性协议和算法</code>,其中最著名的就是<code>二阶段提交协议</code>、<code>三阶段提交协议</code>和<code>Paxos算法</code>了。</p>
+<h2 id="2-1-2PC3PC"><a href="#2-1-2PC3PC" class="headerlink" title="2.1 2PC3PC"></a>2.1 2PC3PC</h2><p>在<font color=seagreen>分布式系统</font>中,每一个机器节点虽然都能够明确地知道自己在进行事务操作过程中的结果是成功或失败,但却<font color=chocolate>无法直接获取到其他分布式节点的操作结果</font>。因此,当一个事务操作需要<code>跨越多个分布式节点</code>的时候,为了<code>保持事务处理的ACID特性</code>,就需要<code>引入一个称为“协调者(Coordinator)”的组件</code>来统一调度所有<code>分布式节点的执行逻辑</code>,这些<code>被调度的分布式节点则被称为“参与者” (Participant)</code>,<code>协调者</code>负责<code>调度参与者的行为</code>,并最终决定这些<code>参与者</code>是否要把<code>事务真正进行提交</code>。基于这个思想,衍生出了<code>二阶段提交</code>和<code>三阶段提交</code>两种协议。</p>
+<h3 id="2-1-1-2PC"><a href="#2-1-1-2PC" class="headerlink" title="2.1.1 2PC"></a>2.1.1 2PC</h3><p><strong><font color=green>2PC,是Two-Phase Commit的缩写,即二阶段提交</font></strong>,是计算机网络尤其是在数据库领域内,为了使基于<code>分布式系统架构下</code>的所有节点在进行事务处理过程中能够保持<code>原子性和一致性</code>而设计的一种算法。通常,二阶段提交协议也被认为是一种<code>一致性协议</code>,用来保证分布式系统数据的一致性。目前,绝大部分的<code>关系型数据库</code>都是采用<code>二阶段提交协议</code>·来完成<code>分布式事务处理</code>的,利用该协议能够非常方便地完成所有<code>分布式事务参与者的协调</code>,统一决定<code>事务的提交或回滚</code>,从而能够有效地保证分布式数据一致性.</p>
+<h4 id="协议说明"><a href="#协议说明" class="headerlink" title="协议说明"></a><font color=royalblue>协议说明</font></h4><p>顾名思义,二阶段提交协议是将事务的提交过程分成了两个阶段</p>
+<p><strong><font color=green>阶段一:提交事务请求</font></strong></p>
+<ol>
+<li>事务询问。<code>协调者</code>向所有的<code>参与者</code>发送事务内容,询问是否可以执行事务提交操作,并开始等待各参与者的响应。</li>
+<li>执行事务。各<code>参与者</code>节点执行事务操作,并将<code>Undo</code>和<code>Redo</code>信息记入事务日志中。</li>
+<li>各参与者向协调者反馈事务询问的响应。</li>
+</ol>
+<p>如果参与者成功执行了事务操作,那么就反馈给<code>协调者Yes</code>响应,表示事务<code>可以执行</code>;如果参与者<code>没有成功执行事务</code>,那么就反馈给<code>协调者No</code>响应,表示事务<code>不可以执行</code>。</p>
+<p>由于上面讲述的内容在形式上近似是<code>协调者组织各参与者</code>对一次事务操作的<code>投票表态过程</code>,因此二阶段提交协议的<code>阶段一</code>也被称为“<code>投票阶段</code>”,即各<code>参与者投票</code>表明是否要继续执行接下的事务提交操作。</p>
+<p><strong><font color=plum>阶段二:执行事务提交</font></strong></p>
+<p>阶段二中,协调者会根据各参与者的反馈情况来决定最终是否可以进行事务提交操作,正常情况下,包含以下两种可能:</p>
+<ul>
+<li><code>执行事务提交</code>:假如协调者从所有的参与者获得的反馈都是Yes响应,那么就会<code>执行事务提交</code>。<ol>
+<li><code>发送提交请求</code>。协调者向所有参与者节点发出Commit请求。</li>
+<li><code>事务提交</code>。参与者接收到Commit请求后,会正式执行事务提交操作,并在完成提交之后释放在整个事务执行期间占用的事务资源。</li>
+<li><code>反馈事务提交结果</code>。参与者在完成事务提交之后,向协调者发送Ack消息。</li>
+<li><code>完成事务</code>。协调者接收到所有参与者反馈的Ack消息后,完成事务。</li>
+</ol>
+</li>
+<li><code>中断事务</code>:假如任何一个参与者向协调者反馈了No响应,或者在等待超时之后,协调者尚无法接收到所有参与者的反馈响应,那么就会<font color=orange>中断事务</font>。<ol>
+<li><code>发送回滚请求</code>。协调者向所有参与者节点发出Rollback请求。</li>
+<li><code>事务回滚</code>。参与者接收到Rollback请求后,会利用其在阶段一中记录的Undo信息来执行事务回滚操作,并在完成回滚之后释放在整个事务执行期间占用的资源。</li>
+<li><code>反馈事务回滚结果</code>。参与者在完成事务回滚之后,向协调者发送Ack消息。</li>
+<li><code>中断事务</code>。协调者接收到所有参与者反馈的Ack消息后,完成事务中断。   </li>
+</ol>
+</li>
+</ul>
+<p>二阶段提交将<font color=plum>一个事务的处理过程分为了<code>投票</code>和<code>执行</code>两个阶段</font>,其核心是对每个事务都采用<code>先尝试后提交</code>的处理方式,因此也可以将二阶段提交看作一个<code>强一致性的算法</code>.</p>
+<p><strong><font color=red>优缺点</font></strong>:</p>
+<ul>
+<li>优点:<code>原理简单,实现方便。</code></li>
+<li>缺点:<code>同步阻塞、单点问题、脑裂、太过保守。</code></li>
+</ul>
+<p><font color=yellowgreen>同步阻塞</font>:<font color=orange>所有参与该事务操作的逻辑都处于阻塞状态,也就是说,各个参与者在等待其他参与者响应的过程中,将无法进行其他任何操作。</font></p>
+<p><font color=camel>单点问题</font>:<font color=brown>如果协调者是在阶段二中出现问题的话,那么其他参与者将会一直处于锁定事务资源的状态中,而无法继续完成事务操作。</font></p>
+<p><font color=amber>数据不一致</font>:在二阶段提交协议的阶段二,即执行事务提交的时候,当协调者向所有的参与者发送Commit请求之后,<font color=amber>发生了局部网络异常或者是协调者在尚未发送完Commit请求之前自身发生了崩溃,导致最终只有部分参与者收到了Commit请求</font>。于是,这部分收到了Commit请求的参与者就会进行事务的提交,而其他没有收到Commit请求的参与者则无法进行事务提交,于是<font color=yellowgreen>整个分布式系统便出现了数据不一致性现象</font>。</p>
+<p><font color=camel>太过保守</font>:如果在协调者指示参与者进行事务提交询问的过程中,参与者出现故障而导致协调者始终无法获取到所有参与者的响应信息的话,这时协调者只能依靠其自身的超时机制来判断是否需要中断事务,这样的策略显得比较保守。换句话说,<font color=blue>二阶段提交协议没有设计较为完善的容错机制,任意一个节点的失败都会导致整个事务的失败。</font></p>
+<h3 id="2-1-2-3PC"><a href="#2-1-2-3PC" class="headerlink" title="2.1.2 3PC"></a>2.1.2 3PC</h3><p>二阶段提交协议的基础上进行了改进,提出了三阶段提交协议。</p>
+<p><strong><font color=royalblue>3PC,是Three-Phase Commit的缩写,即三阶段提交</font></strong>,是2PC的改进版,其将二阶段提交协议的“提交事务请求”过程一分为二,形成了由<code>CanCommit</code>, <code>PreCommit</code>和<code>do Commit</code>三个阶段组成的事务处理协议.</p>
+<h4 id="阶段一-CanCommit1"><a href="#阶段一-CanCommit1" class="headerlink" title="阶段一: CanCommit1"></a><font color=brown>阶段一: CanCommit1</font></h4><p>  1.<code> 事务询问</code>。协调者向所有的参与者发送一个包含事务内容的canCommit请求,询问是否可以执行事务提交操作,并开始等待各参与者的响应。<br>  2. <code>各参与者向协调者反馈事务询问的响应</code>。参与者在接收到来自协调者的canCommit请求后,正常情况下,如果其自身认为可以顺利执行事务,那么会反馈Yes响应,并进入预备状态,否则反馈No响应。</p>
+<h4 id="阶段二-PreCommit"><a href="#阶段二-PreCommit" class="headerlink" title="阶段二: PreCommit"></a><font color=seagreen>阶段二: PreCommit</font></h4><p>在阶段二中,协调者会根据各参与者的反馈情况来决定是否可以进行事务的<code>PreCommit</code>操作,正常情况下,包含两种可能。</p>
+<ul>
+<li><font color=red>执行事务预提交</font>假如协调者从所有的参与者获得的反馈都是Yes响应,那么就会执行事务预提交。<ol>
+<li><code>发送预提交请求</code>。协调者向所有参与者节点发出<code>preCommit的请求</code>,<code>并进入Prepared阶段。</code></li>
+<li><code>事务预提交</code>。<code>参与者</code>接收到<code>preCommit</code>请求后,会执行事务操作,并将<code>Undo和Redo信息记录到事务日志</code>中。</li>
+<li><code>各参与者向协调者反馈事务执行的响应</code>。如果<code>参与者</code>成功执行了事务操作,那么就会反馈给<code>协调者Ack响应</code>,同时等待最终的指令:提交(commit)或中止(abort)中断事务</li>
+</ol>
+</li>
+<li><font color=royalblue>中断事务</font>假如任何一个参与者向协调者反馈了No响应,或者在等待超时之后,协调者尚无法接收到所有参与者的反馈响应,那么就会中断事务。<ol>
+<li><code>发送中断请求</code>。协调者向所有<code>参与者</code>节点发出<code>abort请求</code>。</li>
+<li><code>中断事务</code>。无论是收到来自<code>协调者的abort请求</code>,或者是在等待<font color=blue>协调者</font>请求过程中出现超时,<font color=red>参与者</font>都会<code>中断事务</code>。</li>
+</ol>
+</li>
+</ul>
+<h4 id="阶段三-doCommit"><a href="#阶段三-doCommit" class="headerlink" title="阶段三: doCommit"></a><font color=red>阶段三: doCommit</font></h4><p>该阶段将进行真正的事务提交,会存在以下两种可能的情况。</p>
+<ul>
+<li><font color=chocolate> 执行提交.</font><ol>
+<li><code>发送提交请求</code>。进入这一阶段,假设<code>协调者</code>处于正常工作状态,<code>并且它接收到了来自所有参与者的Ack响应,那么它将从“预提交”状态转换到“提交”状态,并向所有的参与者发送doCommit请求。</code></li>
+<li><code>事务提交</code>。<code>参与者</code>接收到doCommit请求后,<code>会正式执行事务提交操作,并在完成提交之后释放在整个事务执行期间占用的事务资源。</code></li>
+<li><code>反馈事务提交结果</code>。<code>参与者</code>在完成事务提交之后,<code>向协调者发送Ack消息</code>。</li>
+<li><code>完成事务</code>。<code>协调者接收到所有参与者反馈的Ack消息后,完成事务</code>。</li>
+</ol>
+</li>
+<li><font color=red>中断事务</font>进入这一阶段,假设<code>协调者</code>处于正常工作状态,并且有任意一个参与者向协调者反馈了No响应,或者在等待超时之后,协调者尚无法接收到所有参与者的反馈响应,那么就会<code>中断事务</code>。<ol>
+<li><code>发送中断请求</code>。<code>协调者</code>向所有的参与者节点发送<code>abort请求</code>。</li>
+<li><code>事务回滚</code>。参与者接收到<code>abort请求</code>后,会利用其在阶段二中记录的<code>Undo信息来执行事务回滚操作</code>,并在完成回滚之后释放在整<code>个事务执行期间占用的资源。</code></li>
+</ol>
+</li>
+</ul>
+<p>需要注意的是,一旦进入阶段三,可能会存在以下两种故障。</p>
+<ul>
+<li>协调者出现问题。</li>
+<li>协调者和参与者之间的网络出现故障。</li>
+</ul>
+<p>无论出现哪种情况,最终都会导致参与者无法及时接收到来自协调者的<code>doCommit</code>或是<code>abort请求</code>,针对这样的异常情况,参与者都会在<font color=yellowgreen>等待超时之后</font>,继续进行<code>事务提交</code>。<br><strong><font color=tomato>感觉这里说的有点问题，感觉和第二阶段的中断事务是有冲突的</font></strong><br><strong><font color=plum>优缺点</font></strong><br><font color=seagreen>三阶段提交协议的优点</font>:<br>相较于二阶段提交协议,三阶段提交协议最大的优点就是<code>降低了参与者的阻塞范围</code>,并且能够在出现单点故障后继续达成一致。<br><font color=orange>三阶段提交协议的缺点:</font><br>三阶段提交协议在去除阻塞的同时也引入了新的问题,那就是在<code>参与者接收到preCommit消息后</code>,如果网络出现分区,此时协调者所在的节点和参与者无法进行正常的网络通信,在这种情况下,该参与者依然会进行事务的提交,这必然出现<code>数据的不一致性</code>。</p>
+<h2 id="2-2-Paxos算法"><a href="#2-2-Paxos算法" class="headerlink" title="2.2 Paxos算法"></a>2.2 Paxos算法</h2><p>嗯,这部分有点深，简单了解一下。</p>
+<h3 id="2-2-1追本湖源"><a href="#2-2-1追本湖源" class="headerlink" title="2.2.1追本湖源"></a>2.2.1追本湖源</h3><ul>
+<li>拜占廷将军问题</li>
+<li>Paxos算法名称的由来也是取自Lamport论文(The Par-Time Parliament)中提到的Paxos小岛。</li>
+</ul>
+<h3 id="2-2-2-Paxos理论的诞生"><a href="#2-2-2-Paxos理论的诞生" class="headerlink" title="2.2.2 Paxos理论的诞生"></a>2.2.2 Paxos理论的诞生</h3><p>由于Lamport个人自负固执的性格,使得Paxos理论的诞生可谓一波三折。</p>
+<h3 id="2-2-3-Paxos算法详解"><a href="#2-2-3-Paxos算法详解" class="headerlink" title="2.2.3 Paxos算法详解"></a>2.2.3 Paxos算法详解</h3><p>嗯。。。这个以后在学习。</p>
+<h1 id="第3章Paxos的工程实践"><a href="#第3章Paxos的工程实践" class="headerlink" title="第3章Paxos的工程实践"></a>第3章Paxos的工程实践</h1><p>嗯。。。这个以后在学习。</p>
+<h1 id="第4章Zookeeper与Paxos"><a href="#第4章Zookeeper与Paxos" class="headerlink" title="第4章Zookeeper与Paxos"></a>第4章Zookeeper与Paxos</h1><p><code>Apache ZooKeeper</code>是由<code>Apache Hadoop</code>的子项目发展而来,于2010年11月正式成为了Apache的顶级项目。<code>ZooKeeper</code>为<code>分布式应用</code>提供了<code>高效</code>且<code>可靠</code>的<code>分布式协调服务</code>,提供了诸如<code>统一命名服务</code>、<code>配置管理</code>和<code>分布式锁</code>等分布式的<code>基础服务</code>。在解决分布式数据一致性方面, ZooKeeper并没有直接采用Paxos算法,而是采用了一种被称为<code>ZAB(Zookeeper Atomic Broadcast)</code>的一致性协议。</p>
+<h2 id="4-1初识ZooKeeper"><a href="#4-1初识ZooKeeper" class="headerlink" title="4.1初识ZooKeeper"></a>4.1初识ZooKeeper</h2><h3 id="4-1-1-ZooKeeper介绍"><a href="#4-1-1-ZooKeeper介绍" class="headerlink" title="4.1.1 ZooKeeper介绍"></a>4.1.1 ZooKeeper介绍</h3><p><code>ZooKeeper</code>是一个开放源代码的<code>分布式协调服务</code>,由知名互联网公司<code>雅虎</code>创建,是<code>Google.Chubby</code>的开源实现。<code>ZooKeeper</code>的设计目标是将那些复杂且容易出错的<code>分布式一致性服务</code>封装起来,构成一个<code>高效可靠的原语集</code>,并以一系列简单易用的接口提供给用户使用。</p>
+<h4 id="Zookeeper是什么"><a href="#Zookeeper是什么" class="headerlink" title="Zookeeper是什么"></a>Zookeeper是什么</h4><p><code>Zookeeper</code>是一个典型的<code>分布式数据一致性</code>的解决方案,分布式应用程序可以基于它实现如<font color=amber>数据发布/订阅</font>、<font color=orange>负载均衡</font>、<font color=chocolate>命名服务</font>、<font color=seagreen>分布式协调/通知</font>、<font color=green>集群管理</font>、<font color=brown>Master选举</font>、<font color=orange>分布式锁和分布式队列等功能</font>. ZooKeeper可以保证如下分布式一致性特性.</p>
+<ul>
+<li><font color=camel>顺序一致性</font>：从同一个客户端发起的事务请求,最终将会严格地按照其发起顺序被应用到ZooKeeper中去.</li>
+<li><font color=plum>原子性</font>：所有事务请求的处理结果在整个集群中所有机器上的应用情况是一致的,也就是说,要么整个集群所有机器都成功应用了某一个事务,要么都没有应用,一定不会出现集群中部分机器应用了该事务,而另外一部分没有应用的情况</li>
+<li><font color=blue>单一视围( Single System Image )</font>：无论客户端连接的是哪个ZooKeeper服务器,其看到的服务端数据模型都是一致的。</li>
+<li><font color=yellowgreen>可靠性</font>：一旦服务端成功地应用了一个事务,并完成对客户端的响应,那么该事务所引起的服务端状态变更将会被一直保留下来,除非有另一个事务又对其进行了变更。</li>
+<li><font color=green>实时性</font>:Zookeeper仅仅保证在一定的时间段内,客户端最终一定能够从服务端上读取到最新的数据状态。</li>
+</ul>
+<h4 id="ZooKeeper的设计目标"><a href="#ZooKeeper的设计目标" class="headerlink" title="ZooKeeper的设计目标"></a>ZooKeeper的设计目标</h4><p>Zookeeper致力于提供一个<font color=blue>高性能、高可用,且具有严格的顺序访问控制能力(主要是写操作的严格顺序性)的分布式协调服务</font>。高性能使得ZooKeeper能够应用于那些<code>对系统吞吐有明确要求的大型分布式系统</code>中,<code>高可用使得分布式的单点问题</code>得到了很好的解·决,而严格的顺序访问控制使得客户端能够<code>基于ZooKeeper实现一些复杂的同步原语</code>。下面我们来具体看一下Zookeeper的四个设计目标。</p>
+<ul>
+<li>目标一:<font color=red>简单的数据模型</font>:<code>ZooKeeper</code>使得分布式程序能够通过一个共享的、树型结构的名字空间来进行相互协调。</li>
+<li>目标二:<font color=orange>可以构建集群</font>:一个<code>ZooKeeper</code>集群通常由一组机器组成,一般3-5台机器就可以组成一个可用的ZooKeeper集群了。</li>
+<li>目标三:<font color=orange>顺序访问</font>:对于来自客户端的每个更新请求, ZooKeeper都会分配一个全局唯一的递增编号,这个编号反映了所有事务操作的先后顺序,应用程序可以使用ZooKeeper的这个特性来实现更高层次的同步原语。关于ZooKeeper的事务请求处理和事务ID的生成,</li>
+<li>目标四:<font color=seagreen>高性能</font>“由于ZooKeeper将全量数据存储在内存中,并直接服务于客户端的所有非事务请求,因此它尤其适用于以读操作为主的应用场景。</li>
+</ul>
+<h3 id="4-1-2-Zookeeper从何而来"><a href="#4-1-2-Zookeeper从何而来" class="headerlink" title="4.1.2 Zookeeper从何而来"></a>4.1.2 Zookeeper从何而来</h3><blockquote>
+<p>关于”ZooKeeper”这个项目的名字,其实也有一段趣闻。在立项初期,考虑到之前内部很多项目都是使用动物的名字来命名的(例如著名的Pig项目),雅虎的工程师希望给这个项目也取一个动物的名字。时任研究院的首席科学家Raghu Ramakrishnan开玩笑地说: “在这样下去,我们这儿就变成动物园了!”此话一出,大家纷纷表示就叫动物园管理员吧-因为各个以动物命名的分布式组件放在一起,雅虎的整个分布式系统看上去就像一个大型的动物园了,而ZooKeeper正好要用来进行分布式环境的协调-于是,ZooKeeper的名字也就由此诞生了。</p>
+</blockquote>
+<h3 id="4-1-3-ZooKeeper的基本概念"><a href="#4-1-3-ZooKeeper的基本概念" class="headerlink" title="4.1.3 ZooKeeper的基本概念"></a>4.1.3 ZooKeeper的基本概念</h3><h4 id="集群角色"><a href="#集群角色" class="headerlink" title="集群角色"></a><font color=plum>集群角色</font></h4><p>通常在分布式系统中,构成一个集群的每一台机器都有自己的角色,最典型的集群模式就是<code>Master/Slave模式(主备模式)</code>。在这种模式中,我们把能够处理所有<code>写操作的机器称为Master机器</code>,把所有<code>通过异步复制方式获取最新数据,并提供读服务的机器称为Slave机器</code>。</p>
+<p>而在ZooKeeper中,这些概念被颠覆了。它没有沿用传统的Master/Slave概念,而是引入了<font color=green>Leader</font>, <font color=yellowgreen>Follower</font>和<font color=seagreen>Observer</font>三种角色。ZooKeeper集群中的所有机器通过一个<code>Leader选举</code>过程来选定一台被称为”<font color=seagreen>Leader</font>“的机器, <code>Leader服务器</code>为客户端提供<code>读和写服务</code>。除Leader外,其他机器包括<code>Follower``和Observer</code>, <code>Follower</code>和<code>Observer</code>都能够提供读服务,唯一的区别在于, Observer机器不参与Leader选举过程,也不参与写操作的“过半写成功”策略,因此<code>Observer</code>可以在不影响写性能的情况下提升<code>集群的读性能</code>。</p>
+<h4 id="会话-Session"><a href="#会话-Session" class="headerlink" title="会话(Session)"></a><font color=tomato>会话(Session)</font></h4><p>Session是指客户端会话,在讲解会话之前,我们首先来了解一下客户端连接。在ZooKeeper中,一个客户端连接是指客户端和服务器之间的<code>一个TCP长连接</code>.ZooKeeper对外的服务端口默认是<code>2181</code>,客户端启动的时候,首先会与服务器建立一个<code>TCP连接</code>,从第一次连接建立开始,客户端会话的生命周期也开始了,通过这个连接,客户端能够通过<code>心跳检测</code>与<code>服务器保持有效的会话</code>,也能够向<code>ZooKeeper服务器</code>发送请求并接受响应,同时还能够通过该连接接收来自服务器的<code>Watch事件</code>通知.</p>
+<h4 id="数据节点-Znode"><a href="#数据节点-Znode" class="headerlink" title="数据节点(Znode)"></a><font color=royalblue>数据节点(Znode)</font></h4><p>在谈到分布式的时候,我们通常说的<font color=yellowgreen>“节点”是指组成集群的每一台机器</font>。然而,在ZooKeeper中, <font color=brown>“节点”分为两类,</font>第一类同样是<font color=yellowgreen>指构成集群的机器,我们称之为机器节点</font>;第二类则是指数<font color=yellowgreen>据模型中的数据单元,我们称之为数据节点-ZNode</font>,.</p>
+<p>ZooKeeper将所有数据存储在内存中,数据模型是一棵树(ZNode Tree),由斜杠(/)进行分割的路径,就是一个Znode,例如/oo/pathl,每个ZNode上都会保存自己的数据内容,同时,还会保存一系列属性信息。在ZooKeeper中,<font color=amber> ZNode可以分为持久节点和临时节点两类</font>。所谓持久节点是指一旦这个ZNode被创建了,除非主动进行ZNode的移除操作,否则这个ZNode将一直保存在Zookeeper上。而临时节点就不一样了,它的生命周期和客户端会话绑定,一旦客户端会话失效,那么这个客户端创建的所有临时节点都会被移除。</p>
+<p>Zookeeper还允许用户为<code>每个节点添加一个特殊的属性: SEQUENTIAL</code>,一旦节点被标记上这个属性,那么在这个节点被创建的时候, ZooKeeper会自动在其节点名后面追加上一个整型数字,这个整型数字是一个由父节点维护的自增数字。</p>
+<h4 id="版本"><a href="#版本" class="headerlink" title="版本"></a><font color=yellowgreen>版本</font></h4><p>在前面我们已经提到, <code>ZooKeeper</code>的每个<code>ZNode</code>上都会存储数据,对应于每个<code>ZNode</code>,<code>ZooKeeper都会为其维护一个叫作Stat的数据结构</code>, Stat中记录了这个ZNode的三个数据版本,分别是<code>version (当前ZNode的版本)</code>, <code>cversion (当前ZNode子节点的版本)</code>和<code>aversion (当前ZNode的ACL版本)</code></p>
+<h4 id="Watcher"><a href="#Watcher" class="headerlink" title="Watcher"></a><font color=green>Watcher</font></h4><p><code>Watcher (事件监听器)</code>,是ZooKeeper中的一个很重要的特性。<font color=royalblue>ZooKeeper允许用户在指定节点上注册一些Watcher,并且在一些特定事件触发的时候, ZooKeeper服务端会将事件通知到感兴趣的客户端上去,该机制是ZooKeeper实现分布式协调服务的重要特性</font>。</p>
+<h4 id="ACL"><a href="#ACL" class="headerlink" title="ACL"></a><font color=amber>ACL</font></h4><p>ZooKeeper采用<code>ACL (Access Control Lists)策略</code>来进行权限控制,类似于<code>UNIX文件系统的权限控制</code>。ZooKkeeper定义了如下5种权限。</p>
+<ul>
+<li>CREATE;创建子节点的权限。</li>
+<li>READ:获取节点数据和子节点列表的权限。</li>
+<li>WRITE:更新节点数据的权限。</li>
+<li>DELETE:删除子节点的权限。</li>
+<li>ADMIN:设置节点ACL的权限。其中尤其需要注意的是.</li>
+</ul>
+<p><code>CREATE</code>和<code>DELETE</code>这两种权限都是针对子节点的权限控制。</p>
+<h3 id="4-1-4为什么选择Zookeeper"><a href="#4-1-4为什么选择Zookeeper" class="headerlink" title="4.1.4为什么选择Zookeeper"></a>4.1.4为什么选择Zookeeper</h3><ul>
+<li>达到了一个工业级产品的标准。其次, ZooKeeper是开放源代码的.</li>
+<li>ZooKeeper是免费的,你无须为它支付任何费用。</li>
+<li>ZooKeeper已经得到了广泛的应用。诸如Hadoop, HBase, Storm和Solr等.</li>
+</ul>
+<h2 id="4-2-Zookeeper的ZAB协议"><a href="#4-2-Zookeeper的ZAB协议" class="headerlink" title="4.2 Zookeeper的ZAB协议"></a>4.2 Zookeeper的ZAB协议</h2><p>嗯，时间紧张，这部分以后在看</p>
+<h3 id="4-2-1-ZAB协议"><a href="#4-2-1-ZAB协议" class="headerlink" title="4.2.1 ZAB协议"></a>4.2.1 ZAB协议</h3><h3 id="4-2-2协议介绍"><a href="#4-2-2协议介绍" class="headerlink" title="4.2.2协议介绍"></a>4.2.2协议介绍</h3><h3 id="4-2-3深入ZAB协议"><a href="#4-2-3深入ZAB协议" class="headerlink" title="4.2.3深入ZAB协议"></a>4.2.3深入ZAB协议</h3><h3 id="4-2-4-ZAB与Paxos算法的联系与区别"><a href="#4-2-4-ZAB与Paxos算法的联系与区别" class="headerlink" title="4.2.4 ZAB与Paxos算法的联系与区别"></a>4.2.4 ZAB与Paxos算法的联系与区别</h3><h1 id="第5章使用Zookeeper"><a href="#第5章使用Zookeeper" class="headerlink" title="第5章使用Zookeeper"></a>第5章使用Zookeeper</h1><h2 id="5-1部署与运行"><a href="#5-1部署与运行" class="headerlink" title="5.1部署与运行"></a>5.1部署与运行</h2><p>如何部署一个ZooKeeper集群。</p>
+<h2 id="5-2客户端脚本"><a href="#5-2客户端脚本" class="headerlink" title="5.2客户端脚本"></a>5.2客户端脚本</h2><h3 id="5-1-1系统环境"><a href="#5-1-1系统环境" class="headerlink" title="5.1.1系统环境"></a>5.1.1系统环境</h3><ul>
+<li>操作系统: GNU/Linux, Sun Solaris, Win32以及MacoSX等</li>
+<li>Java环境: JDK1.6 以上。</li>
+</ul>
+<h3 id="5-1-2集群与单机"><a href="#5-1-2集群与单机" class="headerlink" title="5.1.2集群与单机"></a>5.1.2集群与单机</h3><p><code>ZooKeeper</code>有两种运行模式:<code>集群模式</code>和<code>单机模式</code>。涉及的部署与配置操作都是针对GNU/Linux系统的。</p>
+<h4 id="zookeeper安装"><a href="#zookeeper安装" class="headerlink" title="zookeeper安装"></a>zookeeper安装</h4><p>下载网站： <a target="_blank" rel="noopener" href="https://zookeeper.apache.org/releases.html">https://zookeeper.apache.org/releases.html</a></p>
+<h3 id="5-1-3运行服务"><a href="#5-1-3运行服务" class="headerlink" title="5.1.3运行服务"></a>5.1.3运行服务</h3><h2 id="5-3-Java户端AP使用"><a href="#5-3-Java户端AP使用" class="headerlink" title="5.3 Java户端AP使用"></a>5.3 Java户端AP使用</h2><h2 id="5-4开源客户端"><a href="#5-4开源客户端" class="headerlink" title="5.4开源客户端"></a>5.4开源客户端</h2><h1 id="第6章Zookeeper的典型应用场景"><a href="#第6章Zookeeper的典型应用场景" class="headerlink" title="第6章Zookeeper的典型应用场景"></a>第6章Zookeeper的典型应用场景</h1><h1 id="第7章Zookeeper技术内幕"><a href="#第7章Zookeeper技术内幕" class="headerlink" title="第7章Zookeeper技术内幕"></a>第7章Zookeeper技术内幕</h1><h1 id="第8章Zookeeper运维"><a href="#第8章Zookeeper运维" class="headerlink" title="第8章Zookeeper运维"></a>第8章Zookeeper运维</h1></div><div class="article-licensing box"><div class="licensing-title"><p>《从Paxos到Zookper分布式一致性原理与实践》读书笔记</p><p><a href="https://liruilongs.github.io/2021/06/30/《从Paxos到Zookper分布式一致性原理与实践》读书笔记/">https://liruilongs.github.io/2021/06/30/《从Paxos到Zookper分布式一致性原理与实践》读书笔记/</a></p></div><div class="licensing-meta level is-mobile"><div class="level-left"><div class="level-item is-narrow"><div><h6>作者</h6><a href="https://liruilongs.github.io"><p>山河已无恙</p></a></div></div><div class="level-item is-narrow"><div><h6>发布于</h6><p>2021-06-30</p></div></div><div class="level-item is-narrow"><div><h6>更新于</h6><p>2021-07-01</p></div></div><div class="level-item is-narrow"><div><h6>许可协议</h6><p><a class="icon" rel="noopener" target="_blank" title="Creative Commons" href="https://creativecommons.org/"><i class="fab fa-creative-commons"></i></a><a class="icon" rel="noopener" target="_blank" title="Attribution" href="https://creativecommons.org/licenses/by/4.0/"><i class="fab fa-creative-commons-by"></i></a><a class="icon" rel="noopener" target="_blank" title="Noncommercial" href="https://creativecommons.org/licenses/by-nc/4.0/"><i class="fab fa-creative-commons-nc"></i></a></p></div></div></div></div></div><div class="recommend-area"><div class="recommend-post"><span class="is-size-6 has-text-grey has-mr-7"># 推荐文章</span><br><span>  1.<a class="is-size-6" href="/2020/07/30/Java%E4%B8%ADtry%7B%7Dcatch%E7%9A%84%E9%9A%90%E8%97%8F(%E5%A6%82%E4%BD%95%E4%BC%98%E9%9B%85%E7%9A%84%E5%AE%9E%E7%8E%B0%E5%BC%82%E5%B8%B8%E5%9D%97)/" target="_blank">Java中try{}catch的隐藏(如何优雅的实现异常块)</a><br></span><span>  2.<a class="is-size-6" href="/2021/06/20/%E7%A8%8B%E5%BA%8F%E4%BA%BA%E7%94%9F%E4%B9%8B%E7%BC%98%E8%B5%B7/" target="_blank">程序人生之缘起</a><br></span><span>  3.<a class="is-size-6" href="/2021/06/28/%E4%B8%8D%E8%8A%B1%E9%92%B1%E9%9B%B6%E9%97%A8%E6%A7%9B%E3%80%8110%E5%88%86%E9%92%9F%E6%90%AD%E5%BB%BA%E8%87%AA%E5%B7%B1%E7%9A%84%E7%BA%BF%E4%B8%8A%E5%8D%9A%E5%AE%A2%E5%B9%B3%E5%8F%B0/" target="_blank">不花钱零门槛、10分钟搭建自己的线上博客平台</a><br></span><span>  4.<a class="is-size-6" href="/2021/06/30/%E3%80%8A%E4%BB%8EPaxos%E5%88%B0Zookper%E5%88%86%E5%B8%83%E5%BC%8F%E4%B8%80%E8%87%B4%E6%80%A7%E5%8E%9F%E7%90%86%E4%B8%8E%E5%AE%9E%E8%B7%B5%E3%80%8B%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/" target="_blank">《从Paxos到Zookper分布式一致性原理与实践》读书笔记</a><br></span></div></div><link rel="stylesheet" href="https://cdnjs.loli.net/ajax/libs/social-share.js/1.0.16/css/share.min.css"><div class="social-share"></div><script src="https://cdnjs.loli.net/ajax/libs/social-share.js/1.0.16/js/social-share.min.js"></script></article></div><div class="card"><div class="card-content"><h3 class="menu-label has-text-centered">喜欢这篇文章？打赏一下作者吧</h3><div class="buttons is-centered"><a class="button donate" data-type="alipay"><span class="icon is-small"><i class="fab fa-alipay"></i></span><span>支付宝</span><span class="qrcode"><img src="/img/alipay%EF%BF%A5.png" alt="支付宝"></span></a><a class="button donate" data-type="wechat"><span class="icon is-small"><i class="fab fa-weixin"></i></span><span>微信</span><span class="qrcode"><img src="/img/wechat%EF%BF%A5.png" alt="微信"></span></a></div></div></div><nav class="post-navigation mt-4 level is-mobile"><div class="level-end"><a class="article-nav-next level level-item link-muted" href="/2021/06/30/%E3%80%8AHead%20First%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F%E3%80%8B%E4%B8%AD%E6%96%87%E7%89%88%20%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0%20(3)/"><span class="level-item"> </span><i class="level-item fas fa-chevron-right"></i></a></div></nav><!--!--><div class="card"><div class="card-content"><div class="title is-5">评论</div><div id="comment-container"></div><link rel="stylesheet" href="https://cdnjs.loli.net/ajax/libs/gitalk/1.6.0/gitalk.css"><script> $.getScript('/js/gitalk.min.js', function () { 
+            var gitalk = new Gitalk({
+            language:'zh-CN',
+            id: 'f381f6f655b09178272310a799f16b99',
+            repo: 'blog_comment',
+            owner: 'LIRUILONGS',
+            clientID: '9fdc9739266d48d5f62e',
+            clientSecret: 'c1cc33697d099a2197650ec9dadcb16bd4904655',
+            admin: ["LIRUILONGS"],
+            createIssueManually: true,
+            distractionFreeMode: true,
+            perPage: 10,
+            pagerDirection: 'last',
+            proxy: 'https://cors-anywhere.azm.workers.dev/https://github.com/login/oauth/access_token',
+            
+            enableHotKey: true,
+            isLocked: false
+        })
+        gitalk.render('comment-container')});</script></div></div></div><div class="column column-left is-4-tablet is-4-desktop is-3-widescreen  order-1 is-sticky"><div class="card widget" id="toc" data-type="toc"><div class="card-content"><div class="menu"><h3 class="menu-label">目录</h3><ul class="menu-list"><li><a class="is-flex is-mobile" href="#第1章分布式架构"><span class="mr-2">1</span><span>第1章分布式架构</span></a><ul class="menu-list"><li><a class="is-flex is-mobile" href="#1-1从集中式到分布式"><span class="mr-2">1.1</span><span>1.1从集中式到分布式</span></a><ul class="menu-list"><li><a class="is-flex is-mobile" href="#1-1-1集中式的特点"><span class="mr-2">1.1.1</span><span>1.1.1集中式的特点</span></a></li><li><a class="is-flex is-mobile" href="#1-1-2分布式的特点"><span class="mr-2">1.1.2</span><span>1.1.2分布式的特点</span></a></li><li><a class="is-flex is-mobile" href="#三态"><span class="mr-2">1.1.3</span><span>三态</span></a></li><li><a class="is-flex is-mobile" href="#节点故障"><span class="mr-2">1.1.4</span><span>节点故障</span></a></li></ul></li><li><a class="is-flex is-mobile" href="#1-2从ACID到CAP-BASE"><span class="mr-2">1.2</span><span>1.2从ACID到CAP/BASE</span></a><ul class="menu-list"><li><a class="is-flex is-mobile" href="#1-2-1-ACID"><span class="mr-2">1.2.1</span><span>1.2.1 ACID</span></a></li><li><a class="is-flex is-mobile" href="#1-2-2分布式事务"><span class="mr-2">1.2.2</span><span>1.2.2分布式事务</span></a></li><li><a class="is-flex is-mobile" href="#BASE理论"><span class="mr-2">1.2.3</span><span>BASE理论</span></a></li></ul></li></ul></li><li><a class="is-flex is-mobile" href="#第2章一致性协议"><span class="mr-2">2</span><span>第2章一致性协议</span></a><ul class="menu-list"><li><a class="is-flex is-mobile" href="#2-1-2PC3PC"><span class="mr-2">2.1</span><span>2.1 2PC3PC</span></a><ul class="menu-list"><li><a class="is-flex is-mobile" href="#协议说明"><span class="mr-2">2.1.1</span><span>协议说明</span></a></li><li><a class="is-flex is-mobile" href="#阶段三-doCommit"><span class="mr-2">2.1.2</span><span>阶段三: doCommit</span></a></li></ul></li><li><a class="is-flex is-mobile" href="#2-2-Paxos算法"><span class="mr-2">2.2</span><span>2.2 Paxos算法</span></a><ul class="menu-list"><li><a class="is-flex is-mobile" href="#2-2-1追本湖源"><span class="mr-2">2.2.1</span><span>2.2.1追本湖源</span></a></li><li><a class="is-flex is-mobile" href="#2-2-2-Paxos理论的诞生"><span class="mr-2">2.2.2</span><span>2.2.2 Paxos理论的诞生</span></a></li><li><a class="is-flex is-mobile" href="#2-2-3-Paxos算法详解"><span class="mr-2">2.2.3</span><span>2.2.3 Paxos算法详解</span></a></li></ul></li></ul></li><li><a class="is-flex is-mobile" href="#第3章Paxos的工程实践"><span class="mr-2">3</span><span>第3章Paxos的工程实践</span></a></li><li><a class="is-flex is-mobile" href="#第4章Zookeeper与Paxos"><span class="mr-2">4</span><span>第4章Zookeeper与Paxos</span></a><ul class="menu-list"><li><a class="is-flex is-mobile" href="#4-1初识ZooKeeper"><span class="mr-2">4.1</span><span>4.1初识ZooKeeper</span></a><ul class="menu-list"><li><a class="is-flex is-mobile" href="#ZooKeeper的设计目标"><span class="mr-2">4.1.1</span><span>ZooKeeper的设计目标</span></a></li><li><a class="is-flex is-mobile" href="#4-1-2-Zookeeper从何而来"><span class="mr-2">4.1.2</span><span>4.1.2 Zookeeper从何而来</span></a></li><li><a class="is-flex is-mobile" href="#ACL"><span class="mr-2">4.1.3</span><span>ACL</span></a></li><li><a class="is-flex is-mobile" href="#4-1-4为什么选择Zookeeper"><span class="mr-2">4.1.4</span><span>4.1.4为什么选择Zookeeper</span></a></li></ul></li><li><a class="is-flex is-mobile" href="#4-2-Zookeeper的ZAB协议"><span class="mr-2">4.2</span><span>4.2 Zookeeper的ZAB协议</span></a><ul class="menu-list"><li><a class="is-flex is-mobile" href="#4-2-1-ZAB协议"><span class="mr-2">4.2.1</span><span>4.2.1 ZAB协议</span></a></li><li><a class="is-flex is-mobile" href="#4-2-2协议介绍"><span class="mr-2">4.2.2</span><span>4.2.2协议介绍</span></a></li><li><a class="is-flex is-mobile" href="#4-2-3深入ZAB协议"><span class="mr-2">4.2.3</span><span>4.2.3深入ZAB协议</span></a></li><li><a class="is-flex is-mobile" href="#4-2-4-ZAB与Paxos算法的联系与区别"><span class="mr-2">4.2.4</span><span>4.2.4 ZAB与Paxos算法的联系与区别</span></a></li></ul></li></ul></li><li><a class="is-flex is-mobile" href="#第5章使用Zookeeper"><span class="mr-2">5</span><span>第5章使用Zookeeper</span></a><ul class="menu-list"><li><a class="is-flex is-mobile" href="#5-1部署与运行"><span class="mr-2">5.1</span><span>5.1部署与运行</span></a></li><li><a class="is-flex is-mobile" href="#5-2客户端脚本"><span class="mr-2">5.2</span><span>5.2客户端脚本</span></a><ul class="menu-list"><li><a class="is-flex is-mobile" href="#5-1-1系统环境"><span class="mr-2">5.2.1</span><span>5.1.1系统环境</span></a></li><li><a class="is-flex is-mobile" href="#zookeeper安装"><span class="mr-2">5.2.2</span><span>zookeeper安装</span></a></li><li><a class="is-flex is-mobile" href="#5-1-3运行服务"><span class="mr-2">5.2.3</span><span>5.1.3运行服务</span></a></li></ul></li><li><a class="is-flex is-mobile" href="#5-3-Java户端AP使用"><span class="mr-2">5.3</span><span>5.3 Java户端AP使用</span></a></li><li><a class="is-flex is-mobile" href="#5-4开源客户端"><span class="mr-2">5.4</span><span>5.4开源客户端</span></a></li></ul></li><li><a class="is-flex is-mobile" href="#第6章Zookeeper的典型应用场景"><span class="mr-2">6</span><span>第6章Zookeeper的典型应用场景</span></a></li><li><a class="is-flex is-mobile" href="#第7章Zookeeper技术内幕"><span class="mr-2">7</span><span>第7章Zookeeper技术内幕</span></a></li><li><a class="is-flex is-mobile" href="#第8章Zookeeper运维"><span class="mr-2">8</span><span>第8章Zookeeper运维</span></a></li></ul></div></div><style>.menu-list > li > a.is-active + .menu-list { display: block; }.menu-list > li > a + .menu-list { display: none; }</style><script src="/js/toc.js" defer></script></div><div class="card widget" data-type="profile"><div class="card-content"><nav class=""><div class="level-item has-text-centered flex-shrink-1"><div><figure class="image is-128x128 mx-auto mb-2"><img class="avatar" src="/img/%E5%BE%AE%E4%BF%A1%E5%85%AC%E4%BC%97%E5%8F%B7.jpg" alt="意必固我"></figure><p class="title is-size-4 is-block" style="line-height:inherit;">意必固我</p><p class="is-size-6 is-block">爱自己，是终生浪漫的开始</p><p class="is-size-6 is-flex justify-content-center"><i class="fas fa-map-marker-alt mr-1"></i><span>内蒙古·呼和浩特</span></p></div></div></nav><nav class="level is-mobile"><div class="level-item has-text-centered is-marginless"><div><p class="heading">文章</p><a href="/archives"><p class="title">19</p></a></div></div><div class="level-item has-text-centered is-marginless"><div><p class="heading">分类</p><a href="/categories"><p class="title">16</p></a></div></div><div class="level-item has-text-centered is-marginless"><div><p class="heading">标签</p><a href="/tags"><p class="title">28</p></a></div></div></nav><div class="level"><a class="level-item button is-primary is-rounded" href="https://github.com/LIRUILONGS" target="_blank" rel="noopener">关注我</a></div><div class="level is-mobile"><a class="level-item button is-transparent is-marginless" target="_blank" rel="noopener" title="Github" href="https://github.com/LIRUILONGS"><i class="fab fa-github"></i></a><a class="level-item button is-transparent is-marginless" target="_blank" rel="noopener" title="Weibo" href="https://weibo.com/removeif"><i class="fab fa-weibo"></i></a><a class="level-item button is-transparent is-marginless" target="_blank" rel="noopener" title="Email" href="mailto:1224965096@qq.com"><i class="fa fa-envelope"></i></a></div></div></div><div class="card widget" data-type="links"><div class="card-content"><div class="menu"><h3 class="menu-label">链接</h3><ul class="menu-list"><li><a class="level is-mobile" href="https://blog.csdn.net/sanhewuyang" target="_blank" rel="noopener"><span class="level-left"><span class="level-item">CSDN</span></span><span class="level-right"><span class="level-item tag">blog.csdn.net</span></span></a></li><li><a class="level is-mobile" href="https://www.cnblogs.com/liruilong/" target="_blank" rel="noopener"><span class="level-left"><span class="level-item">博客园</span></span><span class="level-right"><span class="level-item tag">www.cnblogs.com</span></span></a></li><li><a class="level is-mobile" href="https://github.com/LIRUILONGS" target="_blank" rel="noopener"><span class="level-left"><span class="level-item">Githup</span></span><span class="level-right"><span class="level-item tag">github.com</span></span></a></li><li><a class="level is-mobile" href="https://gitee.com/liruilonger" target="_blank" rel="noopener"><span class="level-left"><span class="level-item">码云</span></span><span class="level-right"><span class="level-item tag">gitee.com</span></span></a></li></ul></div></div></div><div class="card widget"><div class="card-content"><h3 class="menu-label">最新评论</h3><span class="body_hot_comment">加载中，最新评论有1分钟缓存...</span></div></div><div class="card widget"><div class="card-content"><h3 class="menu-label">最新文章</h3><article class="media"><div class="media-content"><p class="date"><time dateTime="2021-06-30T03:44:22.000Z">2021-06-30</time></p><p class="title"><a href="/2021/06/30/%E3%80%8A%E4%BB%8EPaxos%E5%88%B0Zookper%E5%88%86%E5%B8%83%E5%BC%8F%E4%B8%80%E8%87%B4%E6%80%A7%E5%8E%9F%E7%90%86%E4%B8%8E%E5%AE%9E%E8%B7%B5%E3%80%8B%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/">《从Paxos到Zookper分布式一致性原理与实践》读书笔记</a></p><p class="categories"><a href="/categories/%E5%88%86%E5%B8%83%E5%BC%8F/">分布式</a> / <a href="/categories/%E5%88%86%E5%B8%83%E5%BC%8F/Zookper/">Zookper</a></p></div></article><article class="media"><div class="media-content"><p class="date"><time dateTime="2021-06-30T02:53:56.200Z">2021-06-30</time></p><p class="title"><a href="/2021/06/30/%E3%80%8AHead%20First%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F%E3%80%8B%E4%B8%AD%E6%96%87%E7%89%88%20%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0%20(3)/"> </a></p></div></article><article class="media"><div class="media-content"><p class="date"><time dateTime="2021-06-27T16:00:00.000Z">2021-06-28</time></p><p class="title"><a href="/2021/06/28/%E4%B8%8D%E8%8A%B1%E9%92%B1%E9%9B%B6%E9%97%A8%E6%A7%9B%E3%80%8110%E5%88%86%E9%92%9F%E6%90%AD%E5%BB%BA%E8%87%AA%E5%B7%B1%E7%9A%84%E7%BA%BF%E4%B8%8A%E5%8D%9A%E5%AE%A2%E5%B9%B3%E5%8F%B0/">不花钱零门槛、10分钟搭建自己的线上博客平台</a></p><p class="categories"><a href="/categories/%E4%B8%AA%E4%BA%BA%E5%8D%9A%E5%AE%A2%E6%90%AD%E5%BB%BA/">个人博客搭建</a></p></div></article><article class="media"><div class="media-content"><p class="date"><time dateTime="2021-06-25T16:00:00.000Z">2021-06-26</time></p><p class="title"><a href="/2021/06/26/%E5%85%B3%E4%BA%8E%20MVVM%E5%92%8CMVC%E7%9A%84%E4%B8%80%E4%BA%9B%E6%80%BB%E7%BB%93/">关于 MVVM和MVC的一些总结</a></p><p class="categories"><a href="/categories/%E9%9D%A2%E8%AF%95/">面试</a></p></div></article><article class="media"><div class="media-content"><p class="date"><time dateTime="2021-06-25T16:00:00.000Z">2021-06-26</time></p><p class="title"><a href="/2021/06/26/%E5%85%B3%E4%BA%8EJAVA%20%E5%8F%8D%E5%B0%84%20%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86_%E7%BC%96%E7%A0%81%E7%BB%8F%E9%AA%8C%E7%9A%84%E4%B8%80%E4%BA%9B%E6%80%BB%E7%BB%93/">关于JAVA 反射 基础知识_编码经验的一些总结</a></p><p class="categories"><a href="/categories/%E9%9D%A2%E8%AF%95/">面试</a></p></div></article></div></div><div class="card widget"><div class="card-content"><div class="menu"><h3 class="menu-label">分类</h3><ul class="menu-list"><li><a class="level is-mobile is-marginless" href="/categories/JAVA/"><span class="level-start"><span class="level-item">JAVA</span></span><span class="level-end"><span class="level-item tag">2</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/Linux/"><span class="level-start"><span class="level-item">Linux</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/Python/"><span class="level-start"><span class="level-item">Python</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/Spring-Boot-%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/"><span class="level-start"><span class="level-item">Spring Boot 学习笔记</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/Vue/"><span class="level-start"><span class="level-item">Vue</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/Web%E6%9C%8D%E5%8A%A1%E5%99%A8/"><span class="level-start"><span class="level-item">Web服务器</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/%E4%B8%AA%E4%BA%BA%E5%8D%9A%E5%AE%A2%E6%90%AD%E5%BB%BA/"><span class="level-start"><span class="level-item">个人博客搭建</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/%E4%BA%91%E8%AE%A1%E7%AE%97%E7%AE%A1%E7%90%86%E5%B9%B3%E5%8F%B0/"><span class="level-start"><span class="level-item">云计算管理平台</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/%E5%86%99%E4%BD%9C/"><span class="level-start"><span class="level-item">写作</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/%E5%88%86%E5%B8%83%E5%BC%8F/"><span class="level-start"><span class="level-item">分布式</span></span><span class="level-end"><span class="level-item tag">1</span></span></a><ul class="mr-0"></ul></li><a class="level is-mobile is-marginless" href="/categories/"><span class="level-start"><span class="level-item">查看全部&gt;&gt;</span></span></a></ul></div></div></div><div class="card widget"><div class="card-content"><div class="menu"><h3 class="menu-label">归档</h3><ul class="menu-list"><li><a class="level is-mobile is-marginless" href="/archives/2021/06/"><span class="level-start"><span class="level-item">六月 2021</span></span><span class="level-end"><span class="level-item tag">11</span></span></a></li><li><a class="level is-mobile is-marginless" href="/archives/2021/05/"><span class="level-start"><span class="level-item">五月 2021</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li><li><a class="level is-mobile is-marginless" href="/archives/2021/04/"><span class="level-start"><span class="level-item">四月 2021</span></span><span class="level-end"><span class="level-item tag">2</span></span></a></li><li><a class="level is-mobile is-marginless" href="/archives/2021/03/"><span class="level-start"><span class="level-item">三月 2021</span></span><span class="level-end"><span class="level-item tag">2</span></span></a></li><li><a class="level is-mobile is-marginless" href="/archives/2021/02/"><span class="level-start"><span class="level-item">二月 2021</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li><a class="level is-mobile is-marginless" href="/archives/"><span class="level-start"><span class="level-item">查看全部&gt;&gt;</span></span></a></ul></div></div></div><div class="card widget"><div class="card-content"><div class="menu"><h3 class="menu-label">标签</h3><div class="field is-grouped is-grouped-multiline"><div class="control"><a class="tags has-addons" href="/tags/JAVA/"><span class="tag">JAVA</span><span class="tag is-grey-lightest">4</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%E7%A8%8B%E5%BA%8F%E4%BA%BA%E7%94%9F/"><span class="tag">程序人生</span><span class="tag is-grey-lightest">2</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%E9%9D%A2%E8%AF%95/"><span class="tag">面试</span><span class="tag is-grey-lightest">2</span></a></div><div class="control"><a class="tags has-addons" href="/tags/ElementUI/"><span class="tag">ElementUI</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/K8S/"><span class="tag">K8S</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Linux/"><span class="tag">Linux</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Markdown/"><span class="tag">Markdown</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Openstack/"><span class="tag">Openstack</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Python/"><span class="tag">Python</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Spring-Boot/"><span class="tag">Spring Boot</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Tomcat/"><span class="tag">Tomcat</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Vue/"><span class="tag">Vue</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Web%E5%AE%89%E5%85%A8/"><span class="tag">Web安全</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Zookper/"><span class="tag">Zookper</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/kubernetes/"><span class="tag">kubernetes</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/web%E5%AE%B9%E5%99%A8/"><span class="tag">web容器</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%E4%B8%AA%E4%BA%BA%E5%8D%9A%E5%AE%A2%E6%90%AD%E5%BB%BA/"><span class="tag">个人博客搭建</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%E4%BA%91%E8%AE%A1%E7%AE%97%E7%AE%A1%E7%90%86%E5%B9%B3%E5%8F%B0/"><span class="tag">云计算管理平台</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%E4%BB%A3%E7%A0%81%E4%BC%98%E5%8C%96/"><span class="tag">代码优化</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%E4%BC%81%E4%B8%9A%E7%BA%A7%E7%BD%91%E7%BB%9C%E6%9E%B6%E6%9E%84/"><span class="tag">企业级网络架构</span><span class="tag is-grey-lightest">1</span></a></div></div><div class="field is-grouped is-grouped-multiline"><a class="tags has-addons" href="/tags/"><span class="tag">查看全部&gt;&gt;</span></a></div></div></div></div><div class="card widget" data-type="subscribe-email"><div class="card-content"><div class="menu"><h3 class="menu-label">订阅更新</h3><form action="https://feedburner.google.com/fb/a/mailverify" method="post" target="popupwindow" onsubmit="window.open(&#039;https://feedburner.google.com/fb/a/mailverify?uri=&#039;,&#039;popupwindow&#039;,&#039;scrollbars=yes,width=550,height=520&#039;);return true"><input type="hidden" value="" name="uri"><input type="hidden" name="loc" value="en_US"><div class="field has-addons"><div class="control has-icons-left is-expanded"><input class="input" name="email" type="email" placeholder="Email"><span class="icon is-small is-left"><i class="fas fa-envelope"></i></span></div><div class="control"><input class="button" type="submit" value="订阅"></div></div></form></div></div></div><!--!--><div class="column-right-shadow is-hidden-widescreen is-sticky"></div></div></div></div></section><footer class="footer"><div class="container"><div class="level"><div class="level-start"><a class="footer-logo is-block mb-2" href="/"><img src="/img/logo.png" alt="山河已无恙" height="28"></a><p class="size-small"><span>&copy; 2021 山河已无恙</span>  Powered by <a href="https://hexo.io/" target="_blank">Hexo</a> &amp; <a href="https://github.com/ppoffice/hexo-theme-icarus" target="_blank">Icarus</a> &amp; <a href="https://github.com/removeif/hexo-theme-amazing" target="_blank">Amazing</a> <br><span>© <a href="http://www.beian.miit.gov.cn/" target="_blank">备案号</a><br></span><span>© 版权说明：[本网站所有内容均收集于互联网或自己创作,<br />&nbsp;&nbsp;&nbsp;&nbsp;方便于网友与自己学习交流，如有侵权，请<a href="/message" target="_blank">留言</a>，立即处理]<br /></span><span><span id="statistic-times">loading...</span><script>function createTime(time) {
+            var n = new Date(time);
+            now.setTime(now.getTime() + 250),
+                days = (now - n) / 1e3 / 60 / 60 / 24,
+                dnum = Math.floor(days),
+                hours = (now - n) / 1e3 / 60 / 60 - 24 * dnum,
+                hnum = Math.floor(hours),
+            1 == String(hnum).length && (hnum = "0" + hnum),
+                minutes = (now - n) / 1e3 / 60 - 1440 * dnum - 60 * hnum,
+                mnum = Math.floor(minutes),
+            1 == String(mnum).length && (mnum = "0" + mnum),
+                seconds = (now - n) / 1e3 - 86400 * dnum - 3600 * hnum - 60 * mnum,
+                snum = Math.round(seconds),
+            1 == String(snum).length && (snum = "0" + snum),
+                document.getElementById("statistic-times").innerHTML = "❤️本站自 <strong>"+time.split(" ")[0].replace(/\//g,".")+"</strong> 已运行 <strong>" + dnum + "</strong> 天 <strong>" + hnum + "</strong> 小时 <strong>" + mnum + "</strong> 分 <strong>" + snum + "</strong> 秒！❤️";
+        }var now = new Date();setInterval("createTime('2021/6/26 21:27:00')", 250,"");</script><br></span><div class="size-small"><span>❤️感谢 <strong><span id="busuanzi_value_site_uv">99+</span></strong> 小伙伴的 <strong><span id="busuanzi_value_site_pv">99+</span></strong> 次光临！❤️</span></div></p></div><div class="level-end"><div class="field has-addons"><p class="control"><a class="button is-transparent is-large" target="_blank" rel="noopener" title="Creative Commons" href="https://creativecommons.org/"><i class="fab fa-creative-commons"></i></a></p><p class="control"><a class="button is-transparent is-large" target="_blank" rel="noopener" title="Attribution 4.0 International" href="https://creativecommons.org/licenses/by/4.0/"><i class="fab fa-creative-commons-by"></i></a></p><p class="control"><a class="button is-transparent is-large" target="_blank" rel="noopener" title="Download on GitHub" href="https://github.com/removeif/hexo-theme-amazing"><i class="fab fa-github"></i></a></p></div><div class="sideMusic"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/aplayer/dist/APlayer.min.css"><script src="/js/APlayer.min.js"></script><script src="https://cdn.jsdelivr.net/npm/meting@2/dist/Meting.min.js"></script><meting-js style="width: auto;height: 2000px;" server="netease" type="playlist" id="2364053447" theme="#2980b9" loop="all" autoplay="false" order="list" storageName="aplayer-setting" lrctype="0" list-max-height="400px" fixed="true"></meting-js></div></div></div></div></footer><script src="https://cdnjs.loli.net/ajax/libs/moment.js/2.22.2/moment-with-locales.min.js"></script><script src="https://cdnjs.loli.net/ajax/libs/clipboard.js/2.0.4/clipboard.min.js" async></script><script>moment.locale("zh-CN");</script><script>var IcarusThemeSettings = {
+            article: {
+                highlight: {
+                    clipboard: true,
+                    fold: 'unfolded'
+                }
+            }
+        };</script><script src="/js/column.js"></script><!--!--><script src="/js/animation.js"></script><a id="back-to-top" title="回到顶端" href="javascript:;"><i class="fas fa-chevron-up"></i></a><script src="/js/back_to_top.js" defer></script><!--!--><script src="https://cdnjs.loli.net/ajax/libs/lightgallery/1.6.8/js/lightgallery.min.js" defer></script><script src="https://cdnjs.loli.net/ajax/libs/justifiedGallery/3.7.0/js/jquery.justifiedGallery.min.js" defer></script><script>window.addEventListener("load", () => {
+            if (typeof $.fn.lightGallery === 'function') {
+                $('.article').lightGallery({ selector: '.gallery-item' });
+            }
+            if (typeof $.fn.justifiedGallery === 'function') {
+                if ($('.justified-gallery > p > .gallery-item').length) {
+                    $('.justified-gallery > p > .gallery-item').unwrap();
+                }
+                $('.justified-gallery').justifiedGallery();
+            }
+        });</script><!--!--><!--!--><link rel="stylesheet" href="https://cdnjs.loli.net/ajax/libs/KaTeX/0.11.1/katex.min.css"><script src="https://cdnjs.loli.net/ajax/libs/KaTeX/0.11.1/katex.min.js" defer></script><script src="https://cdnjs.loli.net/ajax/libs/KaTeX/0.11.1/contrib/auto-render.min.js" defer></script><script src="https://cdnjs.loli.net/ajax/libs/KaTeX/0.11.1/contrib/mhchem.js" defer></script><script>window.addEventListener("load", function() {
+            document.querySelectorAll('[role="article"] > .content').forEach(function(element) {
+                renderMathInElement(element);
+            });
+        });</script><script type="text/x-mathjax-config">MathJax.Hub.Config({
+            'HTML-CSS': {
+                matchFontHeight: false
+            },
+            SVG: {
+                matchFontHeight: false
+            },
+            CommonHTML: {
+                matchFontHeight: false
+            },
+            tex2jax: {
+                inlineMath: [
+                    ['$','$'],
+                    ['\\(','\\)']
+                ]
+            }
+        });</script><script src="https://cdnjs.loli.net/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-MML-AM_CHTML" defer></script><div id="outdated"><h6>Your browser is out-of-date!</h6><p>Update your browser to view this website correctly.&amp;npsb;<a id="btnUpdateBrowser" target="_blank" rel="noopener" href="http://outdatedbrowser.com/">Update my browser now </a></p><p class="last"><a href="#" id="btnCloseUpdateBrowser" title="Close">×</a></p></div><script src="https://cdnjs.loli.net/ajax/libs/outdated-browser/1.1.5/outdatedbrowser.min.js" defer></script><script>window.addEventListener("load", function () {
+            outdatedBrowser({
+                bgColor: '#f25648',
+                color: '#ffffff',
+                lowerThan: 'object-fit' // display on IE11 or below
+            });
+        });</script><!--!--><script src="/js/main.js" defer></script><script>$.getScript('/js/comment-issue-data.js',function(){loadIssueData('9fdc9739266d48d5f62e','c1cc33697d099a2197650ec9dadcb16bd4904655','LIRUILONGS','blog_comment',false);})</script><div class="searchbox"><div class="searchbox-container"><div class="searchbox-header"><div class="searchbox-input-container"><input class="searchbox-input" type="text" placeholder="想要查找什么..."></div><a class="searchbox-close" href="javascript:;">×</a></div><div class="searchbox-body"></div></div></div><script src="/js/insight.js" defer></script><script>document.addEventListener('DOMContentLoaded', function () {
+            loadInsight({"contentUrl":"/content.json"}, {"hint":"想要查找什么...","untitled":"(无标题)","posts":"文章","pages":"页面","categories":"分类","tags":"标签"});
+        });</script><script src="https://cdn.jsdelivr.net/npm/pjax@0.2.8/pjax.js"></script><script type="text/javascript">var pjax = new Pjax({
+            elements: "a",//代表点击链接就更新
+            selectors: [  //代表要更新的节点
+                ".section",
+                "title"
+            ],
+            cache: true,
+            cacheBust:false
+        })
+
+        function loadBusuanzi(){
+        $.getScript("//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js", function () {});
+        }
+
+        function loadMathJax() { //加载mathjax
+            $.getScript("//cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.4/MathJax.js?config=TeX-MML-AM_CHTML", function () {
+                MathJax.Hub.Config({ tex2jax: { inlineMath: [['$', '$'], ['\(', '\)']] } });
+                var math = document.getElementsByClassName("entry-content")[0];
+                MathJax.Hub.Queue(["Typeset", MathJax.Hub, math]);
+            });
+        };
+
+        // 开始 PJAX 执行的函数
+        document.addEventListener('pjax:send', function () {
+        });
+        
+        // PJAX 完成之后执行的函数，可以和上面的重载放在一起
+        document.addEventListener('pjax:complete', function () {
+            $(".section").css({opacity:1});
+            if(true){
+                $.getScript('/js/comment-issue-data.js',function(){loadIssueData('9fdc9739266d48d5f62e','c1cc33697d099a2197650ec9dadcb16bd4904655','LIRUILONGS','blog_comment',false);});
+            }
+            if(false){
+                loadMathJax();
+            }
+            loadMainJs(jQuery, window.moment, window.ClipboardJS, window.IcarusThemeSettings);
+            loadBackTop();
+            loadBusuanzi();
+            if(typeof loadBanner == 'function'){
+                loadBanner();
+            }
+        });</script></body></html>
