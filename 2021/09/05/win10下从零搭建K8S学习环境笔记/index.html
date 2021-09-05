@@ -1,0 +1,465 @@
+<!doctype html>
+<html lang="zh"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"><meta><title>win10下从零搭建Linux+Docker+Ansible+K8S 学习环境笔记(1*Master+3*Node) - 山河已无恙</title><link rel="manifest" href="/manifest.json"><meta name="application-name" content="山河已无恙"><meta name="msapplication-TileImage" content="https://cdn.jsdelivr.net/gh/removeif/removeif-demo@latest/img/favicon.png"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="山河已无恙"><meta name="apple-mobile-web-app-status-bar-style" content="default"><meta description="加油啊，你一定要好好活下去 ^_^"><meta property="og:type" content="blog"><meta property="og:title" content="山河已无恙"><meta property="og:url" content="https://removeif.github.io/"><meta property="og:site_name" content="山河已无恙"><meta property="og:description" content="加油啊，你一定要好好活下去 ^_^"><meta property="og:locale" content="zh_CN"><meta property="og:image" content="https://removeif.github.io/img/头像.jpg"><meta property="article:published_time" content="2021-09-05T01:52:58.000Z"><meta property="article:modified_time" content="2021-09-05T16:52:48.200Z"><meta property="article:author" content="LIRUILONGS"><meta property="article:tag" content="Linux"><meta property="article:tag" content="K8s"><meta property="twitter:card" content="summary"><meta property="twitter:image" content="/img/头像.jpg"><script type="application/ld+json">{"@context":"https://schema.org","@type":"BlogPosting","mainEntityOfPage":{"@type":"WebPage","@id":"https://liruilongs.github.io/2021/09/05/win10%E4%B8%8B%E4%BB%8E%E9%9B%B6%E6%90%AD%E5%BB%BAK8S%E5%AD%A6%E4%B9%A0%E7%8E%AF%E5%A2%83%E7%AC%94%E8%AE%B0/"},"headline":"山河已无恙","image":[],"datePublished":"2021-09-05T01:52:58.000Z","dateModified":"2021-09-05T16:52:48.200Z","author":{"@type":"Person","name":"山河已无恙"},"description":"加油啊，你一定要好好活下去 ^_^"}</script><link rel="canonical" href="https://liruilongs.github.io/2021/09/05/win10%E4%B8%8B%E4%BB%8E%E9%9B%B6%E6%90%AD%E5%BB%BAK8S%E5%AD%A6%E4%B9%A0%E7%8E%AF%E5%A2%83%E7%AC%94%E8%AE%B0/"><link rel="alternate" href="/path/to/atom.xml" title="山河已无恙" type="application/atom+xml"><link rel="icon" href="https://cdn.jsdelivr.net/gh/removeif/removeif-demo@latest/img/favicon.png"><meta name="referrer" content="no-referrer-when-downgrade"><link rel="stylesheet" href="https://cdnjs.loli.net/ajax/libs/font-awesome/5.12.0/css/all.min.css"><link rel="stylesheet" href="https://cdnjs.loli.net/ajax/libs/highlight.js/9.12.0/styles/solarized-light.min.css"><link rel="stylesheet" href="https://fonts.loli.net/css2?family=Ubuntu:wght@400;600&amp;family=Source+Code+Pro"><link rel="stylesheet" href="/css/default.css"><link rel="stylesheet" href="https://cdnjs.loli.net/ajax/libs/font-awesome/5.12.0/css/all.min.css"><link rel="stylesheet" href="https://fonts.loli.net/css?family=Ubuntu:400,600|Source+Code+Pro|Monda:300,300italic,400,400italic,700,700italic|Roboto Slab:300,300italic,400,400italic,700,700italic|Microsoft YaHei:300,300italic,400,400italic,700,700italic|PT Mono:300,300italic,400,400italic,700,700italic&amp;amp;subset=latin,latin-ext|Inconsolata|Itim|Lobster.css"><script src="https://cdnjs.loli.net/ajax/libs/jquery/3.3.1/jquery.min.js"></script><script src="/js/globalUtils.js"></script><script src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js" defer></script><style>body>.footer,body>.navbar,body>.section{opacity:0}</style><!--!--><script>var _hmt = _hmt || [];
+        (function() {
+            var hm = document.createElement("script");
+            hm.src = "//hm.baidu.com/hm.js?3f06f2b732a5b1034c989f74e28d0eea";
+            var s = document.getElementsByTagName("script")[0];
+            s.parentNode.insertBefore(hm, s);
+        })();</script><link rel="stylesheet" href="https://cdnjs.loli.net/ajax/libs/lightgallery/1.6.8/css/lightgallery.min.css"><link rel="stylesheet" href="https://cdnjs.loli.net/ajax/libs/justifiedGallery/3.7.0/css/justifiedGallery.min.css"><!--!--><!--!--><!--!--><!--!--><link rel="stylesheet" href="https://cdnjs.loli.net/ajax/libs/outdated-browser/1.1.5/outdatedbrowser.min.css"><script src="https://cdnjs.loli.net/ajax/libs/pace/1.0.2/pace.min.js"></script><meta name="generator" content="Hexo 5.4.0"></head><body class="is-3-column has-navbar-fixed-top"><nav class="navbar navbar-main is-fixed-top"><div class="container"><div class="navbar-brand justify-content-center"><a class="navbar-item navbar-logo" href="/"><img src="/img/logo.png" alt="山河已无恙" height="28"></a></div><div class="navbar-menu"><div class="navbar-start"><a class="navbar-item" href="/">首页</a><a class="navbar-item" href="/archives">归档</a><a class="navbar-item" href="/categories">分类</a><a class="navbar-item" href="/tags">标签</a><a class="navbar-item" href="/media">影音</a><a class="navbar-item" href="/album">相册</a><a class="navbar-item" href="/friend">友链</a><a class="navbar-item" href="/self-talking">生活小记</a><a class="navbar-item" href="/message">留言墙</a><a class="navbar-item" href="/about">关于</a></div><div class="navbar-end"><a class="navbar-item" target="_blank" rel="noopener" title="Gitee" href="https://gitee.com/liruilonger"><i class="fab fa-git-square fa-1x"></i></a><a class="navbar-item" target="_blank" rel="noopener" title="GitHub" href="https://github.com/LIRUILONGS"><i class="fab fa-github fa-1x"></i></a><a class="navbar-item is-hidden-tablet catalogue" title="目录" href="javascript:;"><i class="fas fa-list-ul fa-1x"></i></a><a class="navbar-item search" title="搜索" href="javascript:;"><i class="fas fa-search fa-1x"></i></a><a class="navbar-item" id="night-nav" title="Night Mode" href="javascript:;"><i class="fas fa-moon fa-1x" id="night-icon"></i></a></div></div></div></nav><script type="text/javascript" src="/js/theme-setting.js"></script><section class="section"><div class="container"><div class="columns"><div class="column order-2 column-main is-8-tablet is-8-desktop is-9-widescreen"><!--!--><div class="card"><article class="card-content article" role="article"><div class="article-meta size-small is-uppercase level is-mobile"><div class="level-left"><i class="far fa-calendar-plus"> </i>2021-09-05  <a class="commentCountImg" href="/2021/09/05/win10%E4%B8%8B%E4%BB%8E%E9%9B%B6%E6%90%AD%E5%BB%BAK8S%E5%AD%A6%E4%B9%A0%E7%8E%AF%E5%A2%83%E7%AC%94%E8%AE%B0/#comment-container"><span class="display-none-class">820abd9becb0b69a41f8e8527e2e4cc4</span><i class="far fa-comment-dots"></i> <span class="commentCount" id="820abd9becb0b69a41f8e8527e2e4cc4">99+</span>  </a><span class="level-item"><i class="far fa-clock"> </i>28 分钟  <i class="fas fa-pencil-alt"> </i>4.2 k</span><span class="level-item" id="busuanzi_container_page_pv"><span id="busuanzi_value_page_pv">0</span>次访问</span></div></div><h1 class="title is-3 is-size-4-mobile">win10下从零搭建Linux+Docker+Ansible+K8S 学习环境笔记(1*Master+3*Node)</h1><div class="content"><p>加油啊，你一定要好好活下去 ^_^</p>
+<span id="more"></span>
+<h2 id="写在前面"><a href="#写在前面" class="headerlink" title="写在前面"></a>写在前面</h2><hr>
+<ul>
+<li><p>一直想学K8s，但是没有环境，本身<code>K8s</code>就有些重。上学之前租了一个阿里云的<code>ESC</code>，单核2G的，单机版K8s的勉强可以装上去，多节点没法搞，书里的Demo也没法学。因为需要多个节点，因为涉及到多机器，所以顺便温习一下<code>ansible</code> 。</p>
+</li>
+<li><p>这是一个在<code>Win10上从零搭建学习环境</code>的教程，时间原因可选部分在下次更新博客和小伙伴分享，包含：</p>
+<ul>
+<li>通过<code>Vmware Workstation </code>安装<code>四个linux系统</code>虚拟机，一个<code>Master管理节点</code>，<code>三个Node计算节点</code>。</li>
+<li>通过桥接模式，可以<code>访问外网</code>，并且可以<code>通过win10物理机ssh远程访问</code>。</li>
+<li>可以通过<code>Master节点机器ssh免密登录任意Node节点机</code>。</li>
+<li>配置<code>Ansible</code>，<code>Master节点做controller节点</code>[可选]。</li>
+<li><code>Docker</code>,<code>K8s</code>相关包安装[可选]</li>
+</ul>
+</li>
+<li><p>关于<code> Vmware Workstation 和 Linux ios包</code>，默认小伙伴已经拥有。<code>Vmware Workstation</code> 默认小伙伴已经安装好，没有的可以网上下载一下。</p>
+</li>
+</ul>
+<p><strong><font color="009688"> 加油啊，你一定要好好活下去 <code>^_^</code> </font></strong></p>
+<hr>
+<h1 id="一，Linux-系统安装"><a href="#一，Linux-系统安装" class="headerlink" title="一，Linux 系统安装"></a><font color=plum>一，Linux 系统安装</font></h1><p>这里默认小伙伴已经安装了<code>Vmware Workstation（VMware-workstation-full-15.5.6-16341506.exe）</code>,已经准备了<code>linux系统 安装光盘（CentOS-7-x86_64-DVD-1810.iso）</code>。括号内是我用的版本，我们的方式：</p>
+<p><strong><font color=purple>先安装一个Node节点机器，然后通过克隆的方式得到剩余的两个Node机器和一个Master机器</font></strong></p>
+<h2 id="1-系统安装"><a href="#1-系统安装" class="headerlink" title="1. 系统安装"></a><font color=orange>1. 系统安装</font></h2><table>
+<thead>
+<tr>
+<th align="center"><strong><font color=green>&amp;&amp;&amp;&amp;&amp;&amp;&amp;&amp;&amp;&amp;&amp;&amp;&amp;&amp;&amp;&amp;&amp;&amp;安装步骤&amp;&amp;&amp;&amp;&amp;&amp;&amp;&amp;&amp;&amp;&amp;&amp;&amp;&amp;&amp;&amp;&amp;&amp;</font></strong></th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center"><img src="https://img-blog.csdnimg.cn/8dc7fa9844e14714be1815e76c6c2940.png?x-oss-process=image/watermark,type_ZHJvaWRzYW5zZmFsbGJhY2s,shadow_50,text_Q1NETiBA5bGx5rKz5bey5peg5oGZ,size_20,color_FFFFFF,t_70,g_se,x_16"></td>
+</tr>
+<tr>
+<td align="center"><img src="https://img-blog.csdnimg.cn/ff524d057c7248ab8dd3b364fd934b80.png?x-oss-process=image/watermark,type_ZHJvaWRzYW5zZmFsbGJhY2s,shadow_50,text_Q1NETiBA5bGx5rKz5bey5peg5oGZ,size_20,color_FFFFFF,t_70,g_se,x_16"></td>
+</tr>
+<tr>
+<td align="center"><img src="https://img-blog.csdnimg.cn/8ebc2cd33f2f45beac4256dca4aa264e.png?x-oss-process=image/watermark,type_ZHJvaWRzYW5zZmFsbGJhY2s,shadow_50,text_Q1NETiBA5bGx5rKz5bey5peg5oGZ,size_20,color_FFFFFF,t_70,g_se,x_16"></td>
+</tr>
+<tr>
+<td align="center"><img src="https://img-blog.csdnimg.cn/d16272a30a824464ad884f22f5a2e17d.png?x-oss-process=image/watermark,type_ZHJvaWRzYW5zZmFsbGJhY2s,shadow_50,text_Q1NETiBA5bGx5rKz5bey5peg5oGZ,size_20,color_FFFFFF,t_70,g_se,x_16"></td>
+</tr>
+<tr>
+<td align="center"><img src="https://img-blog.csdnimg.cn/c83a087031514869bcdc07ac41f08189.png?x-oss-process=image/watermark,type_ZHJvaWRzYW5zZmFsbGJhY2s,shadow_50,text_Q1NETiBA5bGx5rKz5bey5peg5oGZ,size_20,color_FFFFFF,t_70,g_se,x_16"></td>
+</tr>
+<tr>
+<td align="center"><strong><font color=yellowgreen>给虚拟机起一个名称，并指定虚拟机存放的位置。</font></strong></td>
+</tr>
+<tr>
+<td align="center"><img src="https://img-blog.csdnimg.cn/e324e18c6b564cb98d98cc6b2e1e060e.png?x-oss-process=image/watermark,type_ZHJvaWRzYW5zZmFsbGJhY2s,shadow_50,text_Q1NETiBA5bGx5rKz5bey5peg5oGZ,size_20,color_FFFFFF,t_70,g_se,x_16"></td>
+</tr>
+<tr>
+<td align="center"><img src="https://img-blog.csdnimg.cn/190e6d197a864108bb62ef260a2abd06.png?x-oss-process=image/watermark,type_ZHJvaWRzYW5zZmFsbGJhY2s,shadow_50,text_Q1NETiBA5bGx5rKz5bey5peg5oGZ,size_20,color_FFFFFF,t_70,g_se,x_16"></td>
+</tr>
+<tr>
+<td align="center"><strong><font color=amber>内存设置这里要结合自己机器的情况，如果8G内存，建议为2G，如果16G，建议4G，如果32G，建议8G</font></strong></td>
+</tr>
+<tr>
+<td align="center"><img src="https://img-blog.csdnimg.cn/ababf5ba73cc41c5929f5e67ea06c591.png?x-oss-process=image/watermark,type_ZHJvaWRzYW5zZmFsbGJhY2s,shadow_50,text_Q1NETiBA5bGx5rKz5bey5peg5oGZ,size_20,color_FFFFFF,t_70,g_se,x_16"></td>
+</tr>
+<tr>
+<td align="center"><img src="https://img-blog.csdnimg.cn/132b3e92be654c5e8851778dc8bcd12f.png?x-oss-process=image/watermark,type_ZHJvaWRzYW5zZmFsbGJhY2s,shadow_50,text_Q1NETiBA5bGx5rKz5bey5peg5oGZ,size_20,color_FFFFFF,t_70,g_se,x_16"></td>
+</tr>
+<tr>
+<td align="center"><img src="https://img-blog.csdnimg.cn/df5c47cf8b764991adb601596662434b.png?x-oss-process=image/watermark,type_ZHJvaWRzYW5zZmFsbGJhY2s,shadow_50,text_Q1NETiBA5bGx5rKz5bey5peg5oGZ,size_20,color_FFFFFF,t_70,g_se,x_16"></td>
+</tr>
+<tr>
+<td align="center"><img src="https://img-blog.csdnimg.cn/78cf432a71624b799b5e6b55c134b98d.png?x-oss-process=image/watermark,type_ZHJvaWRzYW5zZmFsbGJhY2s,shadow_50,text_Q1NETiBA5bGx5rKz5bey5peg5oGZ,size_20,color_FFFFFF,t_70,g_se,x_16"></td>
+</tr>
+<tr>
+<td align="center"><img src="https://img-blog.csdnimg.cn/da0139d7d6194ef49ceda799c2c54ba5.png?x-oss-process=image/watermark,type_ZHJvaWRzYW5zZmFsbGJhY2s,shadow_50,text_Q1NETiBA5bGx5rKz5bey5peg5oGZ,size_20,color_FFFFFF,t_70,g_se,x_16"></td>
+</tr>
+<tr>
+<td align="center"><img src="https://img-blog.csdnimg.cn/8a056ce512da4d5ebeb7db54a12ad941.png?x-oss-process=image/watermark,type_ZHJvaWRzYW5zZmFsbGJhY2s,shadow_50,text_Q1NETiBA5bGx5rKz5bey5peg5oGZ,size_20,color_FFFFFF,t_70,g_se,x_16"></td>
+</tr>
+<tr>
+<td align="center"><img src="https://img-blog.csdnimg.cn/98f2a6028c2e4aa3a22ef9606a7472fc.png?x-oss-process=image/watermark,type_ZHJvaWRzYW5zZmFsbGJhY2s,shadow_50,text_Q1NETiBA5bGx5rKz5bey5peg5oGZ,size_20,color_FFFFFF,t_70,g_se,x_16"></td>
+</tr>
+<tr>
+<td align="center"><img src="https://img-blog.csdnimg.cn/2fd898beab0649918253df4c4450586a.png?x-oss-process=image/watermark,type_ZHJvaWRzYW5zZmFsbGJhY2s,shadow_50,text_Q1NETiBA5bGx5rKz5bey5peg5oGZ,size_20,color_FFFFFF,t_70,g_se,x_16"></td>
+</tr>
+<tr>
+<td align="center"><img src="https://img-blog.csdnimg.cn/4e71247d9338452b885cb01f8cd737a6.png?x-oss-process=image/watermark,type_ZHJvaWRzYW5zZmFsbGJhY2s,shadow_50,text_Q1NETiBA5bGx5rKz5bey5peg5oGZ,size_20,color_FFFFFF,t_70,g_se,x_16"></td>
+</tr>
+<tr>
+<td align="center"><strong><font color=green>将存放在系统中的光盘镜像放入光驱中。【通过”浏览”找到即可】</font></strong></td>
+</tr>
+<tr>
+<td align="center"><img src="https://img-blog.csdnimg.cn/58830f18e22043c88518e87e475d379d.png?x-oss-process=image/watermark,type_ZHJvaWRzYW5zZmFsbGJhY2s,shadow_50,text_Q1NETiBA5bGx5rKz5bey5peg5oGZ,size_20,color_FFFFFF,t_70,g_se,x_16"></td>
+</tr>
+<tr>
+<td align="center"><img src="https://img-blog.csdnimg.cn/b5b242a9b21f4f84b34ddfb90dbd4474.png?x-oss-process=image/watermark,type_ZHJvaWRzYW5zZmFsbGJhY2s,shadow_50,text_Q1NETiBA5bGx5rKz5bey5peg5oGZ,size_20,color_FFFFFF,t_70,g_se,x_16"></td>
+</tr>
+<tr>
+<td align="center"><strong><font color=red>如果显示内存太大了，开不了机，可以适当减小内存，</font></strong></td>
+</tr>
+<tr>
+<td align="center"><img src="https://img-blog.csdnimg.cn/f2567aaf7b9f4ef493438b326e7e2bef.png?x-oss-process=image/watermark,type_ZHJvaWRzYW5zZmFsbGJhY2s,shadow_50,text_Q1NETiBA5bGx5rKz5bey5peg5oGZ,size_20,color_FFFFFF,t_70,g_se,x_16"></td>
+</tr>
+<tr>
+<td align="center"><strong><font color=orange>点击屏幕，光标进入到系统，然后上下键选择第一个。</font></strong></td>
+</tr>
+<tr>
+<td align="center"><img src="https://img-blog.csdnimg.cn/08f0d5df8eca42c7accc845cb11e4613.png?x-oss-process=image/watermark,type_ZHJvaWRzYW5zZmFsbGJhY2s,shadow_50,text_Q1NETiBA5bGx5rKz5bey5peg5oGZ,size_20,color_FFFFFF,t_70,g_se,x_16"></td>
+</tr>
+<tr>
+<td align="center"><strong><font color=green>建议初学者选择“简体中文（中国）”，单击“继续”。</font></strong></td>
+</tr>
+<tr>
+<td align="center"><img src="https://img-blog.csdnimg.cn/dadb8dc6ef154451a07602fc1411043a.png?x-oss-process=image/watermark,type_ZHJvaWRzYW5zZmFsbGJhY2s,shadow_50,text_Q1NETiBA5bGx5rKz5bey5peg5oGZ,size_20,color_FFFFFF,t_70,g_se,x_16"></td>
+</tr>
+<tr>
+<td align="center"><img src="https://img-blog.csdnimg.cn/afdcc5c9695548cd93ccb649bef6a56b.png?x-oss-process=image/watermark,type_ZHJvaWRzYW5zZmFsbGJhY2s,shadow_50,text_Q1NETiBA5bGx5rKz5bey5peg5oGZ,size_20,color_FFFFFF,t_70,g_se,x_16"></td>
+</tr>
+<tr>
+<td align="center"><img src="https://img-blog.csdnimg.cn/c237ca4d336e477f9d24fd978e0a2eba.png?x-oss-process=image/watermark,type_ZHJvaWRzYW5zZmFsbGJhY2s,shadow_50,text_Q1NETiBA5bGx5rKz5bey5peg5oGZ,size_20,color_FFFFFF,t_70,g_se,x_16"></td>
+</tr>
+<tr>
+<td align="center"><img src="https://img-blog.csdnimg.cn/ef11895002e645d8beb74901999070ee.png?x-oss-process=image/watermark,type_ZHJvaWRzYW5zZmFsbGJhY2s,shadow_50,text_Q1NETiBA5bGx5rKz5bey5peg5oGZ,size_20,color_FFFFFF,t_70,g_se,x_16"></td>
+</tr>
+<tr>
+<td align="center"><img src="https://img-blog.csdnimg.cn/0ced2de0d8c84bea96075a0eb5124043.png?x-oss-process=image/watermark,type_ZHJvaWRzYW5zZmFsbGJhY2s,shadow_50,text_Q1NETiBA5bGx5rKz5bey5peg5oGZ,size_20,color_FFFFFF,t_70,g_se,x_16"></td>
+</tr>
+<tr>
+<td align="center"><strong><font color=camel>检查“安装信息摘要界面”，确保所有带叹号的部分都已经完成，然后单击右下方的“开始安装”按钮，将会执行正式安装。</font></strong></td>
+</tr>
+<tr>
+<td align="center"><img src="https://img-blog.csdnimg.cn/4dde8d63390f43b8bc214f55974789d4.png?x-oss-process=image/watermark,type_ZHJvaWRzYW5zZmFsbGJhY2s,shadow_50,text_Q1NETiBA5bGx5rKz5bey5peg5oGZ,size_20,color_FFFFFF,t_70,g_se,x_16"></td>
+</tr>
+<tr>
+<td align="center"><img src="https://img-blog.csdnimg.cn/38fba48f98a14b2a8fe62beb51e084ff.png?x-oss-process=image/watermark,type_ZHJvaWRzYW5zZmFsbGJhY2s,shadow_50,text_Q1NETiBA5bGx5rKz5bey5peg5oGZ,size_20,color_FFFFFF,t_70,g_se,x_16"></td>
+</tr>
+<tr>
+<td align="center"><strong><font color=yellowgreen>若密码太简单需要按两次“完成”按钮！</font></strong></td>
+</tr>
+<tr>
+<td align="center"><img src="https://img-blog.csdnimg.cn/62fc06f0245d460aa7d6704a23913ab0.png?x-oss-process=image/watermark,type_ZHJvaWRzYW5zZmFsbGJhY2s,shadow_50,text_Q1NETiBA5bGx5rKz5bey5peg5oGZ,size_20,color_FFFFFF,t_70,g_se,x_16"></td>
+</tr>
+<tr>
+<td align="center"><img src="https://img-blog.csdnimg.cn/68e28a51ca5447b6861b977899f630c6.png?x-oss-process=image/watermark,type_ZHJvaWRzYW5zZmFsbGJhY2s,shadow_50,text_Q1NETiBA5bGx5rKz5bey5peg5oGZ,size_20,color_FFFFFF,t_70,g_se,x_16"></td>
+</tr>
+<tr>
+<td align="center"><strong><font color=red>创建用户。（用户名字和密码自定义），填写完成后，单击两次“完成”。</font></strong></td>
+</tr>
+<tr>
+<td align="center"><img src="https://img-blog.csdnimg.cn/75e033551376466fbba8b09caa897ad6.png?x-oss-process=image/watermark,type_ZHJvaWRzYW5zZmFsbGJhY2s,shadow_50,text_Q1NETiBA5bGx5rKz5bey5peg5oGZ,size_20,color_FFFFFF,t_70,g_se,x_16"></td>
+</tr>
+<tr>
+<td align="center"><img src="https://img-blog.csdnimg.cn/94e28b38d1cf46359cfab4a9553ea5e5.png?x-oss-process=image/watermark,type_ZHJvaWRzYW5zZmFsbGJhY2s,shadow_50,text_Q1NETiBA5bGx5rKz5bey5peg5oGZ,size_20,color_FFFFFF,t_70,g_se,x_16"></td>
+</tr>
+<tr>
+<td align="center"><strong><font color=red>这很需要时间，可以干点别的事………,安装完成之后，会有 <strong><font color=royalblue>重启</font></strong> 按钮，直接重启即可</font></strong></td>
+</tr>
+<tr>
+<td align="center"><img src="https://img-blog.csdnimg.cn/3fe500b3af8c4eb2b9e329e60fb8df8a.png?x-oss-process=image/watermark,type_ZHJvaWRzYW5zZmFsbGJhY2s,shadow_50,text_Q1NETiBA5bGx5rKz5bey5peg5oGZ,size_20,color_FFFFFF,t_70,g_se,x_16"></td>
+</tr>
+<tr>
+<td align="center"><img src="https://img-blog.csdnimg.cn/f9a6ef97d84c49d1937319f4edd7beb1.png?x-oss-process=image/watermark,type_ZHJvaWRzYW5zZmFsbGJhY2s,shadow_50,text_Q1NETiBA5bGx5rKz5bey5peg5oGZ,size_20,color_FFFFFF,t_70,g_se,x_16"></td>
+</tr>
+<tr>
+<td align="center"><img src="https://img-blog.csdnimg.cn/d91812adc47e4caa9f78dec1d85b6e9e.png?x-oss-process=image/watermark,type_ZHJvaWRzYW5zZmFsbGJhY2s,shadow_50,text_Q1NETiBA5bGx5rKz5bey5peg5oGZ,size_20,color_FFFFFF,t_70,g_se,x_16"></td>
+</tr>
+<tr>
+<td align="center"><strong><font color=yellowgreen>启动系统，这个需要一些时间，耐心等待</font></strong></td>
+</tr>
+<tr>
+<td align="center"><img src="https://img-blog.csdnimg.cn/11a5f37cea1d49b7b3f5dbb1e93583c7.png?x-oss-process=image/watermark,type_ZHJvaWRzYW5zZmFsbGJhY2s,shadow_50,text_Q1NETiBA5bGx5rKz5bey5peg5oGZ,size_20,color_FFFFFF,t_70,g_se,x_16"></td>
+</tr>
+<tr>
+<td align="center"><strong><font color=tomato>未列出以root用户登录，然后是一些引导页，直接下一步即可</font></strong></td>
+</tr>
+<tr>
+<td align="center"><img src="https://img-blog.csdnimg.cn/b4513bc62c5a4a6ab63edfa0cb76381c.png?x-oss-process=image/watermark,type_ZHJvaWRzYW5zZmFsbGJhY2s,shadow_50,text_Q1NETiBA5bGx5rKz5bey5peg5oGZ,size_20,color_FFFFFF,t_70,g_se,x_16"></td>
+</tr>
+<tr>
+<td align="center"><img src="https://img-blog.csdnimg.cn/4ca04a1d9efd4e05b2c69bdaf7e7909c.png?x-oss-process=image/watermark,type_ZHJvaWRzYW5zZmFsbGJhY2s,shadow_50,text_Q1NETiBA5bGx5rKz5bey5peg5oGZ,size_20,color_FFFFFF,t_70,g_se,x_16"></td>
+</tr>
+<tr>
+<td align="center">嗯，这里改一下，**<font color=amber>命令提示符</font>**。弄的好看一点想学习，直接输入：<code>PS1=&quot;\[\033[1;32m\]┌──[\[\033[1;34m\]\u@\H\[\033[1;32m\]]-[\[\033[0;1m\]\w\[\033[1;32m\]] \n\[\033[1;32m\]└─\[\033[1;34m\]\$\[\033[0m\] &quot;</code>或者写到<code>.baserch</code></td>
+</tr>
+<tr>
+<td align="center"><img src="https://img-blog.csdnimg.cn/c2ef9c7c28ce46babaa1acc27cab8735.png?x-oss-process=image/watermark,type_ZHJvaWRzYW5zZmFsbGJhY2s,shadow_50,text_Q1NETiBA5bGx5rKz5bey5peg5oGZ,size_20,color_FFFFFF,t_70,g_se,x_16"></td>
+</tr>
+</tbody></table>
+<h2 id="2-配置网络"><a href="#2-配置网络" class="headerlink" title="2. 配置网络"></a><font color=yellowgreen>2. 配置网络</font></h2><table>
+<thead>
+<tr>
+<th align="center"><strong><font color=green>&amp;&amp;&amp;&amp;&amp;&amp;&amp;&amp;&amp;&amp;&amp;&amp;&amp;&amp;&amp;&amp;&amp;&amp;配置网络步骤&amp;&amp;&amp;&amp;&amp;&amp;&amp;&amp;&amp;&amp;&amp;&amp;&amp;&amp;&amp;&amp;&amp;&amp;</font></strong></th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center"><img src="https://img-blog.csdnimg.cn/85d3cf2e418b498e8cb51b7fd02b6d35.png?x-oss-process=image/watermark,type_ZHJvaWRzYW5zZmFsbGJhY2s,shadow_50,text_Q1NETiBA5bGx5rKz5bey5peg5oGZ,size_20,color_FFFFFF,t_70,g_se,x_16"></td>
+</tr>
+<tr>
+<td align="center"><img src="https://img-blog.csdnimg.cn/ebaa0696135344e196583d0ed5ab54f2.png?x-oss-process=image/watermark,type_ZHJvaWRzYW5zZmFsbGJhY2s,shadow_50,text_Q1NETiBA5bGx5rKz5bey5peg5oGZ,size_20,color_FFFFFF,t_70,g_se,x_16"></td>
+</tr>
+<tr>
+<td align="center"><img src="https://img-blog.csdnimg.cn/f55822c3c3664b5abb70c621e87d1912.png?x-oss-process=image/watermark,type_ZHJvaWRzYW5zZmFsbGJhY2s,shadow_50,text_Q1NETiBA5bGx5rKz5bey5peg5oGZ,size_20,color_FFFFFF,t_70,g_se,x_16"></td>
+</tr>
+<tr>
+<td align="center"><img src="https://img-blog.csdnimg.cn/f346162fecae454597615b91e7143075.png?x-oss-process=image/watermark,type_ZHJvaWRzYW5zZmFsbGJhY2s,shadow_50,text_Q1NETiBA5bGx5rKz5bey5peg5oGZ,size_20,color_FFFFFF,t_70,g_se,x_16"></td>
+</tr>
+<tr>
+<td align="center">桥接模式下，要自己选择桥接到哪个网卡(实际联网用的网卡)，然后确认</td>
+</tr>
+<tr>
+<td align="center"><img src="https://img-blog.csdnimg.cn/bff89aed281148a9b9b55e4a989e415b.png?x-oss-process=image/watermark,type_ZHJvaWRzYW5zZmFsbGJhY2s,shadow_50,text_Q1NETiBA5bGx5rKz5bey5peg5oGZ,size_20,color_FFFFFF,t_70,g_se,x_16"></td>
+</tr>
+<tr>
+<td align="center">配置网卡为DHCP模式(自动分配IP地址):执行方式见表尾</td>
+</tr>
+<tr>
+<td align="center"><code>nmcli connection modify &#39;ens33&#39; ipv4.method auto   connection.autoconnect yes #将网卡改为DHCP模式(动态分配IP)</code>，<code>nmcli connection up &#39;ens33&#39;</code></td>
+</tr>
+<tr>
+<td align="center"><img src="https://img-blog.csdnimg.cn/2ab459d9831345ebb48acc5f030d5e9d.png?x-oss-process=image/watermark,type_ZHJvaWRzYW5zZmFsbGJhY2s,shadow_50,text_Q1NETiBA5bGx5rKz5bey5peg5oGZ,size_20,color_FFFFFF,t_70,g_se,x_16"></td>
+</tr>
+<tr>
+<td align="center"><img src="https://img-blog.csdnimg.cn/b570744e771847f1a1b33d6f61e5c4ee.png?x-oss-process=image/watermark,type_ZHJvaWRzYW5zZmFsbGJhY2s,shadow_50,text_Q1NETiBA5bGx5rKz5bey5peg5oGZ,size_20,color_FFFFFF,t_70,g_se,x_16"></td>
+</tr>
+</tbody></table>
+<p><strong><font color=purple>配置网卡为DHCP模式(自动分配IP地址)</font></strong></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">┌──[root@localhost.localdomain]-[~] </span><br><span class="line">└─$ nmcli connection modify <span class="string">&#x27;ens33&#x27;</span> ipv4.method auto   connection.autoconnect yes</span><br><span class="line">┌──[root@localhost.localdomain]-[~] </span><br><span class="line">└─$ nmcli connection up <span class="string">&#x27;ens33&#x27;</span></span><br><span class="line">连接已成功激活（D-Bus 活动路径：/org/freedesktop/NetworkManager/ActiveConnection/4）</span><br><span class="line">┌──[root@localhost.localdomain]-[~] </span><br><span class="line">└─$ ifconfig | head -2 </span><br><span class="line">ens33: flags=4163&lt;UP,BROADCAST,RUNNING,MULTICAST&gt;  mtu 1500</span><br><span class="line">        inet 192.168.1.7  netmask 255.255.255.0  broadcast 192.168.1.255</span><br><span class="line">┌──[root@localhost.localdomain]-[~] </span><br><span class="line">└─$ </span><br></pre></td></tr></table></figure>
+
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line">┌──[root@192.168.1.7]-[~] </span><br><span class="line">└─$ ifconfig</span><br><span class="line">ens33: flags=4163&lt;UP,BROADCAST,RUNNING,MULTICAST&gt;  mtu 1500</span><br><span class="line">        inet 192.168.1.7  netmask 255.255.255.0  broadcast 192.168.1.255</span><br><span class="line">        inet6 fe80::8899:b0c7:4b50:73e0  prefixlen 64  scopeid 0x20&lt;link&gt;</span><br><span class="line">        inet6 240e:319:707:b800:2929:3ab2:f378:715a  prefixlen 64  scopeid 0x0&lt;global&gt;</span><br><span class="line">        ether 00:0c:29:b6:a6:52  txqueuelen 1000  (Ethernet)</span><br><span class="line">        RX packets 535119  bytes 797946990 (760.9 MiB)</span><br><span class="line">        RX errors 0  dropped 96  overruns 0  frame 0</span><br><span class="line">        TX packets 59958  bytes 4119314 (3.9 MiB)</span><br><span class="line">        TX errors 0  dropped 0 overruns 0  carrier 0  collisions 0</span><br><span class="line"></span><br><span class="line">lo: flags=73&lt;UP,LOOPBACK,RUNNING&gt;  mtu 65536</span><br><span class="line">        inet 127.0.0.1  netmask 255.0.0.0</span><br><span class="line">        inet6 ::1  prefixlen 128  scopeid 0x10&lt;host&gt;</span><br><span class="line">        loop  txqueuelen 1000  (Local Loopback)</span><br><span class="line">        RX packets 616  bytes 53248 (52.0 KiB)</span><br><span class="line">        RX errors 0  dropped 0  overruns 0  frame 0</span><br><span class="line">        TX packets 616  bytes 53248 (52.0 KiB)</span><br><span class="line">        TX errors 0  dropped 0 overruns 0  carrier 0  collisions 0</span><br><span class="line"></span><br><span class="line">virbr0: flags=4099&lt;UP,BROADCAST,MULTICAST&gt;  mtu 1500</span><br><span class="line">        inet 192.168.122.1  netmask 255.255.255.0  broadcast 192.168.122.255</span><br><span class="line">        ether 52:54:00:2e:66:6d  txqueuelen 1000  (Ethernet)</span><br><span class="line">        RX packets 0  bytes 0 (0.0 B)</span><br><span class="line">        RX errors 0  dropped 0  overruns 0  frame 0</span><br><span class="line">        TX packets 0  bytes 0 (0.0 B)</span><br><span class="line">        TX errors 0  dropped 0 overruns 0  carrier 0  collisions 0</span><br><span class="line"></span><br><span class="line">┌──[root@192.168.1.7]-[~] </span><br><span class="line">└─$ </span><br></pre></td></tr></table></figure>
+
+<h2 id="3-机器克隆"><a href="#3-机器克隆" class="headerlink" title="3. 机器克隆"></a><font color=tomato>3. 机器克隆</font></h2><table>
+<thead>
+<tr>
+<th align="center"><strong><font color=green>&amp;&amp;&amp;&amp;&amp;&amp;&amp;&amp;&amp;&amp;&amp;&amp;&amp;&amp;&amp;&amp;&amp;&amp;机器克隆步骤&amp;&amp;&amp;&amp;&amp;&amp;&amp;&amp;&amp;&amp;&amp;&amp;&amp;&amp;&amp;&amp;&amp;&amp;</font></strong></th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center"><strong><font color=royalblue>关闭要克隆的虚拟机</font></strong></td>
+</tr>
+<tr>
+<td align="center"><img src="https://img-blog.csdnimg.cn/541b0fbfbde34180a4b566deea22428d.png?x-oss-process=image/watermark,type_ZHJvaWRzYW5zZmFsbGJhY2s,shadow_50,text_Q1NETiBA5bGx5rKz5bey5peg5oGZ,size_20,color_FFFFFF,t_70,g_se,x_16"></td>
+</tr>
+<tr>
+<td align="center"><img src="https://img-blog.csdnimg.cn/d15180cd66934fd9bbd2b706d86dc767.png?x-oss-process=image/watermark,type_ZHJvaWRzYW5zZmFsbGJhY2s,shadow_50,text_Q1NETiBA5bGx5rKz5bey5peg5oGZ,size_20,color_FFFFFF,t_70,g_se,x_16"></td>
+</tr>
+<tr>
+<td align="center"><img src="https://img-blog.csdnimg.cn/e715e939b603408888d82c9be0b081fc.png?x-oss-process=image/watermark,type_ZHJvaWRzYW5zZmFsbGJhY2s,shadow_50,text_Q1NETiBA5bGx5rKz5bey5peg5oGZ,size_20,color_FFFFFF,t_70,g_se,x_16"></td>
+</tr>
+<tr>
+<td align="center"><strong><font color=brown>链接克隆和完整克隆的区别：</font></strong></td>
+</tr>
+<tr>
+<td align="center">创建链接克隆 #克隆的虚拟机占用磁盘空间很少，但是被克隆的虚拟机必须能够正常使用，否则无法正常使用；</td>
+</tr>
+<tr>
+<td align="center">创建完整克隆 #新克隆的虚拟机跟被克隆的虚拟机之间没有关联，被克隆的虚拟机删除也不影响新克隆出来的虚拟机的使用</td>
+</tr>
+<tr>
+<td align="center"><img src="https://img-blog.csdnimg.cn/accd923c420e4e4fb1b83b3b959decc8.png?x-oss-process=image/watermark,type_ZHJvaWRzYW5zZmFsbGJhY2s,shadow_50,text_Q1NETiBA5bGx5rKz5bey5peg5oGZ,size_20,color_FFFFFF,t_70,g_se,x_16"></td>
+</tr>
+<tr>
+<td align="center"><img src="https://img-blog.csdnimg.cn/fe116c13992f4cdebda4ae1ea9584bfe.png?x-oss-process=image/watermark,type_ZHJvaWRzYW5zZmFsbGJhY2s,shadow_50,text_Q1NETiBA5bGx5rKz5bey5peg5oGZ,size_20,color_FFFFFF,t_70,g_se,x_16"></td>
+</tr>
+<tr>
+<td align="center"><img src="https://img-blog.csdnimg.cn/de37f61b9ac44077a0859034250c58f5.png?x-oss-process=image/watermark,type_ZHJvaWRzYW5zZmFsbGJhY2s,shadow_50,text_Q1NETiBA5bGx5rKz5bey5peg5oGZ,size_20,color_FFFFFF,t_70,g_se,x_16"></td>
+</tr>
+<tr>
+<td align="center"><img src="https://img-blog.csdnimg.cn/c62f9253ccfa4392b3bdea144869c20a.png?x-oss-process=image/watermark,type_ZHJvaWRzYW5zZmFsbGJhY2s,shadow_50,text_Q1NETiBA5bGx5rKz5bey5peg5oGZ,size_20,color_FFFFFF,t_70,g_se,x_16"></td>
+</tr>
+<tr>
+<td align="center"><img src="https://img-blog.csdnimg.cn/feb39b9157ff461c8a58efc5a1752e12.png?x-oss-process=image/watermark,type_ZHJvaWRzYW5zZmFsbGJhY2s,shadow_50,text_Q1NETiBA5bGx5rKz5bey5peg5oGZ,size_20,color_FFFFFF,t_70,g_se,x_16"></td>
+</tr>
+<tr>
+<td align="center"><strong><font color=tomato>测试一下，可以访问外网(39.97.241是我的阿里云公网IP)， 也可以和物理机互通，同时也可以和node互通</font></strong></td>
+</tr>
+<tr>
+<td align="center"><img src="https://img-blog.csdnimg.cn/5091db1460194e09861ddc2f1e0bc3fd.png?x-oss-process=image/watermark,type_ZHJvaWRzYW5zZmFsbGJhY2s,shadow_50,text_Q1NETiBA5bGx5rKz5bey5peg5oGZ,size_20,color_FFFFFF,t_70,g_se,x_16"></td>
+</tr>
+<tr>
+<td align="center"><img src="https://img-blog.csdnimg.cn/cbb1f593c289478fb00e9654e6adbf40.png?x-oss-process=image/watermark,type_ZHJvaWRzYW5zZmFsbGJhY2s,shadow_50,text_Q1NETiBA5bGx5rKz5bey5peg5oGZ,size_20,color_FFFFFF,t_70,g_se,x_16"></td>
+</tr>
+<tr>
+<td align="center"><img src="https://img-blog.csdnimg.cn/28c7a67565d74be7af1562f9f90e2618.png?x-oss-process=image/watermark,type_ZHJvaWRzYW5zZmFsbGJhY2s,shadow_50,text_Q1NETiBA5bGx5rKz5bey5peg5oGZ,size_20,color_FFFFFF,t_70,g_se,x_16"></td>
+</tr>
+<tr>
+<td align="center"><strong><font color=seagreen>我们以相同的方式，克隆剩余的一个node节点机器，和一个Master节点机。</font></strong></td>
+</tr>
+</tbody></table>
+<blockquote>
+<p><strong><font color=brown>我们以相同的方式，克隆剩余的一个<code>node</code>节点机器，和一个<code>Master</code>节点机。这里不做展示</font></strong></p>
+</blockquote>
+<table>
+<thead>
+<tr>
+<th align="center">克隆剩余的,<strong><font color=red>如果启动时内存不够，需要关闭虚拟机调整相应的内存</font></strong></th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center"><img src="https://img-blog.csdnimg.cn/902182b6225a4e0fa0355ea1191be586.png?x-oss-process=image/watermark,type_ZHJvaWRzYW5zZmFsbGJhY2s,shadow_50,text_Q1NETiBA5bGx5rKz5bey5peg5oGZ,size_20,color_FFFFFF,t_70,g_se,x_16"></td>
+</tr>
+</tbody></table>
+<h2 id="4-管理控制节点到计算节点DNS配置"><a href="#4-管理控制节点到计算节点DNS配置" class="headerlink" title="4.管理控制节点到计算节点DNS配置"></a>4.<font color=green>管理控制节点到计算节点DNS配置</font></h2><table>
+<thead>
+<tr>
+<th align="center"><strong><font color=royalblue>Master节点DNS配置</font></strong></th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center"><strong><font color=orange>Master节点配置DNS，可用通过主机名访问,为方便的话，可以修改每个节点机器的 主机名 <code>/etc/hosts</code>下修改。</font></strong></td>
+</tr>
+<tr>
+<td align="center"><img src="https://img-blog.csdnimg.cn/9c1c0214b6d14f2b901632a43da04ade.png?x-oss-process=image/watermark,type_ZHJvaWRzYW5zZmFsbGJhY2s,shadow_50,text_Q1NETiBA5bGx5rKz5bey5peg5oGZ,size_20,color_FFFFFF,t_70,g_se,x_16"></td>
+</tr>
+</tbody></table>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">┌──[root@192.168.1.10]-[~] </span><br><span class="line">└─$ vim /etc/hosts</span><br><span class="line">┌──[root@192.168.1.10]-[~] </span><br><span class="line">└─$ cat /etc/hosts</span><br><span class="line">127.0.0.1   localhost localhost.localdomain localhost4 localhost4.localdomain4</span><br><span class="line">::1         localhost localhost.localdomain localhost6 localhost6.localdomain6</span><br><span class="line">192.168.1.7  node0</span><br><span class="line">192.168.1.9  node1</span><br><span class="line">192.168.1.11 node2</span><br><span class="line"> </span><br><span class="line">┌──[root@192.168.1.10]-[~] </span><br><span class="line">└─$ </span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<h2 id="5-管理控制节点到计算节点SSH免密配置"><a href="#5-管理控制节点到计算节点SSH免密配置" class="headerlink" title="5.管理控制节点到计算节点SSH免密配置"></a>5.<font color=green>管理控制节点到计算节点SSH免密配置</font></h2><table>
+<thead>
+<tr>
+<th align="center"><strong><font color=royalblue>Master节点配置SSH免密登录</font></strong></th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center"><strong><font color=amber><code>ssh-keygen</code>生成密匙，全部回车</font></strong></td>
+</tr>
+<tr>
+<td align="center"><strong><font color=tomato>SSH 免密配置，使用<code>ssh-copy-id</code>传递密匙</font></strong></td>
+</tr>
+<tr>
+<td align="center"><img src="https://img-blog.csdnimg.cn/89a134206bd94e8bbfe762482f433475.png?x-oss-process=image/watermark,type_ZHJvaWRzYW5zZmFsbGJhY2s,shadow_50,text_Q1NETiBA5bGx5rKz5bey5peg5oGZ,size_20,color_FFFFFF,t_70,g_se,x_16"></td>
+</tr>
+<tr>
+<td align="center"><strong><font color=amber>免密测试，如果为了方便，这里，Node1的主机名没有修改。所以显示为IP地址</font></strong></td>
+</tr>
+<tr>
+<td align="center"><img src="https://img-blog.csdnimg.cn/f45ba47b81704b429918fc703b5612fc.png?x-oss-process=image/watermark,type_ZHJvaWRzYW5zZmFsbGJhY2s,shadow_50,text_Q1NETiBA5bGx5rKz5bey5peg5oGZ,size_20,color_FFFFFF,t_70,g_se,x_16"></td>
+</tr>
+</tbody></table>
+<p><strong><font color=plum><code>ssh-keygen</code>生成密匙，全部回车</font></strong></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br></pre></td><td class="code"><pre><span class="line">┌──[root@192.168.1.10]-[~] </span><br><span class="line">└─$ ssh</span><br><span class="line">usage: ssh [-1246AaCfGgKkMNnqsTtVvXxYy] [-b bind_address] [-c cipher_spec]</span><br><span class="line">           [-D [bind_address:]port] [-E log_file] [-e escape_char]</span><br><span class="line">           [-F configfile] [-I pkcs11] [-i identity_file]</span><br><span class="line">           [-J [user@]host[:port]] [-L address] [-l login_name] [-m mac_spec]</span><br><span class="line">           [-O ctl_cmd] [-o option] [-p port] [-Q query_option] [-R address]</span><br><span class="line">           [-S ctl_path] [-W host:port] [-w local_tun[:remote_tun]]</span><br><span class="line">           [user@]hostname [<span class="built_in">command</span>]</span><br><span class="line">┌──[root@192.168.1.10]-[~] </span><br><span class="line">└─$ ls -ls ~/.ssh/</span><br><span class="line">ls: 无法访问/root/.ssh/: 没有那个文件或目录</span><br><span class="line">┌──[root@192.168.1.10]-[~] </span><br><span class="line">└─$ ssh-keygen</span><br><span class="line">Generating public/private rsa key pair.</span><br><span class="line">Enter file <span class="keyword">in</span> <span class="built_in">which</span> to save the key (/root/.ssh/id_rsa): </span><br><span class="line">Created directory <span class="string">&#x27;/root/.ssh&#x27;</span>.</span><br><span class="line">Enter passphrase (empty <span class="keyword">for</span> no passphrase): </span><br><span class="line">Enter same passphrase again: </span><br><span class="line">Your identification has been saved <span class="keyword">in</span> /root/.ssh/id_rsa.</span><br><span class="line">Your public key has been saved <span class="keyword">in</span> /root/.ssh/id_rsa.pub.</span><br><span class="line">The key fingerprint is:</span><br><span class="line">SHA256:qHboVj/WfMTYCDFDZ5ISf3wEcmfsz0EXJH19U6SnxbY root@node0</span><br><span class="line">The key<span class="string">&#x27;s randomart image is:</span></span><br><span class="line"><span class="string">+---[RSA 2048]----+</span></span><br><span class="line"><span class="string">|      .o+.=o+.o+*|</span></span><br><span class="line"><span class="string">|      ..=B +. o==|</span></span><br><span class="line"><span class="string">|       ..+o.....O|</span></span><br><span class="line"><span class="string">|       ... .. .=.|</span></span><br><span class="line"><span class="string">|      . S. = o.E |</span></span><br><span class="line"><span class="string">|     o.   o + o  |</span></span><br><span class="line"><span class="string">|    +... o .     |</span></span><br><span class="line"><span class="string">|   o..  + o .    |</span></span><br><span class="line"><span class="string">|   ..  . . .     |</span></span><br><span class="line"><span class="string">+----[SHA256]-----+</span></span><br></pre></td></tr></table></figure>
+<p><strong><font color=yellowgreen>SSH 免密配置，使用<code>ssh-copy-id</code>传递密匙</font></strong></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">ssh-copy-id root@node0</span><br><span class="line">ssh-copy-id root@node1</span><br><span class="line">ssh-copy-id root@node2</span><br></pre></td></tr></table></figure>
+<p><strong><font color=green>免密测试</font></strong></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">ssh root@node0</span><br><span class="line">ssh root@node1</span><br><span class="line">ssh root@node2</span><br></pre></td></tr></table></figure>
+<h2 id="嗯，时间原因，先搞到这里，关于Ansible和K8s，之后有时间整理在更新下"><a href="#嗯，时间原因，先搞到这里，关于Ansible和K8s，之后有时间整理在更新下" class="headerlink" title="嗯，时间原因，先搞到这里，关于Ansible和K8s，之后有时间整理在更新下"></a>嗯，时间原因，先搞到这里，关于Ansible和K8s，之后有时间整理在更新下</h2><h1 id="二，Ansible安装配置"><a href="#二，Ansible安装配置" class="headerlink" title="二，Ansible安装配置"></a><font color=brown>二，Ansible安装配置</font></h1><h1 id="三，Docker、K8s相关包安装配置"><a href="#三，Docker、K8s相关包安装配置" class="headerlink" title="三，Docker、K8s相关包安装配置"></a><font color=blue>三，Docker、K8s相关包安装配置</font></h1></div><div class="article-licensing box"><div class="licensing-title"><p>win10下从零搭建Linux+Docker+Ansible+K8S 学习环境笔记(1*Master+3*Node)</p><p><a href="https://liruilongs.github.io/2021/09/05/win10下从零搭建K8S学习环境笔记/">https://liruilongs.github.io/2021/09/05/win10下从零搭建K8S学习环境笔记/</a></p></div><div class="licensing-meta level is-mobile"><div class="level-left"><div class="level-item is-narrow"><div><h6>作者</h6><a href="https://liruilongs.github.io"><p>山河已无恙</p></a></div></div><div class="level-item is-narrow"><div><h6>发布于</h6><p>2021-09-05</p></div></div><div class="level-item is-narrow"><div><h6>更新于</h6><p>2021-09-06</p></div></div><div class="level-item is-narrow"><div><h6>许可协议</h6><p><a class="icon" rel="noopener" target="_blank" title="Creative Commons" href="https://creativecommons.org/"><i class="fab fa-creative-commons"></i></a><a class="icon" rel="noopener" target="_blank" title="Attribution" href="https://creativecommons.org/licenses/by/4.0/"><i class="fab fa-creative-commons-by"></i></a><a class="icon" rel="noopener" target="_blank" title="Noncommercial" href="https://creativecommons.org/licenses/by-nc/4.0/"><i class="fab fa-creative-commons-nc"></i></a></p></div></div></div></div></div><div class="recommend-area"><div class="recommend-post"><span class="is-size-6 has-text-grey has-mr-7"># 推荐文章</span><br><span>  1.<a class="is-size-6" href="/2021/08/27/%E3%80%8AKubernetes%E6%9D%83%E5%A8%81%E6%8C%87%E5%8D%97-%E4%BB%8EDocker%E5%88%B0Kubernetes%E5%AE%9E%E8%B7%B5%E5%85%A8%E6%8E%A5%E8%A7%A6%E3%80%8B%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/" target="_blank">《Kubernetes权威指南:从Docker到Kubernetes实践全接触》读书笔记</a><br></span><span>  2.<a class="is-size-6" href="/2020/07/30/Java%E4%B8%ADtry%7B%7Dcatch%E7%9A%84%E9%9A%90%E8%97%8F(%E5%A6%82%E4%BD%95%E4%BC%98%E9%9B%85%E7%9A%84%E5%AE%9E%E7%8E%B0%E5%BC%82%E5%B8%B8%E5%9D%97)/" target="_blank">Java中try{}catch的隐藏(如何优雅的实现异常块)</a><br></span><span>  3.<a class="is-size-6" href="/2021/07/01/%E3%80%8A%E5%BE%AE%E6%9C%8D%E5%8A%A1%E6%9E%B6%E6%9E%84%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F%E3%80%8B%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/" target="_blank">《微服务架构设计模式》读书笔记</a><br></span><span>  4.<a class="is-size-6" href="/2021/07/03/%E5%85%B3%E4%BA%8E-%E5%88%86%E5%B8%83%E5%BC%8F%E5%92%8C%E5%BE%AE%E6%9C%8D%E5%8A%A1-%E7%9A%84%E4%B8%80%E4%BA%9B%E6%80%BB%E7%BB%93/" target="_blank">关于 分布式和微服务 的一些总结</a><br></span><span>  5.<a class="is-size-6" href="/2021/08/18/%E5%8D%8E%E4%B8%BAHCIP%20R&amp;S%20%E8%80%83%E8%AF%95%E7%AC%94%E8%AE%B0/" target="_blank">华为HCIP R&amp;S 考试笔记</a><br></span><span>  6.<a class="is-size-6" href="/2021/07/27/%E5%9F%BA%E4%BA%8EDocker%E6%9E%84%E5%BB%BACentOS7_Java8_Tomcat8.5%20%E7%9A%84%E9%95%9C%E5%83%8F%E5%8F%8AWeb%E5%BA%94%E7%94%A8%E7%9A%84%E9%83%A8%E7%BD%B2/" target="_blank">基于Docker构建CentOS7_Java8_Tomcat8.5 的镜像及Web应用的部署</a><br></span></div></div><link rel="stylesheet" href="https://cdnjs.loli.net/ajax/libs/social-share.js/1.0.16/css/share.min.css"><div class="social-share"></div><script src="https://cdnjs.loli.net/ajax/libs/social-share.js/1.0.16/js/social-share.min.js"></script></article></div><div class="card"><div class="card-content"><h3 class="menu-label has-text-centered">喜欢这篇文章？打赏一下作者吧</h3><div class="buttons is-centered"><a class="button donate" data-type="alipay"><span class="icon is-small"><i class="fab fa-alipay"></i></span><span>支付宝</span><span class="qrcode"><img src="/img/alipay%EF%BF%A5.png" alt="支付宝"></span></a><a class="button donate" data-type="wechat"><span class="icon is-small"><i class="fab fa-weixin"></i></span><span>微信</span><span class="qrcode"><img src="/img/wechat%EF%BF%A5.png" alt="微信"></span></a></div></div></div><nav class="post-navigation mt-4 level is-mobile"><div class="level-end"><a class="article-nav-next level level-item link-muted" href="/2021/08/30/%E5%9F%BA%E4%BA%8EDocker%E9%83%A8%E7%BD%B2%20Tomcat%E9%9B%86%E7%BE%A4%E3%80%81%20Nginx%E8%B4%9F%E8%BD%BD%E5%9D%87%E8%A1%A1/"><span class="level-item">基于Docker部署 Tomcat集群、 Nginx负载均衡</span><i class="level-item fas fa-chevron-right"></i></a></div></nav><!--!--><div class="card"><div class="card-content"><div class="title is-5">评论</div><div id="comment-container"></div><link rel="stylesheet" href="https://cdnjs.loli.net/ajax/libs/gitalk/1.6.0/gitalk.css"><script> $.getScript('/js/gitalk.min.js', function () { 
+            var gitalk = new Gitalk({
+            language:'zh-CN',
+            id: '820abd9becb0b69a41f8e8527e2e4cc4',
+            repo: 'blog_comment',
+            owner: 'LIRUILONGS',
+            clientID: '9fdc9739266d48d5f62e',
+            clientSecret: 'c1cc33697d099a2197650ec9dadcb16bd4904655',
+            admin: ["LIRUILONGS"],
+            createIssueManually: true,
+            distractionFreeMode: true,
+            perPage: 10,
+            pagerDirection: 'last',
+            proxy: 'https://cors-anywhere.azm.workers.dev/https://github.com/login/oauth/access_token',
+            
+            enableHotKey: true,
+            isLocked: false
+        })
+        gitalk.render('comment-container')});</script></div></div></div><div class="column column-left is-4-tablet is-4-desktop is-3-widescreen  order-1 is-sticky"><div class="card widget" id="toc" data-type="toc"><div class="card-content"><div class="menu"><h3 class="menu-label">目录</h3><ul class="menu-list"><ul class="menu-list"><li><a class="is-flex is-mobile" href="#写在前面"><span class="mr-2">1.1</span><span>写在前面</span></a></li></ul><li><a class="is-flex is-mobile" href="#一，Linux-系统安装"><span class="mr-2">2</span><span>一，Linux 系统安装</span></a><ul class="menu-list"><li><a class="is-flex is-mobile" href="#1-系统安装"><span class="mr-2">2.1</span><span>1. 系统安装</span></a></li><li><a class="is-flex is-mobile" href="#2-配置网络"><span class="mr-2">2.2</span><span>2. 配置网络</span></a></li><li><a class="is-flex is-mobile" href="#3-机器克隆"><span class="mr-2">2.3</span><span>3. 机器克隆</span></a></li><li><a class="is-flex is-mobile" href="#4-管理控制节点到计算节点DNS配置"><span class="mr-2">2.4</span><span>4.管理控制节点到计算节点DNS配置</span></a></li><li><a class="is-flex is-mobile" href="#5-管理控制节点到计算节点SSH免密配置"><span class="mr-2">2.5</span><span>5.管理控制节点到计算节点SSH免密配置</span></a></li><li><a class="is-flex is-mobile" href="#嗯，时间原因，先搞到这里，关于Ansible和K8s，之后有时间整理在更新下"><span class="mr-2">2.6</span><span>嗯，时间原因，先搞到这里，关于Ansible和K8s，之后有时间整理在更新下</span></a></li></ul></li><li><a class="is-flex is-mobile" href="#二，Ansible安装配置"><span class="mr-2">3</span><span>二，Ansible安装配置</span></a></li><li><a class="is-flex is-mobile" href="#三，Docker、K8s相关包安装配置"><span class="mr-2">4</span><span>三，Docker、K8s相关包安装配置</span></a></li></ul></div></div><style>.menu-list > li > a.is-active + .menu-list { display: block; }.menu-list > li > a + .menu-list { display: none; }</style><script src="/js/toc.js" defer></script></div><div class="card widget" data-type="profile"><div class="card-content"><nav class=""><div class="level-item has-text-centered flex-shrink-1"><div><figure class="image is-128x128 mx-auto mb-2"><img class="avatar" src="/img/%E5%BE%AE%E4%BF%A1%E5%85%AC%E4%BC%97%E5%8F%B7.jpg" alt="意必固我"></figure><p class="title is-size-4 is-block" style="line-height:inherit;">意必固我</p><p class="is-size-6 is-block">爱自己，是终生浪漫的开始</p><p class="is-size-6 is-flex justify-content-center"><i class="fas fa-map-marker-alt mr-1"></i><span>内蒙古·呼和浩特</span></p></div></div></nav><nav class="level is-mobile"><div class="level-item has-text-centered is-marginless"><div><p class="heading">文章</p><a href="/archives"><p class="title">39</p></a></div></div><div class="level-item has-text-centered is-marginless"><div><p class="heading">分类</p><a href="/categories"><p class="title">28</p></a></div></div><div class="level-item has-text-centered is-marginless"><div><p class="heading">标签</p><a href="/tags"><p class="title">46</p></a></div></div></nav><div class="level"><a class="level-item button is-primary is-rounded" href="https://github.com/LIRUILONGS" target="_blank" rel="noopener">关注我</a></div><div class="level is-mobile"><a class="level-item button is-transparent is-marginless" target="_blank" rel="noopener" title="Github" href="https://github.com/LIRUILONGS"><i class="fab fa-github"></i></a><a class="level-item button is-transparent is-marginless" target="_blank" rel="noopener" title="Weibo" href="https://weibo.com/removeif"><i class="fab fa-weibo"></i></a><a class="level-item button is-transparent is-marginless" target="_blank" rel="noopener" title="Email" href="mailto:1224965096@qq.com"><i class="fa fa-envelope"></i></a></div></div></div><div class="card widget" data-type="links"><div class="card-content"><div class="menu"><h3 class="menu-label">链接</h3><ul class="menu-list"><li><a class="level is-mobile" href="https://blog.csdn.net/sanhewuyang" target="_blank" rel="noopener"><span class="level-left"><span class="level-item">CSDN</span></span><span class="level-right"><span class="level-item tag">blog.csdn.net</span></span></a></li><li><a class="level is-mobile" href="https://www.cnblogs.com/liruilong/" target="_blank" rel="noopener"><span class="level-left"><span class="level-item">博客园</span></span><span class="level-right"><span class="level-item tag">www.cnblogs.com</span></span></a></li><li><a class="level is-mobile" href="https://github.com/LIRUILONGS" target="_blank" rel="noopener"><span class="level-left"><span class="level-item">Githup</span></span><span class="level-right"><span class="level-item tag">github.com</span></span></a></li><li><a class="level is-mobile" href="https://gitee.com/liruilonger" target="_blank" rel="noopener"><span class="level-left"><span class="level-item">码云</span></span><span class="level-right"><span class="level-item tag">gitee.com</span></span></a></li></ul></div></div></div><div class="card widget"><div class="card-content"><h3 class="menu-label">最新评论</h3><span class="body_hot_comment">加载中，最新评论有1分钟缓存...</span></div></div><div class="card widget"><div class="card-content"><h3 class="menu-label">最新文章</h3><article class="media"><div class="media-content"><p class="date"><time dateTime="2021-09-05T01:52:58.000Z">2021-09-05</time></p><p class="title"><a href="/2021/09/05/win10%E4%B8%8B%E4%BB%8E%E9%9B%B6%E6%90%AD%E5%BB%BAK8S%E5%AD%A6%E4%B9%A0%E7%8E%AF%E5%A2%83%E7%AC%94%E8%AE%B0/">win10下从零搭建Linux+Docker+Ansible+K8S 学习环境笔记(1*Master+3*Node)</a></p><p class="categories"><a href="/categories/K8s/">K8s</a></p></div></article><article class="media"><figure class="media-left"><a class="image" href="/2021/08/30/%E5%9F%BA%E4%BA%8EDocker%E9%83%A8%E7%BD%B2%20Tomcat%E9%9B%86%E7%BE%A4%E3%80%81%20Nginx%E8%B4%9F%E8%BD%BD%E5%9D%87%E8%A1%A1/"><img src="https://img-blog.csdnimg.cn/f4216b8e981348b6a356433868954046.png" alt="基于Docker部署 Tomcat集群、 Nginx负载均衡"></a></figure><div class="media-content"><p class="date"><time dateTime="2021-08-30T11:24:44.000Z">2021-08-30</time></p><p class="title"><a href="/2021/08/30/%E5%9F%BA%E4%BA%8EDocker%E9%83%A8%E7%BD%B2%20Tomcat%E9%9B%86%E7%BE%A4%E3%80%81%20Nginx%E8%B4%9F%E8%BD%BD%E5%9D%87%E8%A1%A1/">基于Docker部署 Tomcat集群、 Nginx负载均衡</a></p><p class="categories"><a href="/categories/Docker/">Docker</a></p></div></article><article class="media"><div class="media-content"><p class="date"><time dateTime="2021-08-30T01:08:20.000Z">2021-08-30</time></p><p class="title"><a href="/2021/08/30/%E5%85%A5%E8%81%8C%E6%80%BB%E7%BB%93/">入职总结</a></p></div></article><article class="media"><figure class="media-left"><a class="image" href="/2021/08/27/%E3%80%8AKubernetes%E6%9D%83%E5%A8%81%E6%8C%87%E5%8D%97-%E4%BB%8EDocker%E5%88%B0Kubernetes%E5%AE%9E%E8%B7%B5%E5%85%A8%E6%8E%A5%E8%A7%A6%E3%80%8B%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/"><img src="https://img-blog.csdnimg.cn/baf654a025b746e9860ab967a264f970.png?x-oss-process=image/watermark,type_ZHJvaWRzYW5zZmFsbGJhY2s,shadow_50,text_Q1NETiBA5bGx5rKz5bey5peg5oGZ,size_19,color_FFFFFF,t_70,g_se,x_16" alt="《Kubernetes权威指南:从Docker到Kubernetes实践全接触》读书笔记"></a></figure><div class="media-content"><p class="date"><time dateTime="2021-08-27T11:14:35.000Z">2021-08-27</time></p><p class="title"><a href="/2021/08/27/%E3%80%8AKubernetes%E6%9D%83%E5%A8%81%E6%8C%87%E5%8D%97-%E4%BB%8EDocker%E5%88%B0Kubernetes%E5%AE%9E%E8%B7%B5%E5%85%A8%E6%8E%A5%E8%A7%A6%E3%80%8B%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/">《Kubernetes权威指南:从Docker到Kubernetes实践全接触》读书笔记</a></p><p class="categories"><a href="/categories/Kubernetes/">Kubernetes</a></p></div></article><article class="media"><div class="media-content"><p class="date"><time dateTime="2021-08-21T19:30:57.665Z">2021-08-22</time></p><p class="title"><a href="/2021/08/22/%E3%80%8AFlask%20Web%20%20%E5%BC%80%E5%8F%91%E5%85%A5%E9%97%A8%E3%80%8B%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/"> </a></p></div></article></div></div><div class="card widget"><div class="card-content"><div class="menu"><h3 class="menu-label">分类</h3><ul class="menu-list"><li><a class="level is-mobile is-marginless" href="/categories/DevOps/"><span class="level-start"><span class="level-item">DevOps</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/Docker/"><span class="level-start"><span class="level-item">Docker</span></span><span class="level-end"><span class="level-item tag">4</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/Git/"><span class="level-start"><span class="level-item">Git</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/HCIP/"><span class="level-start"><span class="level-item">HCIP</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/JAVA/"><span class="level-start"><span class="level-item">JAVA</span></span><span class="level-end"><span class="level-item tag">2</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/JVM/"><span class="level-start"><span class="level-item">JVM</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/K8s/"><span class="level-start"><span class="level-item">K8s</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/Kubernetes/"><span class="level-start"><span class="level-item">Kubernetes</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/Linux/"><span class="level-start"><span class="level-item">Linux</span></span><span class="level-end"><span class="level-item tag">3</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/Python/"><span class="level-start"><span class="level-item">Python</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li><a class="level is-mobile is-marginless" href="/categories/"><span class="level-start"><span class="level-item">查看全部&gt;&gt;</span></span></a></ul></div></div></div><div class="card widget"><div class="card-content"><div class="menu"><h3 class="menu-label">归档</h3><ul class="menu-list"><li><a class="level is-mobile is-marginless" href="/archives/2021/09/"><span class="level-start"><span class="level-item">九月 2021</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li><li><a class="level is-mobile is-marginless" href="/archives/2021/08/"><span class="level-start"><span class="level-item">八月 2021</span></span><span class="level-end"><span class="level-item tag">7</span></span></a></li><li><a class="level is-mobile is-marginless" href="/archives/2021/07/"><span class="level-start"><span class="level-item">七月 2021</span></span><span class="level-end"><span class="level-item tag">11</span></span></a></li><li><a class="level is-mobile is-marginless" href="/archives/2021/06/"><span class="level-start"><span class="level-item">六月 2021</span></span><span class="level-end"><span class="level-item tag">10</span></span></a></li><li><a class="level is-mobile is-marginless" href="/archives/2021/05/"><span class="level-start"><span class="level-item">五月 2021</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li><a class="level is-mobile is-marginless" href="/archives/"><span class="level-start"><span class="level-item">查看全部&gt;&gt;</span></span></a></ul></div></div></div><div class="card widget"><div class="card-content"><div class="menu"><h3 class="menu-label">标签</h3><div class="field is-grouped is-grouped-multiline"><div class="control"><a class="tags has-addons" href="/tags/Docker/"><span class="tag">Docker</span><span class="tag is-grey-lightest">6</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Linux/"><span class="tag">Linux</span><span class="tag is-grey-lightest">5</span></a></div><div class="control"><a class="tags has-addons" href="/tags/JAVA/"><span class="tag">JAVA</span><span class="tag is-grey-lightest">4</span></a></div><div class="control"><a class="tags has-addons" href="/tags/shell/"><span class="tag">shell</span><span class="tag is-grey-lightest">3</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%E5%88%86%E5%B8%83%E5%BC%8F/"><span class="tag">分布式</span><span class="tag is-grey-lightest">3</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%E5%AE%B9%E5%99%A8/"><span class="tag">容器</span><span class="tag is-grey-lightest">3</span></a></div><div class="control"><a class="tags has-addons" href="/tags/HCIP/"><span class="tag">HCIP</span><span class="tag is-grey-lightest">2</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Liunx/"><span class="tag">Liunx</span><span class="tag is-grey-lightest">2</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%E5%BE%AE%E6%9C%8D%E5%8A%A1/"><span class="tag">微服务</span><span class="tag is-grey-lightest">2</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%E7%A8%8B%E5%BA%8F%E4%BA%BA%E7%94%9F/"><span class="tag">程序人生</span><span class="tag is-grey-lightest">2</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%E9%9D%A2%E8%AF%95/"><span class="tag">面试</span><span class="tag is-grey-lightest">2</span></a></div><div class="control"><a class="tags has-addons" href="/tags/DevOps/"><span class="tag">DevOps</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/ElementUI/"><span class="tag">ElementUI</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Git/"><span class="tag">Git</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Head-First/"><span class="tag">Head First</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/JVM/"><span class="tag">JVM</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/K8S/"><span class="tag">K8S</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/K8s/"><span class="tag">K8s</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Kubernetes/"><span class="tag">Kubernetes</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Markdown/"><span class="tag">Markdown</span><span class="tag is-grey-lightest">1</span></a></div></div><div class="field is-grouped is-grouped-multiline"><a class="tags has-addons" href="/tags/"><span class="tag">查看全部&gt;&gt;</span></a></div></div></div></div><div class="card widget" data-type="subscribe-email"><div class="card-content"><div class="menu"><h3 class="menu-label">订阅更新</h3><form action="https://feedburner.google.com/fb/a/mailverify" method="post" target="popupwindow" onsubmit="window.open(&#039;https://feedburner.google.com/fb/a/mailverify?uri=&#039;,&#039;popupwindow&#039;,&#039;scrollbars=yes,width=550,height=520&#039;);return true"><input type="hidden" value="" name="uri"><input type="hidden" name="loc" value="en_US"><div class="field has-addons"><div class="control has-icons-left is-expanded"><input class="input" name="email" type="email" placeholder="Email"><span class="icon is-small is-left"><i class="fas fa-envelope"></i></span></div><div class="control"><input class="button" type="submit" value="订阅"></div></div></form></div></div></div><!--!--><div class="column-right-shadow is-hidden-widescreen is-sticky"></div></div></div></div></section><footer class="footer"><div class="container"><div class="level"><div class="level-start"><a class="footer-logo is-block mb-2" href="/"><img src="/img/logo.png" alt="山河已无恙" height="28"></a><p class="size-small"><span>&copy; 2021 山河已无恙</span>  Powered by <a href="https://hexo.io/" target="_blank">Hexo</a> &amp; <a href="https://github.com/ppoffice/hexo-theme-icarus" target="_blank">Icarus</a> &amp; <a href="https://github.com/removeif/hexo-theme-amazing" target="_blank">Amazing</a> <br><span>© <a href="http://www.beian.miit.gov.cn/" target="_blank">备案号</a><br></span><span>© 版权说明：[本网站所有内容均收集于互联网或自己创作,<br />&nbsp;&nbsp;&nbsp;&nbsp;方便于网友与自己学习交流，如有侵权，请<a href="/message" target="_blank">留言</a>，立即处理]<br /></span><span><span id="statistic-times">loading...</span><script>function createTime(time) {
+            var n = new Date(time);
+            now.setTime(now.getTime() + 250),
+                days = (now - n) / 1e3 / 60 / 60 / 24,
+                dnum = Math.floor(days),
+                hours = (now - n) / 1e3 / 60 / 60 - 24 * dnum,
+                hnum = Math.floor(hours),
+            1 == String(hnum).length && (hnum = "0" + hnum),
+                minutes = (now - n) / 1e3 / 60 - 1440 * dnum - 60 * hnum,
+                mnum = Math.floor(minutes),
+            1 == String(mnum).length && (mnum = "0" + mnum),
+                seconds = (now - n) / 1e3 - 86400 * dnum - 3600 * hnum - 60 * mnum,
+                snum = Math.round(seconds),
+            1 == String(snum).length && (snum = "0" + snum),
+                document.getElementById("statistic-times").innerHTML = "❤️本站自 <strong>"+time.split(" ")[0].replace(/\//g,".")+"</strong> 已运行 <strong>" + dnum + "</strong> 天 <strong>" + hnum + "</strong> 小时 <strong>" + mnum + "</strong> 分 <strong>" + snum + "</strong> 秒！❤️";
+        }var now = new Date();setInterval("createTime('2021/6/26 21:27:00')", 250,"");</script><br></span><div class="size-small"><span>❤️感谢 <strong><span id="busuanzi_value_site_uv">99+</span></strong> 小伙伴的 <strong><span id="busuanzi_value_site_pv">99+</span></strong> 次光临！❤️</span></div></p></div><div class="level-end"><div class="field has-addons"><p class="control"><a class="button is-transparent is-large" target="_blank" rel="noopener" title="Creative Commons" href="https://creativecommons.org/"><i class="fab fa-creative-commons"></i></a></p><p class="control"><a class="button is-transparent is-large" target="_blank" rel="noopener" title="Attribution 4.0 International" href="https://creativecommons.org/licenses/by/4.0/"><i class="fab fa-creative-commons-by"></i></a></p><p class="control"><a class="button is-transparent is-large" target="_blank" rel="noopener" title="Download on GitHub" href="https://github.com/removeif/hexo-theme-amazing"><i class="fab fa-github"></i></a></p></div><div class="sideMusic"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/aplayer/dist/APlayer.min.css"><script src="/js/APlayer.min.js"></script><script src="https://cdn.jsdelivr.net/npm/meting@2/dist/Meting.min.js"></script><meting-js style="width: auto;height: 2000px;" server="netease" type="playlist" id="2364053447" theme="#2980b9" loop="all" autoplay="false" order="list" storageName="aplayer-setting" lrctype="0" list-max-height="400px" fixed="true"></meting-js></div></div></div></div></footer><script src="https://cdnjs.loli.net/ajax/libs/moment.js/2.22.2/moment-with-locales.min.js"></script><script src="https://cdnjs.loli.net/ajax/libs/clipboard.js/2.0.4/clipboard.min.js" async></script><script>moment.locale("zh-CN");</script><script>var IcarusThemeSettings = {
+            article: {
+                highlight: {
+                    clipboard: true,
+                    fold: 'unfolded'
+                }
+            }
+        };</script><script src="/js/column.js"></script><!--!--><script src="/js/animation.js"></script><a id="back-to-top" title="回到顶端" href="javascript:;"><i class="fas fa-chevron-up"></i></a><script src="/js/back_to_top.js" defer></script><!--!--><script src="https://cdnjs.loli.net/ajax/libs/lightgallery/1.6.8/js/lightgallery.min.js" defer></script><script src="https://cdnjs.loli.net/ajax/libs/justifiedGallery/3.7.0/js/jquery.justifiedGallery.min.js" defer></script><script>window.addEventListener("load", () => {
+            if (typeof $.fn.lightGallery === 'function') {
+                $('.article').lightGallery({ selector: '.gallery-item' });
+            }
+            if (typeof $.fn.justifiedGallery === 'function') {
+                if ($('.justified-gallery > p > .gallery-item').length) {
+                    $('.justified-gallery > p > .gallery-item').unwrap();
+                }
+                $('.justified-gallery').justifiedGallery();
+            }
+        });</script><!--!--><!--!--><link rel="stylesheet" href="https://cdnjs.loli.net/ajax/libs/KaTeX/0.11.1/katex.min.css"><script src="https://cdnjs.loli.net/ajax/libs/KaTeX/0.11.1/katex.min.js" defer></script><script src="https://cdnjs.loli.net/ajax/libs/KaTeX/0.11.1/contrib/auto-render.min.js" defer></script><script src="https://cdnjs.loli.net/ajax/libs/KaTeX/0.11.1/contrib/mhchem.js" defer></script><script>window.addEventListener("load", function() {
+            document.querySelectorAll('[role="article"] > .content').forEach(function(element) {
+                renderMathInElement(element);
+            });
+        });</script><script type="text/x-mathjax-config">MathJax.Hub.Config({
+            'HTML-CSS': {
+                matchFontHeight: false
+            },
+            SVG: {
+                matchFontHeight: false
+            },
+            CommonHTML: {
+                matchFontHeight: false
+            },
+            tex2jax: {
+                inlineMath: [
+                    ['$','$'],
+                    ['\\(','\\)']
+                ]
+            }
+        });</script><script src="https://cdnjs.loli.net/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-MML-AM_CHTML" defer></script><div id="outdated"><h6>Your browser is out-of-date!</h6><p>Update your browser to view this website correctly.&amp;npsb;<a id="btnUpdateBrowser" target="_blank" rel="noopener" href="http://outdatedbrowser.com/">Update my browser now </a></p><p class="last"><a href="#" id="btnCloseUpdateBrowser" title="Close">×</a></p></div><script src="https://cdnjs.loli.net/ajax/libs/outdated-browser/1.1.5/outdatedbrowser.min.js" defer></script><script>window.addEventListener("load", function () {
+            outdatedBrowser({
+                bgColor: '#f25648',
+                color: '#ffffff',
+                lowerThan: 'object-fit' // display on IE11 or below
+            });
+        });</script><!--!--><script src="/js/main.js" defer></script><script>$.getScript('/js/comment-issue-data.js',function(){loadIssueData('9fdc9739266d48d5f62e','c1cc33697d099a2197650ec9dadcb16bd4904655','LIRUILONGS','blog_comment',false);})</script><div class="searchbox"><div class="searchbox-container"><div class="searchbox-header"><div class="searchbox-input-container"><input class="searchbox-input" type="text" placeholder="想要查找什么..."></div><a class="searchbox-close" href="javascript:;">×</a></div><div class="searchbox-body"></div></div></div><script src="/js/insight.js" defer></script><script>document.addEventListener('DOMContentLoaded', function () {
+            loadInsight({"contentUrl":"/content.json"}, {"hint":"想要查找什么...","untitled":"(无标题)","posts":"文章","pages":"页面","categories":"分类","tags":"标签"});
+        });</script><script src="https://cdn.jsdelivr.net/npm/pjax@0.2.8/pjax.js"></script><script type="text/javascript">var pjax = new Pjax({
+            elements: "a",//代表点击链接就更新
+            selectors: [  //代表要更新的节点
+                ".section",
+                "title"
+            ],
+            cache: true,
+            cacheBust:false
+        })
+
+        function loadBusuanzi(){
+        $.getScript("//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js", function () {});
+        }
+
+        function loadMathJax() { //加载mathjax
+            $.getScript("//cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.4/MathJax.js?config=TeX-MML-AM_CHTML", function () {
+                MathJax.Hub.Config({ tex2jax: { inlineMath: [['$', '$'], ['\(', '\)']] } });
+                var math = document.getElementsByClassName("entry-content")[0];
+                MathJax.Hub.Queue(["Typeset", MathJax.Hub, math]);
+            });
+        };
+
+        // 开始 PJAX 执行的函数
+        document.addEventListener('pjax:send', function () {
+        });
+        
+        // PJAX 完成之后执行的函数，可以和上面的重载放在一起
+        document.addEventListener('pjax:complete', function () {
+            $(".section").css({opacity:1});
+            if(true){
+                $.getScript('/js/comment-issue-data.js',function(){loadIssueData('9fdc9739266d48d5f62e','c1cc33697d099a2197650ec9dadcb16bd4904655','LIRUILONGS','blog_comment',false);});
+            }
+            if(false){
+                loadMathJax();
+            }
+            loadMainJs(jQuery, window.moment, window.ClipboardJS, window.IcarusThemeSettings);
+            loadBackTop();
+            loadBusuanzi();
+            if(typeof loadBanner == 'function'){
+                loadBanner();
+            }
+        });</script></body></html>
