@@ -1,0 +1,349 @@
+<!doctype html>
+<html lang="zh"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"><meta><title>Ceph：关于Ceph 集群中池管理的一些笔记 - 山河已无恙</title><link rel="manifest" href="/manifest.json"><meta name="application-name" content="山河已无恙"><meta name="msapplication-TileImage" content="https://cdn.jsdelivr.net/gh/removeif/removeif-demo@latest/img/favicon.png"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="山河已无恙"><meta name="apple-mobile-web-app-status-bar-style" content="default"><meta description="对每个人而言，真正的职责只有一个：找到自我。然后在心中坚守其一生，全心全意，永不停息。所有其它的路都是不完整的，是人的逃避方式，是对大众理想的懦弱回归，是随波逐流，是对内心的恐惧 ——赫尔曼·黑塞《德米安》"><meta property="og:type" content="blog"><meta property="og:title" content="山河已无恙"><meta property="og:url" content="https://liruilong.blog.csdn.net/?t=1&amp;type=blog"><meta property="og:site_name" content="山河已无恙"><meta property="og:description" content="对每个人而言，真正的职责只有一个：找到自我。然后在心中坚守其一生，全心全意，永不停息。所有其它的路都是不完整的，是人的逃避方式，是对大众理想的懦弱回归，是随波逐流，是对内心的恐惧 ——赫尔曼·黑塞《德米安》"><meta property="og:locale" content="zh_CN"><meta property="og:image" content="https://liruilong.blog.csdn.net/img/头像.jpg"><meta property="article:published_time" content="2023-05-11T05:36:58.000Z"><meta property="article:modified_time" content="2023-06-27T15:44:58.543Z"><meta property="article:author" content="LIRUILONGS"><meta property="article:tag" content="Ceph"><meta property="twitter:card" content="summary"><meta property="twitter:image" content="/img/头像.jpg"><script type="application/ld+json">{"@context":"https://schema.org","@type":"BlogPosting","mainEntityOfPage":{"@type":"WebPage","@id":"https://liruilongs.github.io/2023/05/11/rhca/CL260/Ceph%EF%BC%9A%E5%85%B3%E4%BA%8ECeph-%E9%9B%86%E7%BE%A4%E4%B8%AD%E6%B1%A0%E7%AE%A1%E7%90%86%E7%9A%84%E4%B8%80%E4%BA%9B%E7%AC%94%E8%AE%B0/"},"headline":"山河已无恙","image":["https://img-blog.csdnimg.cn/6ed51d29c80f42389f4790aef564697b.png"],"datePublished":"2023-05-11T05:36:58.000Z","dateModified":"2023-06-27T15:44:58.543Z","author":{"@type":"Person","name":"山河已无恙"},"description":"对每个人而言，真正的职责只有一个：找到自我。然后在心中坚守其一生，全心全意，永不停息。所有其它的路都是不完整的，是人的逃避方式，是对大众理想的懦弱回归，是随波逐流，是对内心的恐惧 ——赫尔曼·黑塞《德米安》"}</script><link rel="canonical" href="https://liruilongs.github.io/2023/05/11/rhca/CL260/Ceph%EF%BC%9A%E5%85%B3%E4%BA%8ECeph-%E9%9B%86%E7%BE%A4%E4%B8%AD%E6%B1%A0%E7%AE%A1%E7%90%86%E7%9A%84%E4%B8%80%E4%BA%9B%E7%AC%94%E8%AE%B0/"><link rel="alternate" href="/path/to/atom.xml" title="山河已无恙" type="application/atom+xml"><link rel="icon" href="https://cdn.jsdelivr.net/gh/removeif/removeif-demo@latest/img/favicon.png"><meta name="referrer" content="no-referrer-when-downgrade"><link rel="stylesheet" href="https://cdnjs.loli.net/ajax/libs/font-awesome/5.12.0/css/all.min.css"><link rel="stylesheet" href="https://cdnjs.loli.net/ajax/libs/highlight.js/9.12.0/styles/dracula.min.css"><link rel="stylesheet" href="https://fonts.loli.net/css2?family=Ubuntu:wght@400;600&amp;family=Source+Code+Pro"><link rel="stylesheet" href="/css/default.css"><link rel="stylesheet" href="https://cdnjs.loli.net/ajax/libs/font-awesome/5.12.0/css/all.min.css"><link rel="stylesheet" href="https://fonts.loli.net/css?family=Ubuntu:400,600|Source+Code+Pro|Monda:300,300italic,400,400italic,700,700italic|Roboto Slab:300,300italic,400,400italic,700,700italic|Microsoft YaHei:300,300italic,400,400italic,700,700italic|PT Mono:300,300italic,400,400italic,700,700italic&amp;amp;subset=latin,latin-ext|Inconsolata|Itim|Lobster.css"><script src="https://cdnjs.loli.net/ajax/libs/jquery/3.3.1/jquery.min.js"></script><script src="/js/globalUtils.js"></script><script src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js" defer></script><style>body>.footer,body>.navbar,body>.section{opacity:0}</style><!--!--><script>var _hmt = _hmt || [];
+        (function() {
+            var hm = document.createElement("script");
+            hm.src = "//hm.baidu.com/hm.js?3f06f2b732a5b1034c989f74e28d0eea";
+            var s = document.getElementsByTagName("script")[0];
+            s.parentNode.insertBefore(hm, s);
+        })();</script><link rel="stylesheet" href="https://cdnjs.loli.net/ajax/libs/lightgallery/1.6.8/css/lightgallery.min.css"><link rel="stylesheet" href="https://cdnjs.loli.net/ajax/libs/justifiedGallery/3.7.0/css/justifiedGallery.min.css"><!--!--><!--!--><!--!--><!--!--><link rel="stylesheet" href="https://cdnjs.loli.net/ajax/libs/outdated-browser/1.1.5/outdatedbrowser.min.css"><script src="https://cdnjs.loli.net/ajax/libs/pace/1.0.2/pace.min.js"></script><meta name="generator" content="Hexo 5.4.2"></head><body class="is-3-column has-navbar-fixed-top"><nav class="navbar navbar-main is-fixed-top"><div class="container"><div class="navbar-brand justify-content-center"><a class="navbar-item navbar-logo" href="/"><img src="/img/logo.png" alt="山河已无恙" height="28"></a></div><div class="navbar-menu"><div class="navbar-start"><a class="navbar-item" href="/">首页</a><a class="navbar-item" href="/archives">归档</a><a class="navbar-item" href="/categories">分类</a><a class="navbar-item" href="/tags">标签</a><a class="navbar-item" href="/media">影音</a><a class="navbar-item" href="/album">相册</a><a class="navbar-item" href="/friend">友链</a><a class="navbar-item" href="/self-talking">生活小记</a><a class="navbar-item" href="/message">留言墙</a><a class="navbar-item" href="/about">关于</a></div><div class="navbar-end"><a class="navbar-item" target="_blank" rel="noopener" title="Gitee" href="https://gitee.com/liruilonger"><i class="fab fa-git-square fa-1x"></i></a><a class="navbar-item" target="_blank" rel="noopener" title="GitHub" href="https://github.com/LIRUILONGS"><i class="fab fa-github fa-1x"></i></a><a class="navbar-item is-hidden-tablet catalogue" title="目录" href="javascript:;"><i class="fas fa-list-ul fa-1x"></i></a><a class="navbar-item search" title="搜索" href="javascript:;"><i class="fas fa-search fa-1x"></i></a><a class="navbar-item" id="night-nav" title="Night Mode" href="javascript:;"><i class="fas fa-moon fa-1x" id="night-icon"></i></a></div></div></div></nav><script type="text/javascript" src="/js/theme-setting.js"></script><section class="section"><div class="container"><div class="columns"><div class="column order-2 column-main is-8-tablet is-8-desktop is-9-widescreen"><!--!--><div class="card"><article class="card-content article" role="article"><div class="article-meta size-small is-uppercase level is-mobile"><div class="level-left"><i class="far fa-calendar-plus"> </i>2023-05-11  <a class="commentCountImg" href="/2023/05/11/rhca/CL260/Ceph%EF%BC%9A%E5%85%B3%E4%BA%8ECeph-%E9%9B%86%E7%BE%A4%E4%B8%AD%E6%B1%A0%E7%AE%A1%E7%90%86%E7%9A%84%E4%B8%80%E4%BA%9B%E7%AC%94%E8%AE%B0/#comment-container"><span class="display-none-class">f8b5c407ee1a3f959dcd9d49f5b24de6</span><i class="far fa-comment-dots"></i> <span class="commentCount" id="f8b5c407ee1a3f959dcd9d49f5b24de6">99+</span>  </a><span class="level-item"><i class="far fa-clock"> </i>37 分钟  <i class="fas fa-pencil-alt"> </i>5.5 k</span><span class="level-item" id="busuanzi_container_page_pv"><span id="busuanzi_value_page_pv">0</span>次访问</span></div></div><h1 class="title is-3 is-size-4-mobile">Ceph：关于Ceph 集群中池管理的一些笔记</h1><div class="content"><p><strong><font color="009688"> 对每个人而言，真正的职责只有一个：找到自我。然后在心中坚守其一生，全心全意，永不停息。所有其它的路都是不完整的，是人的逃避方式，是对大众理想的懦弱回归，是随波逐流，是对内心的恐惧 ——赫尔曼·黑塞《德米安》</strong></font></p>
+<span id="more"></span>
+<h2 id="写在前面"><a href="#写在前面" class="headerlink" title="写在前面"></a>写在前面</h2><hr>
+<ul>
+<li>准备考试，整理 Ceph 相关笔记</li>
+<li>博文内容涉及, Ceph 中的 两种 pool 介绍，创建操作管理池</li>
+<li>理解不足小伙伴帮忙指正</li>
+</ul>
+<p><strong><font color="009688"> 对每个人而言，真正的职责只有一个：找到自我。然后在心中坚守其一生，全心全意，永不停息。所有其它的路都是不完整的，是人的逃避方式，是对大众理想的懦弱回归，是随波逐流，是对内心的恐惧 ——赫尔曼·黑塞《德米安》</strong></font></p>
+<hr>
+<h1 id="创建和配置池"><a href="#创建和配置池" class="headerlink" title="创建和配置池"></a>创建和配置池</h1><h2 id="了解池的含义"><a href="#了解池的含义" class="headerlink" title="了解池的含义"></a>了解池的含义</h2><p>池是存储对象的<code>逻辑分区</code>。相当于硬盘分区，Ceph客户端将 <code>对象写入池</code>的一般步骤：</p>
+<ul>
+<li><code>连接集群</code>： Ceph客户机需要<code>集群名称</code>(默认情况下是Ceph)和一个<code>监视器地址</code>来连接到集群，Ceph客户端通常从<code>Ceph配置文件</code>中获取这些信息，或者通过指定为命令行参数来获取</li>
+<li><code>检索池</code>：Ceph客户端使用<code>集群映射</code>检索到的<code>池列表</code>来确定存储<code>新对象</code>的位置</li>
+<li><code>映射PG</code>：Ceph客户端创建一个<code>输入/输出</code>上下文到一个特定的池，Ceph 集群使用 <code>CRUSH算法</code> 将这些<code>池</code> 映射到<code>放置组PG</code>，然后放置组映射到特定的 <code>osd</code></li>
+</ul>
+<p>池为集群提供了一层 <code>弹性</code>，因为池定义了可以在<code>不丢失数据</code>的情况下发生<code>故障</code>的<code>osd的数量</code></p>
+<h3 id="池类型"><a href="#池类型" class="headerlink" title="池类型"></a>池类型</h3><p>可用的池类型有<code>复制池和纠删代码池</code>，工作负载的用例和类型可以帮助确定要创建<strong>复制池</strong>还是<strong>纠删代码池</strong></p>
+<ul>
+<li><p><code>复制池</code> 是<code>默认</code>的池类型，通过将各个对象复制到多个 <code>OSD</code> 来发挥作用，它们需要更多的存储空间， 因为会创建多个对象副本，但读取操作不受副本丢失的影响，对于<code>经常访问并且需要快速读取</code>性能的数据，复制池通常都是更好的选择。</p>
+</li>
+<li><p><code>纠删代码池</code> 需要的存储空间和网络带宽较小，但因为奇偶校验计算，计算开销会更高一些,对于<code>不需要频繁访问且不需要低延迟</code>的数据，纠删代码池通常是更好的选择。</p>
+</li>
+</ul>
+<p>每一种池的恢复时间取决于特定的<code>部署和故障情景</code>,创建池后，不能<code>修改池的类型</code></p>
+<h3 id="池属性"><a href="#池属性" class="headerlink" title="池属性"></a>池属性</h3><p>在创建池时，您必须指定特定的属性：</p>
+<ul>
+<li><code>pool name</code>，必须在集群中唯一</li>
+<li><code>pool type</code>，决定了池用于确保<code>数据持久性的保护机制</code><ul>
+<li><code>replicated</code> 类型，将每个对象的<code>多个副本</code>分发到集群中</li>
+<li><code>erasure coded</code> 类型，将每个对象<code>分割为多个区块</code>，并将它们与额外的纠删代码区块一起分发，以使用自动纠错机制来保护对象</li>
+</ul>
+</li>
+<li>池中的 <code>placement groups (PG)</code> 数量，这将其对象存储到由 <code>CRUSH</code> 算法决定的一组 <code>OSD</code> 中</li>
+<li>可选的 <code>CRUSH rule set</code>，Ceph 使用它来标识要用于存储池对象的放置组</li>
+</ul>
+<p>更改 <code>osd_pool_default_pg_num</code> 和 <code>osd_pool_default_pgp_num</code> 配置设置，以设置池的默认 <code>PG</code> 数</p>
+<p><code>osd_pool_default_pg_num</code>: 该参数用于指定数据池的默认 PG 数量。PG（Placement Group）是 Ceph 中的一个概念，用于将对象分组存储在 OSD 上以实现负载均衡和故障恢复。每个数据池都由一组 PG 组成。指定适当的 PG 数量可以提高性能和可靠性。</p>
+<p><code>osd_pool_default_pgp_num</code>: 该参数用于指定对象池的默认 PGP（Placement Group Placement）数量，也可以理解为可用的PG 数量。PGP 是 PG 的子集，它们被映射到不同的 OSD 上以实现故障隔离。</p>
+<p><code>PGP 的数量应该等于或大于 OSD 的数量</code>，以确保数据可以在所有 OSD 上进行平衡。</p>
+<p>在 Ceph 中，PG 和 PGP 是两个相关但不同的概念：</p>
+<p><code>PG（Placement Group）</code>：PG 是一组对象的逻辑分组。在 Ceph 中，每个对象都分配到一个 PG 中，并由一组 OSD 负责存储和管理该 PG 中的所有对象。通过将对象分组成 PG，Ceph 可以实现负载均衡、故障恢复和数据可靠性等功能。</p>
+<p><code>PGP（Placement Group Placement）</code>：PGP 是 PG 的子集，它们被映射到不同的 OSD 上以实现故障隔离。具体来说，当 Ceph 创建新的 PG 时，它会使用 CRUSH 算法将 PG 映射到特定的 OSD。如果某个 OSD 失效，那么该 OSD 上所有 PG 都需要重新映射到其他 OSD。PGP 使用类似于 RAID 恢复的技术，可以将数据从故障 OSD 上复制到其他 OSD 上，以实现自我修复和容错性。</p>
+<p>总之，PG 和 PGP 都是在 Ceph 中用于实现负载均衡和故障恢复功能的概念，但它们有不同的作用。PG 表示一组对象的逻辑分组，而 PGP 则表示 PG 映射到不同 OSD 上以实现故障隔离和自我修复。</p>
+<h2 id="创建池"><a href="#创建池" class="headerlink" title="创建池"></a>创建池</h2><h3 id="创建复制池"><a href="#创建复制池" class="headerlink" title="创建复制池"></a>创建复制池</h3><p><code>Ceph</code> 通过为每个对象创建<code>多个副本</code>来保护<code>复制池</code>中的数据</p>
+<p>Ceph 使用 CRUSH 故障域算法来确定要将数据存储在哪些 OSD 上。CRUSH 可以根据故障域（例如主机、机柜、机架等）将 OSD 分组，并根据一组规则将数据均匀地分布在它们之间，以实现负载均衡和故障恢复。使用 CRUSH 算法，Ceph 能够快速重新生成数据并进行自我修复。</p>
+<p>当客户端向 Ceph 写入数据时，主 OSD 确定要将数据写入的 OSD 副本数量，并计算应该将数据写入哪些辅助 OSD 中。一旦完成写操作，主 OSD 将确认写成功，并将结果发送给客户端。</p>
+<p>使用以下命令创建一个复制池</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[ceph: root@node /]<span class="comment"># ceph osd pool create pool-name pg-num pgp-num replicated crush-rule-name </span></span><br></pre></td></tr></table></figure>
+
+<p>其中：</p>
+<ul>
+<li><code>pool_name</code> 是新池的名称</li>
+<li><code>pg_num</code> 是为这个池配置的放置组 (PG) 总数</li>
+<li><code>pgp_num</code> 是这个池的有效放置组数量，将它设置为与 pg_num 相等</li>
+<li><code>replicated</code> 指定这是复制池，如果命令中未包含此参数，这是默认值</li>
+<li><code>crush-rule-name</code> 是想要⽤于这个池的 CRUSH 规则集的名称，<code>osd_pool_default_crush_replicated_ruleset</code> 配置参数设置其默认值</li>
+</ul>
+<p>在初始配置池之后，可以调整池中放置组的数量，如果 pg_num 和 pgp_num 被设置为相同的数字，那么以后任何对pg_num 的调整都会自动进行调整 pgp_num 的值。</p>
+<p>如果需要，对 pgp_num 的调整会触发跨 osd 的 pg 移动，以实现更改，使用以下命令在池中定义新的pg数量</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[ceph: root@node /]<span class="comment"># ceph osd pool set my_pool pg_num 32</span></span><br></pre></td></tr></table></figure>
+
+<p>使用 <code>ceph osd pool create</code> 命令创建池时，不指定副本个数(size)，<code>osd_pool _default size</code> 配置参数定义了副本的数量，默认值为3</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">[ceph: root@node /]<span class="comment"># ceph config get mon osd_pool_default_size </span></span><br><span class="line">3 </span><br></pre></td></tr></table></figure>
+
+<p>使用 <code>ceph osd pool set pooI-name size number-of-replica</code> 命令修改池大小，或者，更新<code>osd_pool_default_size</code> 配置设置的默认设置</p>
+<p><code>osd_pool_default_min_size</code>参数设置一个对象的拷贝数，必须可以接受I&#x2F;O的请求，缺省值为2</p>
+<h3 id="配置创建Erasure编码池"><a href="#配置创建Erasure编码池" class="headerlink" title="配置创建Erasure编码池"></a>配置创建Erasure编码池</h3><p><code>Erasure</code> 编码池使用<code>擦除编码</code>代替复制来保护对象数据</p>
+<p>存储在 Erasure 编码池中的对象被<code>划分为多个数据块</code>，这些数据块存储在单独的osd中，编码块的数量是根据数据块计算出来的，并存储在不同的osd中，当<code>OSD出现故障</code>时，编码块用于重建对象的数据，主OSD接收到写操作后，将写载荷编码成<code>K+M</code>块，通过<code>Erasure编码池</code>发送给<code>备OSD</code></p>
+<p>Erasure 编码池使用这种方法来保护它们的对象，并且与 <code>复制池</code>不同，它不依赖于存储<code>每个对象的多个副本</code></p>
+<p>总结Erasure编码池的工作原理:</p>
+<ol>
+<li>每个对象的数据被划分为 <code>k</code>个数据块</li>
+<li>计算<code>M</code>个编码块</li>
+<li>编码块大小与数据块大小相同</li>
+<li>该对象总共存储在 <code>k + m</code> 个osd上</li>
+</ol>
+<p><img src="https://img-blog.csdnimg.cn/6ed51d29c80f42389f4790aef564697b.png" alt="在这里插入图片描述"></p>
+<blockquote>
+<p>Erasure编码比复制更有效地利用存储容量，复制池维护一个对象的n个副本，而纠删编码只维护<code>k + m</code>块，例如，<code>3</code>副本的复制池使用<code>3</code>倍的存储空间，k&#x3D;4和m&#x3D;2的Erasure编码池只使用1.5倍的存储空间</p>
+</blockquote>
+<p>Red Hat 支持以下<code>k+m</code>值，从而产生相应的可用到原始比率:</p>
+<ul>
+<li><code>4 + 2</code>(1:1.5比率)</li>
+<li><code>8 + 3</code>(1:1.375比率)</li>
+<li><code>8 + 4</code>(1:1.5比率)</li>
+</ul>
+<p>erasure code 开销的计算公式为 <code>nOSD * k / (k+m) * OSD 大小</code>，例如，</p>
+<p>如果您有64个4TB的osd(总共256 TB)， k&#x3D;8, m&#x3D;4，那么公式是 <code>64 * 8 /(8+4)* 4 = 170.67</code>，然后将原始存储容量除以开销，得到这个比率。256TB &#x2F;170.67 TB &#x3D; 1.5</p>
+<p>与复制池相比，Erasure编码池需要<code>更少的存储空间</code>才能获得类似级别的数据保护，从而降低<code>存储集群的成本</code>和规模。但是，计算编码块会增加Erasure编码池的<code>CPU处理和内存</code>开销，从而降低整体性能</p>
+<p>使用以下命令创建Erasure编码池</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">[ceph: root@node /]<span class="comment"># ceph \</span></span><br><span class="line"> osd pool create pool-name \</span><br><span class="line"> pg-num pgp-num \</span><br><span class="line"> erasure erasure-code-profile crush-rule-name </span><br></pre></td></tr></table></figure>
+
+<p>其中：</p>
+<ul>
+<li><code>pool-name</code> 是新池的名称</li>
+<li><code>pg-num</code> 是这个池的放置组 (PG) 总数</li>
+<li><code>pgp-num</code> 是这个池的有效放置组数量，通常而言，这应当与 PG 总数相等</li>
+<li><code>erasure</code> 指定这是纠删代码池</li>
+<li><code>erasure-code-profile</code> 要使⽤的配置文件的名称，可以使用 <code>ceph osd erasure-code-profile set</code> 命令创建新的配置⽂件，配置文件定义 k 和 m 值，以及要使用的纠删代码池插件。默认情况下，Ceph 使用default 配置文件</li>
+<li><code>crush-rule-name</code> 是要用于这个池的 CRUSH 规则集的名称。如果不设置，Ceph 将使用纠删代码池配置文件中定义的规则集</li>
+</ul>
+<p>可以在池上配置放置组自动伸缩，自动缩放允许集群计算放置组的数量，并自动选择适当的pg_num值，自动缩放在 Ceph O版中是<code>默认启用</code>的</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">[root@clienta ~]<span class="comment"># ceph osd pool get replpool1 pg_autoscale_mode</span></span><br><span class="line">pg_autoscale_mode: on</span><br></pre></td></tr></table></figure>
+<p>集群中的每个池都有一个<code>pg_autoscale_mode</code>选项，其值为on、off或warn</p>
+<ul>
+<li><code>on</code>:启用自动调整池的 <code>PG</code> 计数</li>
+<li><code>off</code>:禁用池的PG自动伸缩</li>
+<li><code>warn</code>:当PG计数需要调整时，引发健康警报并将集群健康状态更改为 <code>HEALTH_WARN</code></li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">[root@clienta ~]<span class="comment"># ceph config get mon osd_pool_default_pg_autoscale_mode</span></span><br><span class="line">on</span><br><span class="line">[root@clienta ~]<span class="comment">#</span></span><br></pre></td></tr></table></figure>
+
+<p>在 <code>Ceph MGR</code> 节点上启用 <code>pg_autoscaler</code> 模块，并将池的自动缩放模式设置为 <code>on</code> :</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">[ceph: root@node /]<span class="comment"># ceph mgr module enable pg_autoscaler </span></span><br><span class="line">module <span class="string">&#x27;pg_autoscaler&#x27;</span> is already enabled (always-on) </span><br><span class="line">[ceph: root@node /]<span class="comment"># ceph \</span></span><br><span class="line"> osd pool <span class="built_in">set</span> pool-name pg_autoscale_mode on </span><br><span class="line"><span class="built_in">set</span> pool 7 pg_autoscale_mode to on</span><br></pre></td></tr></table></figure>
+
+<p><code>纠删代码池不能使用对象映射特性</code>，对象映射是一个对象索引，跟踪rbd对象块的分配位置，拥有池的对象映射可以提高调整大小、导出、扁平化和其他操作的性能。</p>
+<h4 id="Erasure-Code配置文件"><a href="#Erasure-Code配置文件" class="headerlink" title="Erasure Code配置文件"></a>Erasure Code配置文件</h4><p>Erasure Code 配置文件配置你的 <code>Erasure Code</code>池用来存储对象的数据块和编码块的数量，以及使用哪些 Erasure Code 插件和算法</p>
+<p>创建配置文件来定义不同的纠删编码参数集，Ceph在安装过程中自动创建默认概要文件，这个配置文件被配置为将对象分为两个数据块和一个编码块</p>
+<p>使用以下命令创建一个新的概要文件</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">[ceph: root@node /]<span class="comment"># ceph \</span></span><br><span class="line"> osd erasure-code-profile <span class="built_in">set</span> profile-name arguments</span><br></pre></td></tr></table></figure>
+
+<p>以下是可用的参数:</p>
+<ul>
+<li><strong>k</strong>:跨osd分割的数据块的数量，缺省值为2</li>
+<li><strong>m</strong>:数据不可用前可能发生故障的osd数量，缺省值为1</li>
+<li><strong>directory</strong>:这个可选参数是插件库的位置，默认值为&#x2F;usr&#x2F;lib64&#x2F;ceph&#x2F;erasure-code</li>
+<li><strong>plugin</strong>:此可选参数定义要使用的纠删编码算法</li>
+<li><strong>crush-failure-domain</strong>:这个可选参数定义了CRUSH故障域，它控制块的放置，默认情况下，它被设置为<code>host</code>，这确保一个对象的块被放置在不同主机的osd上，如果设置为<code>osd</code>，那么一个对象的chunk可以放置在同一主机上的osd上，将故障域设置为osd，会导致主机上所有的osd故障，弹性较差，主机失败，可以定义并使用故障域，以确保块放置在不同数据中心机架或其他指定的主机上的osd上</li>
+<li><strong>crush-device-class</strong>: 此可选参数仅为池选择由该类设备支持的osd，典型的类可能包括hdd、ssd或nvme</li>
+<li><strong>crush-root</strong>:该可选参数设置CRUSH规则集的根节点</li>
+<li><strong>key&#x3D;value</strong>:插件可能具有该插件特有的键值参数</li>
+<li><strong>technique</strong>:每个插件提供一组不同的技术，用于实现不同的算法</li>
+</ul>
+<p>不能修改已存在存储池的 erasure code 配置文件</p>
+<ul>
+<li>使用<code>ceph osd erasure-code-profile ls</code> 命令列出已存在的配置文件</li>
+<li>使用<code>ceph osd erasure-code-profile get</code>命令查看已创建配置文件的详细信息</li>
+<li>使用<code>ceph osd erasure-code-profile rm</code>删除已存在的配置文件</li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">[root@serverc ~]<span class="comment"># ceph osd erasure-code-profile ls</span></span><br><span class="line">default</span><br><span class="line">[root@serverc ~]<span class="comment"># ceph osd erasure-code-profile get  default</span></span><br><span class="line">k=2</span><br><span class="line">m=2</span><br><span class="line">plugin=jerasure</span><br><span class="line">technique=reed_sol_van</span><br></pre></td></tr></table></figure>
+
+<h2 id="管理和操作池"><a href="#管理和操作池" class="headerlink" title="管理和操作池"></a>管理和操作池</h2><h3 id="查看、修改已创建的存储池"><a href="#查看、修改已创建的存储池" class="headerlink" title="查看、修改已创建的存储池"></a>查看、修改已创建的存储池</h3><p>可以查看、修改已创建的存储池，并修改存储池的配置信息</p>
+<ul>
+<li><code>ceph osd pool rename</code>命令重命名池，这不会影响存储在池中的数据，如果重命名池，并且为经过身份验证的用户提供了每个池的功能，则必须使用新的池名称更新用户的功能</li>
+<li><code>ceph osd pool delete</code>命令删除 osd 池</li>
+<li><code>ceph osd pool set pool_name nodelete true</code>: 命令可以防止指定池被删除，使用实例将nodedelete设置为false以允许删除池</li>
+<li><code>ceph osd pool set</code>和<code>ceph osd pool get</code> :命令查看和修改池配置</li>
+<li><code>ceph osd lspoolls</code>和<code>ceph osd pool ls detail</code> :命令列出池和池配置设置</li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">[root@serverc ~]<span class="comment"># ceph osd pool ls detail</span></span><br><span class="line">pool 1 <span class="string">&#x27;device_health_metrics&#x27;</span> replicated size 3 min_size 2 crush_rule 0 object_hash rjenkins pg_num 1 pgp_num 1 autoscale_mode on last_change 89 flags hashpspool stripe_width 0 pg_num_min 1 application mgr_devicehealth</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><code>pool 1</code>: 池 ID 号。</li>
+<li><code>&#39;device_health_metrics&#39;</code>: 池名称。</li>
+<li><code>replicated size 3 min_size 2</code>: 池类型和副本数相关配置，此池为 replicated 类型，副本数为 3，最小副本数为 2。</li>
+<li><code>crush_rule 0</code>: 使用的 CRUSH 规则 ID 号。</li>
+<li><code>object_hash rjenkins</code>: 对象哈希算法。</li>
+<li><code>pg_num 1 pgp_num 1</code>: PG 数量和 PGP 数量。</li>
+<li><code>autoscale_mode on</code>: 自动扩缩容模式开启。</li>
+<li><code>last_change 89</code>: 上次修改池的时间戳。</li>
+<li><code>flags hashpspool stripe_width 0 pg_num_min 1</code>: 池其他标志和属性。</li>
+<li><code>application mgr_devicehealth</code>: 应用程序类型为 mgr_devicehealth。</li>
+</ul>
+<p><code>ceph df</code>和<code>ceph osd pool stats</code> :命令列出池的使用情况和性能统计信息</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">[root@serverc ~]<span class="comment"># ceph df</span></span><br><span class="line">--- RAW STORAGE ---</span><br><span class="line">CLASS    SIZE   AVAIL    USED  RAW USED  %RAW USED</span><br><span class="line">hdd    90 GiB  90 GiB  60 MiB    60 MiB       0.07</span><br><span class="line">TOTAL  90 GiB  90 GiB  60 MiB    60 MiB       0.07</span><br><span class="line"></span><br><span class="line">--- POOLS ---</span><br><span class="line">POOL                   ID  PGS  STORED  OBJECTS  USED  %USED  MAX AVAIL</span><br><span class="line">device_health_metrics   1    1     0 B        0   0 B      0     28 GiB</span><br><span class="line">[root@serverc ~]<span class="comment">#</span></span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><code>CLASS</code>: 存储池的类型或存储介质。</li>
+<li><code>SIZE</code>: 存储池或设备的总容量。</li>
+<li><code>AVAIL</code>: 存储池或设备的可用容量。</li>
+<li><code>USED</code>: 存储池或设备已使用的容量。</li>
+<li><code>RAW USED 和 %RAW USED</code>: 原始存储设备上由 Ceph 使用的存储空间，以及其占用原始存储设备容量的百分比</li>
+</ul>
+<h3 id="启用池中的Ceph应用"><a href="#启用池中的Ceph应用" class="headerlink" title="启用池中的Ceph应用"></a>启用池中的Ceph应用</h3><p><code>ceph osd pool application enable</code> 命令启用池中的Ceph应用，应用类型为:</p>
+<ul>
+<li><code>Ceph File System</code>的 <code>cepfs</code></li>
+<li><code>Ceph Block Device</code>的<code>rbd</code></li>
+<li><code>RADOS Gateway</code>的<code>rgw</code></li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">[root@serverc ~]<span class="comment"># ceph osd pool  application  enable</span></span><br><span class="line"></span><br><span class="line"><span class="comment">#enable use of an application &lt;app&gt; [cephfs,rbd,rgw] on pool &lt;poolname&gt;</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="设置池配额"><a href="#设置池配额" class="headerlink" title="设置池配额"></a>设置池配额</h3><p><code>ceph osd pool set-quota</code> 命令设置池配额，限制池中最大字节数或最大对象数</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">[root@serverc ~]<span class="comment"># ceph osd pool set-quota</span></span><br><span class="line">Invalid <span class="built_in">command</span>: missing required parameter pool(&lt;poolname&gt;)</span><br><span class="line">osd pool set-quota &lt;pool&gt; max_objects|max_bytes &lt;val&gt; :  <span class="built_in">set</span> object or byte <span class="built_in">limit</span> on pool</span><br><span class="line">Error EINVAL: invalid <span class="built_in">command</span></span><br></pre></td></tr></table></figure>
+
+<p>当存储池达到设置的配额时，将阻止操作，可以通过将配额值设置为0来删除配额</p>
+<p>配置这些设置值的示例，以启用对池<code>重新配置</code>的保护:</p>
+<p><strong>osd_ pool _default flag_nodelete</strong></p>
+<p>设置池上的nodedelete标志的默认值，设置该值为true，以<code>防止删除池</code></p>
+<p><strong>osd_pool_default_flag_nopgchange</strong></p>
+<p>设置池上的nopgchange标志的默认值，设置为true可以<code>防止pg_ num和pgp_num的变化</code></p>
+<p><strong>osd_pool_default_flag_nosizechange</strong></p>
+<p>设置池的nosizechange标志的默认值。设置该值为true，以<code>防止池的大小变化</code></p>
+<h2 id="池名称空间"><a href="#池名称空间" class="headerlink" title="池名称空间"></a>池名称空间</h2><p><code>命名空间</code>是池中对象的<code>逻辑组</code>，可以限制对池的访问，以便用户只能在特定的名称空间中存储或检索对象，它们允许对池进行逻辑分区，并将应用程序限制到池中的特定名称空间。</p>
+<p>可以为每个应用程序专用一个完整的池，但是<code>拥有更多的池意味着每个OSD拥有更多的pg</code>，而pg在计算上是非常昂贵的，随着负载的增加，这可能会降低<code>OSD</code>的性能，使用名称空间，可以保持<code>池的数量相同</code>，而不必为每个应用程序专用整个池</p>
+<p>要在名称空间中存储对象，客户机应用程序必须<code>提供池和名称空间名称</code>。默认情况下，每个池包含一个名称为空的名称空间，称为<code>默认名称空间</code>。</p>
+<p>使用<code>rados</code>命令从池中<code>存储和检索</code>对象。使用<code>-n name</code>和<code>--namespace=name</code>选项指定要使用的池和命名空间</p>
+<p>下面以将<code>/etc/services</code>文件作为<code>srv</code>对象存储在系统命名空间下的<code>mytestpool</code>池中为例</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">[ceph: root@node /]<span class="comment"># rados \</span></span><br><span class="line"> -p mytestpool -N system   put srv /etc/services </span><br><span class="line">[ceph: root@node /]<span class="comment"># rados \</span></span><br><span class="line"> -p mytestpool -N system   ls</span><br></pre></td></tr></table></figure>
+
+<p>使用<code>--all</code>选项列出池中所有名称空间中的所有对象，要获得JSON格式的输出，请添加<code>--format=j son-pretty</code>选项</p>
+<p>下面的例子列出了mytestpool池中的对象。mytest对象有一个空的名称空间。其他对象属于system或flowers名称空间</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">[ceph: root@node /]<span class="comment"># rados \</span></span><br><span class="line"> -p mytestpool --all ls </span><br><span class="line">[ceph: root@node /]<span class="comment"># rados \</span></span><br><span class="line"> -p mytestpool --all ls --format=json-pretty </span><br><span class="line">...</span><br></pre></td></tr></table></figure>
+
+<h1 id="Demo"><a href="#Demo" class="headerlink" title="Demo"></a>Demo</h1><p>创建池，查看池信息</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 创建一个名为 replpool1 的副本池，PG,pgp 数量为 64</span></span><br><span class="line">ceph osd pool create replpool1 64 64 </span><br><span class="line"></span><br><span class="line"><span class="comment"># 获取 replpool1 的 pg_autoscale_mode 设置</span></span><br><span class="line">ceph osd pool get replpool1 pg_autoscale_mode </span><br><span class="line"><span class="comment"># 获取全局默认的 pg_autoscale_mode 设置</span></span><br><span class="line">ceph config get mon osd_pool_default_pg_autoscale_mode</span><br><span class="line"></span><br><span class="line"><span class="comment"># 列出所有池的信息</span></span><br><span class="line">ceph osd lspools </span><br><span class="line"><span class="comment"># 查看池状态、PG 和 OSD 数量等信息</span></span><br><span class="line">ceph osd pool autoscale-status </span><br></pre></td></tr></table></figure>
+
+<p>配置池</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 将 replpool1 的 size 设置为 4，表示使用 4 个 OSD 来存储每个对象</span></span><br><span class="line">ceph osd pool <span class="built_in">set</span> replpool1 size 4 </span><br><span class="line"><span class="comment"># 将 replpool1 的 min_size 设置为 2，表示最少需要 2 个 OSD 才能进行数据读取操作</span></span><br><span class="line">ceph osd pool <span class="built_in">set</span> replpool1 min_size 2 </span><br><span class="line"><span class="comment"># 启用 rbd 应用程序在 replpool1 上进行操作</span></span><br><span class="line">ceph osd pool application <span class="built_in">enable</span> replpool1 rbd </span><br><span class="line"><span class="comment"># 查询 replpool1 相关信息</span></span><br><span class="line">ceph osd pool ls detail | grep replpool1 </span><br><span class="line">ceph osd pool get replpool1 size </span><br></pre></td></tr></table></figure>
+<p>重命名删除池</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 将 replpool1 重命名为 newpool</span></span><br><span class="line">ceph osd pool rename replpool1 newpool </span><br><span class="line"><span class="comment"># 删除 newpool 池及其数据</span></span><br><span class="line">ceph osd pool delete newpool newpool --yes-i-really-really-mean-it || <span class="built_in">echo</span> ERROR </span><br><span class="line"><span class="comment"># 配置 mon 允许删除池</span></span><br><span class="line">ceph tell mon.* config <span class="built_in">set</span> mon_allow_pool_delete <span class="literal">true</span> </span><br><span class="line"><span class="comment"># 确认删除 newpool 池及其数据</span></span><br><span class="line">ceph osd pool delete newpool newpool --yes-i-really-really-mean-it </span><br></pre></td></tr></table></figure>
+
+<p>创建纠删码池</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 列出所有可用的 erasure-code-profile</span></span><br><span class="line">ceph osd erasure-code-profile ls </span><br><span class="line"><span class="comment"># 查看默认的 erasure-code-profile 配置</span></span><br><span class="line">ceph osd erasure-code-profile get default </span><br><span class="line"><span class="comment"># 创建一个名为 ecpool1 的 EC 池，PG 数量为 64，使用 k=4, m=2 的编码策略</span></span><br><span class="line">ceph osd pool create ecpool1 64 64 erasure ecprofile-k4-m2 </span><br><span class="line"><span class="comment"># 启用 rgw 应用程序在 ecpool1 上进行操作</span></span><br><span class="line">ceph osd pool application <span class="built_in">enable</span> ecpool1 rgw </span><br><span class="line"><span class="comment"># 查询 ecpool1 相关信息</span></span><br><span class="line">ceph osd pool ls detail | grep ecpool1 </span><br><span class="line"><span class="comment"># 允许覆盖已有对象的编码策略</span></span><br><span class="line">ceph osd pool <span class="built_in">set</span> ecpool1 allow_ec_overwrites <span class="literal">true</span> </span><br><span class="line"><span class="comment"># 删除 ecpool1 池及其数据</span></span><br><span class="line">ceph osd pool delete ecpool1 ecpool1 --yes-i-really-really-mean-it </span><br></pre></td></tr></table></figure>
+
+<h2 id="博文部分内容参考"><a href="#博文部分内容参考" class="headerlink" title="博文部分内容参考"></a>博文部分内容参考</h2><p>© 文中涉及参考链接内容版权归原作者所有，如有侵权请告知，这是一个开源项目，如果你认可它，不要吝啬星星哦 :)</p>
+<hr>
+<p><a target="_blank" rel="noopener" href="https://docs.ceph.com/en/pacific/architecture/">https://docs.ceph.com/en/pacific/architecture/</a></p>
+<p><a target="_blank" rel="noopener" href="https://github.com/ceph/ceph">https://github.com/ceph/ceph</a></p>
+<p><a target="_blank" rel="noopener" href="https://docs.ceph.com/">https://docs.ceph.com</a></p>
+<p>RHCA CL260 授课笔记</p>
+<hr>
+<p>© 2018-2023 <a href="mailto:&#108;&#105;&#x72;&#117;&#x69;&#108;&#x6f;&#110;&#x67;&#x65;&#x72;&#64;&#x67;&#x6d;&#x61;&#105;&#108;&#46;&#99;&#111;&#x6d;">&#108;&#105;&#x72;&#117;&#x69;&#108;&#x6f;&#110;&#x67;&#x65;&#x72;&#64;&#x67;&#x6d;&#x61;&#105;&#108;&#46;&#99;&#111;&#x6d;</a>, All rights reserved. 保持署名-非商用-相同方式共享(CC BY-NC-SA 4.0)</p>
+</div><div class="article-licensing box"><div class="licensing-title"><p>Ceph：关于Ceph 集群中池管理的一些笔记</p><p><a href="https://liruilongs.github.io/2023/05/11/rhca/CL260/Ceph：关于Ceph-集群中池管理的一些笔记/">https://liruilongs.github.io/2023/05/11/rhca/CL260/Ceph：关于Ceph-集群中池管理的一些笔记/</a></p></div><div class="licensing-meta level is-mobile"><div class="level-left"><div class="level-item is-narrow"><div><h6>作者</h6><a href="https://liruilongs.github.io"><p>山河已无恙</p></a></div></div><div class="level-item is-narrow"><div><h6>发布于</h6><p>2023-05-11</p></div></div><div class="level-item is-narrow"><div><h6>更新于</h6><p>2023-06-27</p></div></div><div class="level-item is-narrow"><div><h6>许可协议</h6><p><a class="icon" rel="noopener" target="_blank" title="Creative Commons" href="https://creativecommons.org/"><i class="fab fa-creative-commons"></i></a><a class="icon" rel="noopener" target="_blank" title="Attribution" href="https://creativecommons.org/licenses/by/4.0/"><i class="fab fa-creative-commons-by"></i></a><a class="icon" rel="noopener" target="_blank" title="Noncommercial" href="https://creativecommons.org/licenses/by-nc/4.0/"><i class="fab fa-creative-commons-nc"></i></a></p></div></div></div></div></div><div class="recommend-area"><div class="recommend-post"><span class="is-size-6 has-text-grey has-mr-7"># 相关文章</span><br><span>  1.<a class="is-size-6" href="/2023/06/25/%E5%BE%85%E5%8F%91%E5%B8%83/Ceph%EF%BC%9A%E5%85%B3%E4%BA%8ECeph%20%E9%9B%86%E7%BE%A4%E4%B8%AD%E6%95%B0%E6%8D%AE%E5%88%86%E5%B8%83%E5%92%8C%E5%AE%B9%E7%81%BE%E6%95%B4%E7%90%86%E7%9A%84%E4%B8%80%E4%BA%9B%E7%AC%94%E8%AE%B0/" target="_blank">Ceph：关于Ceph 集群中数据分布和容灾整理的一些笔记</a><br></span><span>  2.<a class="is-size-6" href="/2023/05/29/%E5%BE%85%E5%8F%91%E5%B8%83/Ceph%EF%BC%9A%E5%85%B3%E4%BA%8E-Ceph-%E4%B8%ADBlueStore-%E6%9E%B6%E6%9E%84%E4%BB%A5%E5%8F%8AOSD%E5%88%9B%E5%BB%BA%E7%9A%84%E4%B8%80%E4%BA%9B%E7%AC%94%E8%AE%B0/" target="_blank">Ceph：关于 Ceph 中 BlueStore 架构以及 OSD 创建的一些笔记</a><br></span><span>  3.<a class="is-size-6" href="/2023/05/20/rhca/CL260/Ceph%EF%BC%9A%E5%85%B3%E4%BA%8ECeph-%E9%9B%86%E7%BE%A4%E5%A6%82%E4%BD%95%E8%AE%BF%E9%97%AE%E7%9A%84%E4%B8%80%E4%BA%9B%E7%AC%94%E8%AE%B0/" target="_blank">Ceph：关于Ceph 集群如何访问的一些笔记</a><br></span><span>  4.<a class="is-size-6" href="/2023/04/30/rhca/CL260/Ceph%EF%BC%9A%E5%85%B3%E4%BA%8ECeph%20%E9%9B%86%E7%BE%A4%E7%AE%A1%E7%90%86%E5%B7%A5%E5%85%B7%E7%9A%84%E4%B8%80%E4%BA%9B%E7%AC%94%E8%AE%B0/" target="_blank">Ceph：关于Ceph 集群管理工具的一些笔记</a><br></span><span>  5.<a class="is-size-6" href="/2023/04/29/rhca/CL260/Ceph%EF%BC%9ACeph-%E6%98%AF%E4%BB%80%E4%B9%88%EF%BC%9F/" target="_blank">Ceph：Ceph 是什么？</a><br></span><span>  6.<a class="is-size-6" href="/2023/04/16/rhca/CL260/Ceph%EF%BC%9A%E5%85%B3%E4%BA%8ECeph%E7%94%A8%E6%88%B7%E8%AE%A4%E8%AF%81%E6%8E%88%E6%9D%83%E7%AE%A1%E7%90%86%E7%9A%84%E4%B8%80%E4%BA%9B%E7%AC%94%E8%AE%B0/" target="_blank">Ceph：关于 Ceph 用户认证授权管理的一些笔记</a><br></span><span>  7.<a class="is-size-6" href="/2023/04/13/rhca/CL260/Ceph%EF%BC%9A%E5%85%B3%E4%BA%8E%E9%85%8D%E7%BD%AE-Ceph-%E5%AD%98%E5%82%A8%E9%9B%86%E7%BE%A4%E7%9A%84%E4%B8%80%E4%BA%9B%E7%AC%94%E8%AE%B0/" target="_blank">Ceph：关于 Ceph 存储集群配置的一些笔记</a><br></span><span>  8.<a class="is-size-6" href="/2023/04/10/rhca/CL260/Ceph%EF%BC%9A%E5%85%B3%E4%BA%8E%E9%83%A8%E7%BD%B2-Ceph-%E5%AD%98%E5%82%A8%E9%9B%86%E7%BE%A4%E7%9A%84%E4%B8%80%E4%BA%9B%E7%AC%94%E8%AE%B0/" target="_blank">Ceph：关于部署 Ceph 存储集群的一些笔记</a><br></span></div><div class="recommend-post"><span class="is-size-6 has-text-grey has-mr-7"># 推荐文章</span><br><span>  1.<a class="is-size-6" href="/2021/08/27/K8s/%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/%E3%80%8AKubernetes%E6%9D%83%E5%A8%81%E6%8C%87%E5%8D%97-%E4%BB%8EDocker%E5%88%B0Kubernetes%E5%AE%9E%E8%B7%B5%E5%85%A8%E6%8E%A5%E8%A7%A6%E3%80%8B%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/" target="_blank">《Kubernetes权威指南:从Docker到Kubernetes实践全接触》读书笔记</a><br></span><span>  2.<a class="is-size-6" href="/2022/11/19/Git/%E5%85%B3%E4%BA%8E-Git-%E9%87%8D%E5%86%99%E5%8E%86%E5%8F%B2%E7%9A%84%E4%B8%80%E4%BA%9B%E7%AC%94%E8%AE%B0/" target="_blank">关于 Git 重写历史的一些笔记</a><br></span><span>  3.<a class="is-size-6" href="/2023/02/19/Git/%E5%85%B3%E4%BA%8EGit%E9%AB%98%E7%BA%A7%E5%90%88%E5%B9%B6%E7%9A%84%E4%B8%80%E4%BA%9B%E7%AC%94%E8%AE%B0%E6%95%B4%E7%90%86/" target="_blank">关于Git分支高级合并的一些笔记整理</a><br></span><span>  4.<a class="is-size-6" href="/2022/03/11/Go/GO%E8%AF%AD%E8%A8%80%E5%AE%9E%E6%88%98%E4%B9%8B%E5%87%BD%E6%95%B0%E4%B8%8E%E6%96%B9%E6%B3%95/" target="_blank">GO语言实战之函数与方法</a><br></span><span>  5.<a class="is-size-6" href="/2022/04/14/Go/GO%E8%AF%AD%E8%A8%80%E5%AE%9E%E6%88%98%E4%B9%8B%E7%B1%BB%E5%9E%8B%E7%9A%84%E6%9C%AC%E8%B4%A8/" target="_blank">Go语言实战之类型的本质</a><br></span><span>  6.<a class="is-size-6" href="/2022/08/02/Git/%E5%85%B3%E4%BA%8EGit%E5%88%86%E6%94%AF%E5%B7%A5%E4%BD%9C%E6%B5%81%E7%9A%84%E4%B8%80%E4%BA%9B%E7%AC%94%E8%AE%B0/" target="_blank">关于Git分支工作流的一些笔记</a><br></span></div></div><link rel="stylesheet" href="https://cdnjs.loli.net/ajax/libs/social-share.js/1.0.16/css/share.min.css"><div class="social-share"></div><script src="https://cdnjs.loli.net/ajax/libs/social-share.js/1.0.16/js/social-share.min.js"></script></article></div><div class="card"><div class="card-content"><h3 class="menu-label has-text-centered">喜欢这篇文章？打赏一下作者吧</h3><div class="buttons is-centered"><a class="button donate" data-type="alipay"><span class="icon is-small"><i class="fab fa-alipay"></i></span><span>支付宝</span><span class="qrcode"><img src="/img/alipay%EF%BF%A5.png" alt="支付宝"></span></a><a class="button donate" data-type="wechat"><span class="icon is-small"><i class="fab fa-weixin"></i></span><span>微信</span><span class="qrcode"><img src="/img/wechat%EF%BF%A5.png" alt="微信"></span></a></div></div></div><nav class="post-navigation mt-4 level is-mobile"><div class="level-start"><a class="article-nav-prev level level-item link-muted" href="/2023/05/14/anothe/%E4%BA%8C%E3%80%87%E4%BA%8C%E4%BA%8C%E5%B9%B4%E7%BB%88%E6%80%BB%E7%BB%93/"><i class="level-item fas fa-chevron-left"></i><span class="level-item">二〇二二年终总结</span></a></div><div class="level-end"><a class="article-nav-next level level-item link-muted" href="/2023/05/06/%E5%BE%85%E5%8F%91%E5%B8%83/K8s%EF%BC%9A%E9%80%9A%E8%BF%87%E4%B8%AD%E6%96%AD%E5%B9%B2%E6%89%B0%E9%A2%84%E7%AE%97-PDB-%E6%8F%90%E9%AB%98%E8%8A%82%E7%82%B9%E6%95%85%E9%9A%9C%E3%80%81%E7%BB%B4%E6%8A%A4%E6%9C%9F%E9%97%B4Pod%E9%A2%91%E7%B9%81%E8%B0%83%E5%BA%A6%E6%97%B6%E5%B7%A5%E4%BD%9C%E8%B4%9F%E8%BD%BD%E7%9A%84%E5%8F%AF%E7%94%A8%E6%80%A7/"><span class="level-item">K8s：通过 Pod 干扰预算(PDB)提高节点故障、维护期间 Pod 频繁调度时工作负载的可用性</span><i class="level-item fas fa-chevron-right"></i></a></div></nav><!--!--><div class="card"><div class="card-content"><div class="title is-5">评论</div><div id="comment-container"></div><link rel="stylesheet" href="https://cdnjs.loli.net/ajax/libs/gitalk/1.6.0/gitalk.css"><script> $.getScript('/js/gitalk.min.js', function () { 
+            var gitalk = new Gitalk({
+            language:'zh-CN',
+            id: 'f8b5c407ee1a3f959dcd9d49f5b24de6',
+            repo: 'blog_comment',
+            owner: 'LIRUILONGS',
+            clientID: '9fdc9739266d48d5f62e',
+            clientSecret: 'c1cc33697d099a2197650ec9dadcb16bd4904655',
+            admin: ["LIRUILONGS"],
+            createIssueManually: true,
+            distractionFreeMode: true,
+            perPage: 10,
+            pagerDirection: 'last',
+            proxy: 'https://cors-anywhere.azm.workers.dev/https://github.com/login/oauth/access_token',
+            
+            enableHotKey: true,
+            isLocked: false
+        })
+        gitalk.render('comment-container')});</script></div></div></div><div class="column column-left is-4-tablet is-4-desktop is-3-widescreen  order-1 is-sticky"><div class="card widget" id="toc" data-type="toc"><div class="card-content"><div class="menu"><h3 class="menu-label">目录</h3><ul class="menu-list"><ul class="menu-list"><li><a class="is-flex is-mobile" href="#写在前面"><span class="mr-2">1.1</span><span>写在前面</span></a></li></ul><li><a class="is-flex is-mobile" href="#创建和配置池"><span class="mr-2">2</span><span>创建和配置池</span></a><ul class="menu-list"><li><a class="is-flex is-mobile" href="#了解池的含义"><span class="mr-2">2.1</span><span>了解池的含义</span></a><ul class="menu-list"><li><a class="is-flex is-mobile" href="#池类型"><span class="mr-2">2.1.1</span><span>池类型</span></a></li><li><a class="is-flex is-mobile" href="#池属性"><span class="mr-2">2.1.2</span><span>池属性</span></a></li></ul></li><li><a class="is-flex is-mobile" href="#创建池"><span class="mr-2">2.2</span><span>创建池</span></a><ul class="menu-list"><li><a class="is-flex is-mobile" href="#创建复制池"><span class="mr-2">2.2.1</span><span>创建复制池</span></a></li><li><a class="is-flex is-mobile" href="#Erasure-Code配置文件"><span class="mr-2">2.2.2</span><span>Erasure Code配置文件</span></a></li></ul></li><li><a class="is-flex is-mobile" href="#管理和操作池"><span class="mr-2">2.3</span><span>管理和操作池</span></a><ul class="menu-list"><li><a class="is-flex is-mobile" href="#查看、修改已创建的存储池"><span class="mr-2">2.3.1</span><span>查看、修改已创建的存储池</span></a></li><li><a class="is-flex is-mobile" href="#启用池中的Ceph应用"><span class="mr-2">2.3.2</span><span>启用池中的Ceph应用</span></a></li><li><a class="is-flex is-mobile" href="#设置池配额"><span class="mr-2">2.3.3</span><span>设置池配额</span></a></li></ul></li><li><a class="is-flex is-mobile" href="#池名称空间"><span class="mr-2">2.4</span><span>池名称空间</span></a></li></ul></li><li><a class="is-flex is-mobile" href="#Demo"><span class="mr-2">3</span><span>Demo</span></a><ul class="menu-list"><li><a class="is-flex is-mobile" href="#博文部分内容参考"><span class="mr-2">3.1</span><span>博文部分内容参考</span></a></li></ul></li></ul></div></div><style>.menu-list > li > a.is-active + .menu-list { display: block; }.menu-list > li > a + .menu-list { display: none; }</style><script src="/js/toc.js" defer></script></div><div class="card widget" data-type="profile"><div class="card-content"><nav class=""><div class="level-item has-text-centered flex-shrink-1"><div><figure class="image is-128x128 mx-auto mb-2"><img class="avatar" src="/img/%E5%BE%AE%E4%BF%A1%E5%85%AC%E4%BC%97%E5%8F%B7.jpg" alt="山河已无恙"></figure><p class="title is-size-4 is-block" style="line-height:inherit;">山河已无恙</p><p class="is-size-6 is-block">爱自己，是终生浪漫的开始</p><p class="is-size-6 is-flex justify-content-center"><i class="fas fa-map-marker-alt mr-1"></i><span>中国·呼和浩特</span></p></div></div></nav><nav class="level is-mobile"><div class="level-item has-text-centered is-marginless"><div><p class="heading">文章</p><a href="/archives"><p class="title">275</p></a></div></div><div class="level-item has-text-centered is-marginless"><div><p class="heading">分类</p><a href="/categories"><p class="title">86</p></a></div></div><div class="level-item has-text-centered is-marginless"><div><p class="heading">标签</p><a href="/tags"><p class="title">137</p></a></div></div></nav><div class="level"><a class="level-item button is-primary is-rounded" href="https://liruilong.blog.csdn.net/?t=1&amp;type=blog" target="_blank" rel="noopener">关注我</a></div><div class="level is-mobile"><a class="level-item button is-transparent is-marginless" target="_blank" rel="noopener" title="Github" href="https://github.com/LIRUILONGS"><i class="fab fa-github"></i></a><a class="level-item button is-transparent is-marginless" target="_blank" rel="noopener" title="CSDN" href="https://liruilong.blog.csdn.net/"><i class="fa fa-code"></i></a><a class="level-item button is-transparent is-marginless" target="_blank" rel="noopener" title="Email" href="mailto:1224965096@qq.com"><i class="fa fa-envelope"></i></a></div></div></div><div class="card widget" data-type="links"><div class="card-content"><div class="menu"><h3 class="menu-label">链接</h3><ul class="menu-list"><li><a class="level is-mobile" href="https://liruilong.blog.csdn.net/?t=1&amp;type=blog" target="_blank" rel="noopener"><span class="level-left"><span class="level-item">CSDN</span></span><span class="level-right"><span class="level-item tag">liruilong.blog.csdn.net</span></span></a></li><li><a class="level is-mobile" href="https://www.cnblogs.com/liruilong/" target="_blank" rel="noopener"><span class="level-left"><span class="level-item">博客园</span></span><span class="level-right"><span class="level-item tag">www.cnblogs.com</span></span></a></li><li><a class="level is-mobile" href="https://github.com/LIRUILONGS" target="_blank" rel="noopener"><span class="level-left"><span class="level-item">Githup</span></span><span class="level-right"><span class="level-item tag">github.com</span></span></a></li><li><a class="level is-mobile" href="https://gitee.com/liruilonger" target="_blank" rel="noopener"><span class="level-left"><span class="level-item">码云</span></span><span class="level-right"><span class="level-item tag">gitee.com</span></span></a></li></ul></div></div></div><!--!--><div class="card widget"><div class="card-content"><h3 class="menu-label">最新文章</h3><article class="media"><div class="media-content"><p class="date"><time dateTime="2023-06-25T09:31:04.000Z">2023-06-25</time></p><p class="title"><a href="/2023/06/25/%E5%BE%85%E5%8F%91%E5%B8%83/Ceph%EF%BC%9A%E5%85%B3%E4%BA%8ECeph%20%E9%9B%86%E7%BE%A4%E4%B8%AD%E6%95%B0%E6%8D%AE%E5%88%86%E5%B8%83%E5%92%8C%E5%AE%B9%E7%81%BE%E6%95%B4%E7%90%86%E7%9A%84%E4%B8%80%E4%BA%9B%E7%AC%94%E8%AE%B0/">Ceph：关于Ceph 集群中数据分布和容灾整理的一些笔记</a></p><p class="categories"><a href="/categories/Ceph/">Ceph</a></p></div></article><article class="media"><div class="media-content"><p class="date"><time dateTime="2023-06-20T11:34:31.000Z">2023-06-20</time></p><p class="title"><a href="/2023/06/20/%E5%BE%85%E5%8F%91%E5%B8%83/K8s%EF%BC%9AK8s-20%E4%B8%AA%E5%B8%B8%E7%94%A8%E5%91%BD%E4%BB%A4%E6%B1%87%E6%80%BB/">K8s：K8s 20个常用命令汇总</a></p><p class="categories"><a href="/categories/Kubernetes/">Kubernetes</a></p></div></article><article class="media"><div class="media-content"><p class="date"><time dateTime="2023-06-18T18:22:57.000Z">2023-06-18</time></p><p class="title"><a href="/2023/06/18/%E5%BE%85%E5%8F%91%E5%B8%83/K8s%EF%BC%9AK8s%E6%95%85%E9%9A%9C%E6%8E%92%E9%99%A4%E6%96%B9%E6%B3%95%E8%AE%BA/">K8s：Kubernetes 故障排除方法论</a></p><p class="categories"><a href="/categories/Kubernetes/">Kubernetes</a></p></div></article><article class="media"><div class="media-content"><p class="date"><time dateTime="2023-06-15T13:57:37.000Z">2023-06-15</time></p><p class="title"><a href="/2023/06/15/%E5%BE%85%E5%8F%91%E5%B8%83/Nvidia%203060%20%E6%98%BE%E5%8D%A1%20CUDA%20%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA(Ubuntu22.04+Nvidia%20510+Cuda11.6+cudnn8.8)/">Nvidia 3060 显卡 CUDA 环境搭建(Ubuntu22.04+Nvidia 510+Cuda11.6+cudnn8.8)</a></p><p class="categories"><a href="/categories/%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/">深度学习</a></p></div></article><article class="media"><div class="media-content"><p class="date"><time dateTime="2023-06-12T17:07:12.000Z">2023-06-12</time></p><p class="title"><a href="/2023/06/12/%E5%BE%85%E5%8F%91%E5%B8%83/%E5%9F%BA%E4%BA%8EDAD-3DHeads-%E7%9A%84%E5%A7%BF%E6%80%81%E8%AF%84%E4%BC%B0%E5%A4%B4%E9%83%A83D%E5%AF%B9%E9%BD%90Demo/">基于DAD-3DHeads 的特征点标记、姿态评估、头部3D对齐Demo</a></p><p class="categories"><a href="/categories/DAD-3DHeads/">DAD-3DHeads</a></p></div></article></div></div><div class="card widget"><div class="card-content"><div class="menu"><h3 class="menu-label">分类</h3><ul class="menu-list"><li><a class="level is-mobile is-marginless" href="/categories/Ajax/"><span class="level-start"><span class="level-item">Ajax</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/Ansible/"><span class="level-start"><span class="level-item">Ansible</span></span><span class="level-end"><span class="level-item tag">23</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/AppCube/"><span class="level-start"><span class="level-item">AppCube</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/CI-CD/"><span class="level-start"><span class="level-item">CI/CD</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/CSS/"><span class="level-start"><span class="level-item">CSS</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/Ceph/"><span class="level-start"><span class="level-item">Ceph</span></span><span class="level-end"><span class="level-item tag">10</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/DAD-3DHeads/"><span class="level-start"><span class="level-item">DAD-3DHeads</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/DNS/"><span class="level-start"><span class="level-item">DNS</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/DeepFace/"><span class="level-start"><span class="level-item">DeepFace</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/DevOps/"><span class="level-start"><span class="level-item">DevOps</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li><a class="level is-mobile is-marginless" href="/categories/"><span class="level-start"><span class="level-item">查看全部&gt;&gt;</span></span></a></ul></div></div></div><div class="card widget"><div class="card-content"><div class="menu"><h3 class="menu-label">归档</h3><ul class="menu-list"><li><a class="level is-mobile is-marginless" href="/archives/2023/06/"><span class="level-start"><span class="level-item">六月 2023</span></span><span class="level-end"><span class="level-item tag">7</span></span></a></li><li><a class="level is-mobile is-marginless" href="/archives/2023/05/"><span class="level-start"><span class="level-item">五月 2023</span></span><span class="level-end"><span class="level-item tag">7</span></span></a></li><li><a class="level is-mobile is-marginless" href="/archives/2023/04/"><span class="level-start"><span class="level-item">四月 2023</span></span><span class="level-end"><span class="level-item tag">13</span></span></a></li><li><a class="level is-mobile is-marginless" href="/archives/2023/03/"><span class="level-start"><span class="level-item">三月 2023</span></span><span class="level-end"><span class="level-item tag">6</span></span></a></li><li><a class="level is-mobile is-marginless" href="/archives/2023/02/"><span class="level-start"><span class="level-item">二月 2023</span></span><span class="level-end"><span class="level-item tag">11</span></span></a></li><a class="level is-mobile is-marginless" href="/archives/"><span class="level-start"><span class="level-item">查看全部&gt;&gt;</span></span></a></ul></div></div></div><div class="card widget"><div class="card-content"><div class="menu"><h3 class="menu-label">标签</h3><div class="field is-grouped is-grouped-multiline"><div class="control"><a class="tags has-addons" href="/tags/Kubernetes/"><span class="tag">Kubernetes</span><span class="tag is-grey-lightest">85</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Linux/"><span class="tag">Linux</span><span class="tag is-grey-lightest">29</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Ansible/"><span class="tag">Ansible</span><span class="tag is-grey-lightest">25</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Python/"><span class="tag">Python</span><span class="tag is-grey-lightest">14</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Ceph/"><span class="tag">Ceph</span><span class="tag is-grey-lightest">10</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Docker/"><span class="tag">Docker</span><span class="tag is-grey-lightest">8</span></a></div><div class="control"><a class="tags has-addons" href="/tags/JAVA/"><span class="tag">JAVA</span><span class="tag is-grey-lightest">8</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Git/"><span class="tag">Git</span><span class="tag is-grey-lightest">7</span></a></div><div class="control"><a class="tags has-addons" href="/tags/OpenShift/"><span class="tag">OpenShift</span><span class="tag is-grey-lightest">6</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%E7%A8%8B%E5%BA%8F%E4%BA%BA%E7%94%9F/"><span class="tag">程序人生</span><span class="tag is-grey-lightest">6</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Go/"><span class="tag">Go</span><span class="tag is-grey-lightest">5</span></a></div><div class="control"><a class="tags has-addons" href="/tags/OKD/"><span class="tag">OKD</span><span class="tag is-grey-lightest">5</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%E5%AE%B9%E5%99%A8/"><span class="tag">容器</span><span class="tag is-grey-lightest">4</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%E7%BD%91%E7%BB%9C/"><span class="tag">网络</span><span class="tag is-grey-lightest">4</span></a></div><div class="control"><a class="tags has-addons" href="/tags/CKA/"><span class="tag">CKA</span><span class="tag is-grey-lightest">3</span></a></div><div class="control"><a class="tags has-addons" href="/tags/shell/"><span class="tag">shell</span><span class="tag is-grey-lightest">3</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%E4%BA%91%E5%8E%9F%E7%94%9F/"><span class="tag">云原生</span><span class="tag is-grey-lightest">3</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%E5%88%86%E5%B8%83%E5%BC%8F/"><span class="tag">分布式</span><span class="tag is-grey-lightest">3</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%E5%BE%AE%E6%9C%8D%E5%8A%A1/"><span class="tag">微服务</span><span class="tag is-grey-lightest">3</span></a></div><div class="control"><a class="tags has-addons" href="/tags/HCIP/"><span class="tag">HCIP</span><span class="tag is-grey-lightest">2</span></a></div></div><div class="field is-grouped is-grouped-multiline"><a class="tags has-addons" href="/tags/"><span class="tag">查看全部&gt;&gt;</span></a></div></div></div></div><div class="card widget" data-type="subscribe-email"><div class="card-content"><div class="menu"><h3 class="menu-label">订阅更新</h3><form action="https://feedburner.google.com/fb/a/mailverify" method="post" target="popupwindow" onsubmit="window.open(&#039;https://feedburner.google.com/fb/a/mailverify?uri=&#039;,&#039;popupwindow&#039;,&#039;scrollbars=yes,width=550,height=520&#039;);return true"><input type="hidden" value="" name="uri"><input type="hidden" name="loc" value="en_US"><div class="field has-addons"><div class="control has-icons-left is-expanded"><input class="input" name="email" type="email" placeholder="Email"><span class="icon is-small is-left"><i class="fas fa-envelope"></i></span></div><div class="control"><input class="button" type="submit" value="订阅"></div></div></form></div></div></div><!--!--><div class="column-right-shadow is-hidden-widescreen is-sticky"></div></div></div></div></section><footer class="footer"><div class="container"><div class="level"><div class="level-start"><a class="footer-logo is-block mb-2" href="/"><img src="/img/logo.png" alt="山河已无恙" height="28"></a><p class="size-small"><span>&copy; 2023 山河已无恙</span>  Powered by <a href="https://hexo.io/" target="_blank">Hexo</a> &amp; <a href="https://github.com/ppoffice/hexo-theme-icarus" target="_blank">Icarus</a> &amp; <a href="https://github.com/removeif/hexo-theme-amazing" target="_blank">Amazing</a> <br><span>© <a href="http://www.beian.miit.gov.cn/" target="_blank">备案号</a><br></span><span>© 版权说明：[本网站所有内容均收集于互联网或自己创作,<br />&nbsp;&nbsp;&nbsp;&nbsp;方便于网友与自己学习交流，如有侵权，请<a href="/message" target="_blank">留言</a>，立即处理]<br /></span><span><span id="statistic-times">loading...</span><script>function createTime(time) {
+            var n = new Date(time);
+            now.setTime(now.getTime() + 250),
+                days = (now - n) / 1e3 / 60 / 60 / 24,
+                dnum = Math.floor(days),
+                hours = (now - n) / 1e3 / 60 / 60 - 24 * dnum,
+                hnum = Math.floor(hours),
+            1 == String(hnum).length && (hnum = "0" + hnum),
+                minutes = (now - n) / 1e3 / 60 - 1440 * dnum - 60 * hnum,
+                mnum = Math.floor(minutes),
+            1 == String(mnum).length && (mnum = "0" + mnum),
+                seconds = (now - n) / 1e3 - 86400 * dnum - 3600 * hnum - 60 * mnum,
+                snum = Math.round(seconds),
+            1 == String(snum).length && (snum = "0" + snum),
+                document.getElementById("statistic-times").innerHTML = "❤️本站自 <strong>"+time.split(" ")[0].replace(/\//g,".")+"</strong> 已运行 <strong>" + dnum + "</strong> 天 <strong>" + hnum + "</strong> 小时 <strong>" + mnum + "</strong> 分 <strong>" + snum + "</strong> 秒！❤️";
+        }var now = new Date();setInterval("createTime('2021/6/26 21:27:00')", 250,"");</script><br></span><div class="size-small"><span>❤️感谢 <strong><span id="busuanzi_value_site_uv">99+</span></strong> 小伙伴的 <strong><span id="busuanzi_value_site_pv">99+</span></strong> 次光临！❤️</span></div></p></div><div class="level-end"><div class="field has-addons"><p class="control"><a class="button is-transparent is-large" target="_blank" rel="noopener" title="Creative Commons" href="https://creativecommons.org/"><i class="fab fa-creative-commons"></i></a></p><p class="control"><a class="button is-transparent is-large" target="_blank" rel="noopener" title="Attribution 4.0 International" href="https://creativecommons.org/licenses/by/4.0/"><i class="fab fa-creative-commons-by"></i></a></p><p class="control"><a class="button is-transparent is-large" target="_blank" rel="noopener" title="Download on GitHub" href="https://github.com/removeif/hexo-theme-amazing"><i class="fab fa-github"></i></a></p></div><div class="sideMusic"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/aplayer/dist/APlayer.min.css"><script src="/js/APlayer.min.js"></script><script src="https://cdn.jsdelivr.net/npm/meting@2/dist/Meting.min.js"></script><meting-js style="width: auto;height: 2000px;" server="netease" type="playlist" id="2364053447" theme="#2980b9" loop="all" autoplay="false" order="list" storageName="aplayer-setting" lrctype="0" list-max-height="400px" fixed="true"></meting-js></div></div></div></div></footer><script src="https://cdnjs.loli.net/ajax/libs/moment.js/2.22.2/moment-with-locales.min.js"></script><script src="https://cdnjs.loli.net/ajax/libs/clipboard.js/2.0.4/clipboard.min.js" async></script><script>moment.locale("zh-CN");</script><script>var IcarusThemeSettings = {
+            article: {
+                highlight: {
+                    clipboard: true,
+                    fold: 'unfolded'
+                }
+            }
+        };</script><script src="/js/column.js"></script><!--!--><script src="/js/animation.js"></script><a id="back-to-top" title="回到顶端" href="javascript:;"><i class="fas fa-chevron-up"></i></a><script src="/js/back_to_top.js" defer></script><!--!--><script src="https://cdnjs.loli.net/ajax/libs/lightgallery/1.6.8/js/lightgallery.min.js" defer></script><script src="https://cdnjs.loli.net/ajax/libs/justifiedGallery/3.7.0/js/jquery.justifiedGallery.min.js" defer></script><script>window.addEventListener("load", () => {
+            if (typeof $.fn.lightGallery === 'function') {
+                $('.article').lightGallery({ selector: '.gallery-item' });
+            }
+            if (typeof $.fn.justifiedGallery === 'function') {
+                if ($('.justified-gallery > p > .gallery-item').length) {
+                    $('.justified-gallery > p > .gallery-item').unwrap();
+                }
+                $('.justified-gallery').justifiedGallery();
+            }
+        });</script><!--!--><!--!--><link rel="stylesheet" href="https://cdnjs.loli.net/ajax/libs/KaTeX/0.11.1/katex.min.css"><script src="https://cdnjs.loli.net/ajax/libs/KaTeX/0.11.1/katex.min.js" defer></script><script src="https://cdnjs.loli.net/ajax/libs/KaTeX/0.11.1/contrib/auto-render.min.js" defer></script><script src="https://cdnjs.loli.net/ajax/libs/KaTeX/0.11.1/contrib/mhchem.js" defer></script><script>window.addEventListener("load", function() {
+            document.querySelectorAll('[role="article"] > .content').forEach(function(element) {
+                renderMathInElement(element);
+            });
+        });</script><script type="text/x-mathjax-config">MathJax.Hub.Config({
+            'HTML-CSS': {
+                matchFontHeight: false
+            },
+            SVG: {
+                matchFontHeight: false
+            },
+            CommonHTML: {
+                matchFontHeight: false
+            },
+            tex2jax: {
+                inlineMath: [
+                    ['$','$'],
+                    ['\\(','\\)']
+                ]
+            }
+        });</script><script src="https://cdnjs.loli.net/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-MML-AM_CHTML" defer></script><div id="outdated"><h6>Your browser is out-of-date!</h6><p>Update your browser to view this website correctly.&amp;npsb;<a id="btnUpdateBrowser" target="_blank" rel="noopener" href="http://outdatedbrowser.com/">Update my browser now </a></p><p class="last"><a href="#" id="btnCloseUpdateBrowser" title="Close">×</a></p></div><script src="https://cdnjs.loli.net/ajax/libs/outdated-browser/1.1.5/outdatedbrowser.min.js" defer></script><script>window.addEventListener("load", function () {
+            outdatedBrowser({
+                bgColor: '#f25648',
+                color: '#ffffff',
+                lowerThan: 'object-fit' // display on IE11 or below
+            });
+        });</script><!--!--><script src="/js/main.js" defer></script><script>$.getScript('/js/comment-issue-data.js',function(){loadIssueData('9fdc9739266d48d5f62e','c1cc33697d099a2197650ec9dadcb16bd4904655','LIRUILONGS','blog_comment',false);})</script><div class="searchbox"><div class="searchbox-container"><div class="searchbox-header"><div class="searchbox-input-container"><input class="searchbox-input" type="text" placeholder="想要查找什么..."></div><a class="searchbox-close" href="javascript:;">×</a></div><div class="searchbox-body"></div></div></div><script src="/js/insight.js" defer></script><script>document.addEventListener('DOMContentLoaded', function () {
+            loadInsight({"contentUrl":"/content.json"}, {"hint":"想要查找什么...","untitled":"(无标题)","posts":"文章","pages":"页面","categories":"分类","tags":"标签"});
+        });</script><script src="https://cdn.jsdelivr.net/npm/pjax@0.2.8/pjax.js"></script><script type="text/javascript">var pjax = new Pjax({
+            elements: "a",//代表点击链接就更新
+            selectors: [  //代表要更新的节点
+                ".section",
+                "title"
+            ],
+            cache: true,
+            cacheBust:false
+        })
+
+        function loadBusuanzi(){
+        $.getScript("//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js", function () {});
+        }
+
+        function loadMathJax() { //加载mathjax
+            $.getScript("//cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.4/MathJax.js?config=TeX-MML-AM_CHTML", function () {
+                MathJax.Hub.Config({ tex2jax: { inlineMath: [['$', '$'], ['\(', '\)']] } });
+                var math = document.getElementsByClassName("entry-content")[0];
+                MathJax.Hub.Queue(["Typeset", MathJax.Hub, math]);
+            });
+        };
+
+        // 开始 PJAX 执行的函数
+        document.addEventListener('pjax:send', function () {
+        });
+        
+        // PJAX 完成之后执行的函数，可以和上面的重载放在一起
+        document.addEventListener('pjax:complete', function () {
+            $(".section").css({opacity:1});
+            if(false){
+                $.getScript('/js/comment-issue-data.js',function(){loadIssueData('9fdc9739266d48d5f62e','c1cc33697d099a2197650ec9dadcb16bd4904655','LIRUILONGS','blog_comment',false);});
+            }
+            if(false){
+                loadMathJax();
+            }
+            loadMainJs(jQuery, window.moment, window.ClipboardJS, window.IcarusThemeSettings);
+            loadBackTop();
+            loadBusuanzi();
+            if(typeof loadBanner == 'function'){
+                loadBanner();
+            }
+        });</script></body></html>

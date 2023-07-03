@@ -1,0 +1,229 @@
+<!doctype html>
+<html lang="zh"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"><meta><title>关于SRE方法论的一些笔记 - 山河已无恙</title><link rel="manifest" href="/manifest.json"><meta name="application-name" content="山河已无恙"><meta name="msapplication-TileImage" content="https://cdn.jsdelivr.net/gh/removeif/removeif-demo@latest/img/favicon.png"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="山河已无恙"><meta name="apple-mobile-web-app-status-bar-style" content="default"><meta description="傍晚时分，你坐在屋檐下，看着天慢慢地黑下去，心里寂寞而凄凉，感到自己的生命被剥夺了。当时我是个年轻人，但我害怕这样生活下去，衰老下去。在我看来，这是比死亡更可怕的事。——–王小波"><meta property="og:type" content="blog"><meta property="og:title" content="山河已无恙"><meta property="og:url" content="https://liruilong.blog.csdn.net/?t=1&amp;type=blog"><meta property="og:site_name" content="山河已无恙"><meta property="og:description" content="傍晚时分，你坐在屋檐下，看着天慢慢地黑下去，心里寂寞而凄凉，感到自己的生命被剥夺了。当时我是个年轻人，但我害怕这样生活下去，衰老下去。在我看来，这是比死亡更可怕的事。——–王小波"><meta property="og:locale" content="zh_CN"><meta property="og:image" content="https://liruilong.blog.csdn.net/img/头像.jpg"><meta property="article:published_time" content="2022-05-08T06:02:25.000Z"><meta property="article:modified_time" content="2023-06-21T11:25:59.101Z"><meta property="article:author" content="LIRUILONGS"><meta property="article:tag" content="SRE"><meta property="twitter:card" content="summary"><meta property="twitter:image" content="/img/头像.jpg"><script type="application/ld+json">{"@context":"https://schema.org","@type":"BlogPosting","mainEntityOfPage":{"@type":"WebPage","@id":"https://liruilongs.github.io/2022/05/08/Ops_demo/%E5%85%B3%E4%BA%8ESRE%E6%96%B9%E6%B3%95%E8%AE%BA%E7%9A%84%E4%B8%80%E4%BA%9B%E7%AC%94%E8%AE%B0/"},"headline":"山河已无恙","image":["https://liruilongs.github.io/img/og_image.png"],"datePublished":"2022-05-08T06:02:25.000Z","dateModified":"2023-06-21T11:25:59.101Z","author":{"@type":"Person","name":"山河已无恙"},"description":"傍晚时分，你坐在屋檐下，看着天慢慢地黑下去，心里寂寞而凄凉，感到自己的生命被剥夺了。当时我是个年轻人，但我害怕这样生活下去，衰老下去。在我看来，这是比死亡更可怕的事。——–王小波"}</script><link rel="canonical" href="https://liruilongs.github.io/2022/05/08/Ops_demo/%E5%85%B3%E4%BA%8ESRE%E6%96%B9%E6%B3%95%E8%AE%BA%E7%9A%84%E4%B8%80%E4%BA%9B%E7%AC%94%E8%AE%B0/"><link rel="alternate" href="/path/to/atom.xml" title="山河已无恙" type="application/atom+xml"><link rel="icon" href="https://cdn.jsdelivr.net/gh/removeif/removeif-demo@latest/img/favicon.png"><meta name="referrer" content="no-referrer-when-downgrade"><link rel="stylesheet" href="https://cdnjs.loli.net/ajax/libs/font-awesome/5.12.0/css/all.min.css"><link rel="stylesheet" href="https://cdnjs.loli.net/ajax/libs/highlight.js/9.12.0/styles/dracula.min.css"><link rel="stylesheet" href="https://fonts.loli.net/css2?family=Ubuntu:wght@400;600&amp;family=Source+Code+Pro"><link rel="stylesheet" href="/css/default.css"><link rel="stylesheet" href="https://cdnjs.loli.net/ajax/libs/font-awesome/5.12.0/css/all.min.css"><link rel="stylesheet" href="https://fonts.loli.net/css?family=Ubuntu:400,600|Source+Code+Pro|Monda:300,300italic,400,400italic,700,700italic|Roboto Slab:300,300italic,400,400italic,700,700italic|Microsoft YaHei:300,300italic,400,400italic,700,700italic|PT Mono:300,300italic,400,400italic,700,700italic&amp;amp;subset=latin,latin-ext|Inconsolata|Itim|Lobster.css"><script src="https://cdnjs.loli.net/ajax/libs/jquery/3.3.1/jquery.min.js"></script><script src="/js/globalUtils.js"></script><script src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js" defer></script><style>body>.footer,body>.navbar,body>.section{opacity:0}</style><!--!--><script>var _hmt = _hmt || [];
+        (function() {
+            var hm = document.createElement("script");
+            hm.src = "//hm.baidu.com/hm.js?3f06f2b732a5b1034c989f74e28d0eea";
+            var s = document.getElementsByTagName("script")[0];
+            s.parentNode.insertBefore(hm, s);
+        })();</script><link rel="stylesheet" href="https://cdnjs.loli.net/ajax/libs/lightgallery/1.6.8/css/lightgallery.min.css"><link rel="stylesheet" href="https://cdnjs.loli.net/ajax/libs/justifiedGallery/3.7.0/css/justifiedGallery.min.css"><!--!--><!--!--><!--!--><!--!--><link rel="stylesheet" href="https://cdnjs.loli.net/ajax/libs/outdated-browser/1.1.5/outdatedbrowser.min.css"><script src="https://cdnjs.loli.net/ajax/libs/pace/1.0.2/pace.min.js"></script><meta name="generator" content="Hexo 5.4.2"></head><body class="is-3-column has-navbar-fixed-top"><nav class="navbar navbar-main is-fixed-top"><div class="container"><div class="navbar-brand justify-content-center"><a class="navbar-item navbar-logo" href="/"><img src="/img/logo.png" alt="山河已无恙" height="28"></a></div><div class="navbar-menu"><div class="navbar-start"><a class="navbar-item" href="/">首页</a><a class="navbar-item" href="/archives">归档</a><a class="navbar-item" href="/categories">分类</a><a class="navbar-item" href="/tags">标签</a><a class="navbar-item" href="/media">影音</a><a class="navbar-item" href="/album">相册</a><a class="navbar-item" href="/friend">友链</a><a class="navbar-item" href="/self-talking">生活小记</a><a class="navbar-item" href="/message">留言墙</a><a class="navbar-item" href="/about">关于</a></div><div class="navbar-end"><a class="navbar-item" target="_blank" rel="noopener" title="Gitee" href="https://gitee.com/liruilonger"><i class="fab fa-git-square fa-1x"></i></a><a class="navbar-item" target="_blank" rel="noopener" title="GitHub" href="https://github.com/LIRUILONGS"><i class="fab fa-github fa-1x"></i></a><a class="navbar-item is-hidden-tablet catalogue" title="目录" href="javascript:;"><i class="fas fa-list-ul fa-1x"></i></a><a class="navbar-item search" title="搜索" href="javascript:;"><i class="fas fa-search fa-1x"></i></a><a class="navbar-item" id="night-nav" title="Night Mode" href="javascript:;"><i class="fas fa-moon fa-1x" id="night-icon"></i></a></div></div></div></nav><script type="text/javascript" src="/js/theme-setting.js"></script><section class="section"><div class="container"><div class="columns"><div class="column order-2 column-main is-8-tablet is-8-desktop is-9-widescreen"><!--!--><div class="card"><article class="card-content article" role="article"><div class="article-meta size-small is-uppercase level is-mobile"><div class="level-left"><i class="far fa-calendar-plus"> </i>2022-05-08  <a class="commentCountImg" href="/2022/05/08/Ops_demo/%E5%85%B3%E4%BA%8ESRE%E6%96%B9%E6%B3%95%E8%AE%BA%E7%9A%84%E4%B8%80%E4%BA%9B%E7%AC%94%E8%AE%B0/#comment-container"><span class="display-none-class">ca296089ba36af22851d67fb405291a0</span><i class="far fa-comment-dots"></i> <span class="commentCount" id="ca296089ba36af22851d67fb405291a0">99+</span>  </a><span class="level-item"><i class="far fa-clock"> </i>27 分钟  <i class="fas fa-pencil-alt"> </i>4.0 k</span><span class="level-item" id="busuanzi_container_page_pv"><span id="busuanzi_value_page_pv">0</span>次访问</span></div></div><h1 class="title is-3 is-size-4-mobile">关于SRE方法论的一些笔记</h1><div class="content"><p><strong><font color="009688"> 傍晚时分，你坐在屋檐下，看着天慢慢地黑下去，心里寂寞而凄凉，感到自己的生命被剥夺了。当时我是个年轻人，但我害怕这样生活下去，衰老下去。在我看来，这是比死亡更可怕的事。——–王小波</strong></font></p>
+<span id="more"></span>
+<h2 id="写在前面"><a href="#写在前面" class="headerlink" title="写在前面"></a>写在前面</h2><hr>
+<ul>
+<li>阿里系列有一本<code>《云原生操作系统Kubernetes》</code>中作者在前言里讲到</li>
+<li>Google开源的<code>Kubernetes</code>和<code>《SRE Google运维解密》</code>这本书是剑法和气功的关系</li>
+<li>换句话讲<code>Kubernetes</code>是术，<code>SRE Google运维解密</code>是道 </li>
+<li>作为云原生基础设施的Kubernetes小伙伴么应该多少有些了解</li>
+<li>但是对于SRE却很少有人谈及，和小伙伴分享一些SRE的基础知识</li>
+<li>博文主要为《SRE Google运维解密》读书笔记整理</li>
+<li>主要为第一部分，摘一些感觉重要。</li>
+</ul>
+<p><strong><font color="009688"> 傍晚时分，你坐在屋檐下，看着天慢慢地黑下去，心里寂寞而凄凉，感到自己的生命被剥夺了。当时我是个年轻人，但我害怕这样生活下去，衰老下去。在我看来，这是比死亡更可怕的事。——–王小波</strong></font></p>
+<hr>
+<p>当前云原生是发展趋势，企业服务上云是大势所趋，在某乎上看到有<code>Java大军是不是开始卷K8s了</code>之类的话题,但是对K8s的认知，可能仅仅是作为首个CNCF孵化的开源项目,起源于<code>Google</code>内部的<code>Borg</code>项目，对计算资源进行了更高层次的抽象，作为一个容器编排工具，提供基本的部署、维护以及应用伸缩等功能，其主要实现语言为<code>Go语言</code>。具体一点常用的资源对象、控制器的使用，声明式API这些</p>
+<p>但是对于为什么要定义资源对象，资源控制器定义的标准依据是什么，比如<code>RC -&gt; RS -&gt; Deploy</code>变迁的原因，很少有人去寻找答案。希望通过对SRE方法论的学习或者说SRE工程师的认识可以深入的理解K8s</p>
+<h2 id="SRE-方法论的由来"><a href="#SRE-方法论的由来" class="headerlink" title="SRE 方法论的由来"></a>SRE 方法论的由来</h2><h3 id="系统管理员模式"><a href="#系统管理员模式" class="headerlink" title="系统管理员模式"></a>系统管理员模式</h3><p>雇佣<code>系统管理员(sysadmin)</code>运维复杂的计算机系统，也就是我们俗称的运维岗，是行业内一直以来的普遍做法。系统管理员的日常工作与研发工程师相差甚远，通常分属两个不同的部门：<code>研发部(Dev)和运维部(Ops)</code>。</p>
+<p>传统的<code>研发团队和运维团队</code>分歧的焦点主要在<code>软件新版本、新配置的变更的发布速度上</code>。</p>
+<ul>
+<li><code>研发部门</code>最关注的是如何能够更快速地<code>构建和发布新功能</code>。</li>
+<li><code>运维部门</code>更关注的是如何能在他们<code>值班期间避免发生故障</code>。</li>
+</ul>
+<p>由于绝大部分<code>生产故障</code>都是由于<code>部署某项变更导致的</code>—不管是部署新版本，还是修改配置，甚至有时只是因为改变了用户的某些行为造成了负载流量的配比变化而导致故障。这两个部门的目标从<code>本质上来说是互相矛盾的。</code></p>
+<h3 id="Google的解决之道：SRE"><a href="#Google的解决之道：SRE" class="headerlink" title="Google的解决之道：SRE"></a>Google的解决之道：SRE</h3><p>SRE这种模型是Google尝试着从根本上<code>避免产生</code>这种矛盾的结果。SRE团队通过雇佣软件工程师，<code>创作软件系统来维护系统运行以替代传统模型中的人工操作</code>。</p>
+<p>SRE就是让软件工程师来设计一个新型运维团队的结果,<code>SRE方法论</code>中的主要模块，就是SRE团队的构成。每个SRE团队里基本上有两类工程师。</p>
+<ul>
+<li>第一类，团队中50%~60%是标准的软件工程师，符合Google软件工程师标准的一类人</li>
+<li>第二类，其他40%<del>50%则是一些基本满足Google软件工程师标准(具备85%</del>99%所要求的技能)，但是同时具有一定程度的其他技术能力的工程师。</li>
+</ul>
+<p><strong>SRE团队成员具有如下特点：</strong></p>
+<ul>
+<li>对重复性、手工性的操作有天然的排斥感</li>
+<li>有足够的技术能力快速开发出软件系统以替代手工操作</li>
+</ul>
+<p>从本质上来说，<code>SRE</code>就是在用<code>软件工程的思维和方法论完成以前由系统管理员团队手动完成的任务</code>。这些SRE倾向于通过设计、构建自动化工具来取代人工操作。</p>
+<p>SRE团队的<code>终极目标是推动整个系统趋向于无人化运行，而不仅仅是自动化某些人工流程</code>。</p>
+<p>Google的经验法则是，SRE团队必须将50%的精力花在真实的开发工作上。</p>
+<p>SRE模型不仅消除了传统模型中研发团队和运维团队的冲突焦点，反而促进了整个产品部门水平的整体提高。因为SRE团队和研发团队之间的成员可以自由流动，整个产品部门的人员都有机会学习和参与大规模运维部署活动，从中获得平时难以获得的宝贵知识。普通的开发人员有多少机会能将自己的程序同时跑在100万个CPU的分布式系统上呢？</p>
+<h4 id="DevOps还是SRE？"><a href="#DevOps还是SRE？" class="headerlink" title="DevOps还是SRE？"></a>DevOps还是SRE？</h4><p>我们可以认为<code>DevOps是SRE核心理念的普适版</code>，可以用于更广范围内的组织结构、管理结构和人员安排。同时，SRE是DevOps模型在Google的具体实践，带有一些特别的扩展。</p>
+<h2 id="SRE方法论"><a href="#SRE方法论" class="headerlink" title="SRE方法论"></a>SRE方法论</h2><p>一般来说，<code>SRE</code>团队要承担以下几类<code>职责</code>：<code>可用性改进，延迟优化，性能优化，效率优化，变更管理，监控，紧急事务处理以及容量规划与管理。</code></p>
+<p>我想这也是K8s以及基于K8s生态相关组件做要担负的职责</p>
+<h4 id="确保长期关注研发工作"><a href="#确保长期关注研发工作" class="headerlink" title="确保长期关注研发工作"></a>确保长期关注研发工作</h4><p>Google将SRE团队的运维工作限制在<code>50%以内</code>。SRE团队应该将剩余时间花在研发项目上。</p>
+<p>SRE处理运维工作的一项准则是：在每<code>8~12小时的on-call</code>轮值期间最多只处理两个紧急事件。这个准则保证了on-call工程师有足够的时间跟进紧急事件，这样SRE可以正确地处理故障、恢复服务，并且要<code>撰写一份事后报告</code>。</p>
+<p><code>事后总结</code>应该包括以下内容：<code>事故发生、发现、解决的全过程，事故的根本原因，预防或者优化的解决方案。Google的一项准则是“对事不对人”，事后总结的目标是尽早发现和堵住漏洞，而不是通过流程去绕过和掩盖它们。</code></p>
+<h4 id="在保障服务SLO的前提下最大化迭代速度"><a href="#在保障服务SLO的前提下最大化迭代速度" class="headerlink" title="在保障服务SLO的前提下最大化迭代速度."></a>在保障服务<code>SLO</code>的前提下最大化迭代速度.</h4><p>SLO(服务等级目标)指定了服务所提供功能的一种期望状态。SLO 里面应该包含了所有能够描述服务应该提供什么样功能的信息。</p>
+<p><code>产品研发部门</code>和<code>SRE</code>之间可以通过<code>消除组织架构冲突</code>来构建良好的合作关系。在SRE模型中，我们选择正面面对这种矛盾，使用的工具是<code>错误预算</code>。</p>
+<blockquote>
+<p>“错误预算”起源于这样一个理念：任何产品都不是，也不应该做到100%可靠(显然这并不适用于心脏起搏器和防抱死刹车系统等)。一般来说，任何软件系统都不应该一味地追求100%可靠。因为对最终用户来说，99.999%和100%的可用性是没有实质区别的。从最终用户到服务器之间有很多中间系统(用户的笔记本电脑、家庭WiFi、网络提供商和输电线路等)，这些系统综合起来可靠性要远低于99.999%。所以，在99.999%和100%之间的区别基本上成为其他系统的噪声。<code>就算我们花费巨大精力将系统变为100%可靠也并不能给用户带来任何实质意义上的好处。</code></p>
+</blockquote>
+<p>如果<code>100%</code>不是一个正确的可靠性目标，那么多少才是呢？这其实并<code>不是一个技术问题，而是一个产品问题</code>。要回答这个问题，必须考虑以下几个方面：</p>
+<ul>
+<li>基于用户的使用习惯，服务可靠性要达到什么程度用户才会满意？</li>
+<li>如果这项服务的可靠程度不够，用户是否有其他的替代选择？</li>
+<li>服务的可靠程度是否会影响用户对这项服务的使用模式？</li>
+</ul>
+<p>通过引进<code>“错误预算”</code>的概念，我们解决了研发团队和SRE团队之间的组织架构冲突。</p>
+<p>SRE团队的目标不再是“零事故运行”，SRE团队和产品研发团队目标一致，都是在保障业务服务可靠性需求的同时尽可能地加快功能上线速度。这个改动虽小，意义却很大<code>。一次“生产事故”不再是一件坏事，而仅仅是创新流程中一个不可避免的环节，两个团队通过协作共同管理它。</code></p>
+<p>某种意义上可以理解为将风险分化，由原来的部分承担，变成了全部承担</p>
+<h4 id="监控系统"><a href="#监控系统" class="headerlink" title="监控系统"></a>监控系统</h4><p>监控系统是SRE团队监控服务质量和可用性的一个主要手段。</p>
+<p>监控系统<code>不应该依赖人来分析警报信息，而是应该由系统自动分析</code>，仅当需要用户执行某种操作时，才需要通知用户。</p>
+<p>一个<code>监控系统</code>应该只有三类输出。</p>
+<ul>
+<li><p><code>紧急警报(alert)</code>：意味着收到警报的用户需要立即执行某种操作，目标是解决某种已经发生的问题，或者是避免即将发生的问题。</p>
+</li>
+<li><p><code>工单(ticket)</code>：意味着接受工单的用户应该执行某种操作，但是并非立即执行。系统并不能自动解决目前的情况，但是如果一个用户在几天内执行这项操作，系统不会受到任何影响。</p>
+</li>
+<li><p><code>日志(logging)</code>：平时没有人需要关注日志信息，但是日志信息依然被收集起来以备调试和事后分析时使用。正确的做法是平时没人会去主动阅读日志，除非有特殊需要。</p>
+</li>
+</ul>
+<h4 id="应急事件处理"><a href="#应急事件处理" class="headerlink" title="应急事件处理"></a>应急事件处理</h4><p><code>可靠性</code>是<code>MTTF(平均失败时间)</code>和<code>MTTR(平均恢复时间)</code>的函数。评价一个团队将系统恢复到正常情况的最<code>有效指标，就是MTTR</code>。</p>
+<p>通过事先预案并且将最佳方法记录在“<code>运维手册(playbook)</code>”上通常可以使<code>MTTR降低3倍以上</code>。初期几个万能的工程师的确可以解决生产问题，但是长久看来一个手持“运维宝典”经过多次演习的on-call工程师才是正确之路。</p>
+<p>Google SRE将大部分工作重心放在“运维手册”的维护上.</p>
+<h4 id="变更管理"><a href="#变更管理" class="headerlink" title="变更管理"></a>变更管理</h4><p><code>SRE的经验</code>告诉我们，大概70%的生产事故由某种部署的变更而触发。变更管理的最佳实践是<code>使用自动化来完成以下几个项目</code></p>
+<ul>
+<li>采用渐进式发布机制(比如基于K8s的蓝绿部署，<code>deplay</code>滚动更新)。</li>
+<li>迅速而准确地检测到问题的发生。</li>
+<li>当出现问题时，安全迅速地回退改动(<code>deplay</code>升级暂停回滚)。</li>
+</ul>
+<h4 id="需求预测和容量规划"><a href="#需求预测和容量规划" class="headerlink" title="需求预测和容量规划"></a>需求预测和容量规划</h4><p><code>需求预测</code>和<code>容量规划</code>简单来说就是<code>保障</code>一个业务有足够的<code>容量和冗余度</code>去服务<code>预测中的未来需求</code></p>
+<p>一个业务的<code>容量规划</code>，不仅仅要包括<code>自然增长(随着用户使用量上升，资源用量也上升)</code>，也需要包括一些<code>非自然增长的因素(新功能的发布、商业推广，以及其他商业因素在内)</code>。</p>
+<p><code>容量规划</code>有几个步骤是必需的：</p>
+<ul>
+<li>必须有一个准确的自然增长需求预测模型，需求预测的时间应该超过资源获取的时间。</li>
+<li>规划中必须有准确的非自然增长的需求来源的统计。</li>
+<li>必须有周期性压力测试，以便准确地将系统原始资源信息与业务容量对应起来。</li>
+</ul>
+<p>因为<code>服务容量对可用性来说是极为重要</code>的，很自然的，SRE应该主导容量规划的过程。同时，这也意味着SRE需要主导资源部署的过程。</p>
+<h4 id="资源部署"><a href="#资源部署" class="headerlink" title="资源部署"></a>资源部署</h4><p><code>资源的部署(provisinging)是变更管理与容量规划的结合物</code>。新资源的部署与配置是一个相对比较危险的操作，必须要小心谨慎地执行</p>
+<h4 id="效率与性能"><a href="#效率与性能" class="headerlink" title="效率与性能"></a>效率与性能</h4><p><code>高效地利用各种资源</code>是任何赢利性服务都要关心的。因为SRE最终负责容量的部署和配置，因此SRE也必须承担起任何有关利用率的讨论及改进。</p>
+<p>因为<code>一个服务的利用率指标通常依赖于这个服务的工作方式以及对容量的配置与部署上</code>。如果能够通过密切关注一个服务的容量配置策略，进而改进其资源利用率，这可以非常有效地降低系统的总成本。</p>
+<p>一个业务<code>总体资源</code>的使用情况是由以下几个<code>因素驱动</code>的：</p>
+<ul>
+<li>用户需求(流量)</li>
+<li>可用容量</li>
+<li>软件的资源使用效率。</li>
+</ul>
+<p>SRE可以通过模型预测用户需求，合理部署和配置可用容量，同时可以改进软件以提升资源使用效率。通过这三个因素能够大幅度推动一个服务的效率提升(但是并非全部)</p>
+<p>软件系统一般来说在负载上升的时候，会导致延迟升高。延迟升高其实和容量损失是一样的。当负载到达临界线的时候，一个逐渐变慢的系统最终会停止一切服务。换句话说，系统此时的延迟已经是无穷大了。</p>
+<p>SRE的目标是<code>根据一个预设的延迟目标部署和维护足够的容量。</code>SRE和产品研发团队应该共同监控和优化整个系统的性能，这就相当于给服务增加容量和提升效率了。</p>
+<hr>
+<p><code>Google SRE代表了对行业现存管理大型复杂服务的最佳实践的一个重要突破</code>。由一个简单的想法“我是一名软件工程师，这是我如何来应付重复劳动的办法”而生，</p>
+<p>SRE模型已经发展成一套指导思想、一套方法论、一套激励方法和一个拥有广阔空间的独立职业。</p>
+</div><div class="article-licensing box"><div class="licensing-title"><p>关于SRE方法论的一些笔记</p><p><a href="https://liruilongs.github.io/2022/05/08/Ops_demo/关于SRE方法论的一些笔记/">https://liruilongs.github.io/2022/05/08/Ops_demo/关于SRE方法论的一些笔记/</a></p></div><div class="licensing-meta level is-mobile"><div class="level-left"><div class="level-item is-narrow"><div><h6>作者</h6><a href="https://liruilongs.github.io"><p>山河已无恙</p></a></div></div><div class="level-item is-narrow"><div><h6>发布于</h6><p>2022-05-08</p></div></div><div class="level-item is-narrow"><div><h6>更新于</h6><p>2023-06-21</p></div></div><div class="level-item is-narrow"><div><h6>许可协议</h6><p><a class="icon" rel="noopener" target="_blank" title="Creative Commons" href="https://creativecommons.org/"><i class="fab fa-creative-commons"></i></a><a class="icon" rel="noopener" target="_blank" title="Attribution" href="https://creativecommons.org/licenses/by/4.0/"><i class="fab fa-creative-commons-by"></i></a><a class="icon" rel="noopener" target="_blank" title="Noncommercial" href="https://creativecommons.org/licenses/by-nc/4.0/"><i class="fab fa-creative-commons-nc"></i></a></p></div></div></div></div></div><div class="recommend-area"><div class="recommend-post"><span class="is-size-6 has-text-grey has-mr-7"># 推荐文章</span><br><span>  1.<a class="is-size-6" href="/2021/08/27/K8s/%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/%E3%80%8AKubernetes%E6%9D%83%E5%A8%81%E6%8C%87%E5%8D%97-%E4%BB%8EDocker%E5%88%B0Kubernetes%E5%AE%9E%E8%B7%B5%E5%85%A8%E6%8E%A5%E8%A7%A6%E3%80%8B%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/" target="_blank">《Kubernetes权威指南:从Docker到Kubernetes实践全接触》读书笔记</a><br></span><span>  2.<a class="is-size-6" href="/2022/11/19/Git/%E5%85%B3%E4%BA%8E-Git-%E9%87%8D%E5%86%99%E5%8E%86%E5%8F%B2%E7%9A%84%E4%B8%80%E4%BA%9B%E7%AC%94%E8%AE%B0/" target="_blank">关于 Git 重写历史的一些笔记</a><br></span><span>  3.<a class="is-size-6" href="/2023/02/19/Git/%E5%85%B3%E4%BA%8EGit%E9%AB%98%E7%BA%A7%E5%90%88%E5%B9%B6%E7%9A%84%E4%B8%80%E4%BA%9B%E7%AC%94%E8%AE%B0%E6%95%B4%E7%90%86/" target="_blank">关于Git分支高级合并的一些笔记整理</a><br></span><span>  4.<a class="is-size-6" href="/2022/03/11/Go/GO%E8%AF%AD%E8%A8%80%E5%AE%9E%E6%88%98%E4%B9%8B%E5%87%BD%E6%95%B0%E4%B8%8E%E6%96%B9%E6%B3%95/" target="_blank">GO语言实战之函数与方法</a><br></span><span>  5.<a class="is-size-6" href="/2022/04/14/Go/GO%E8%AF%AD%E8%A8%80%E5%AE%9E%E6%88%98%E4%B9%8B%E7%B1%BB%E5%9E%8B%E7%9A%84%E6%9C%AC%E8%B4%A8/" target="_blank">Go语言实战之类型的本质</a><br></span><span>  6.<a class="is-size-6" href="/2022/08/02/Git/%E5%85%B3%E4%BA%8EGit%E5%88%86%E6%94%AF%E5%B7%A5%E4%BD%9C%E6%B5%81%E7%9A%84%E4%B8%80%E4%BA%9B%E7%AC%94%E8%AE%B0/" target="_blank">关于Git分支工作流的一些笔记</a><br></span></div></div><link rel="stylesheet" href="https://cdnjs.loli.net/ajax/libs/social-share.js/1.0.16/css/share.min.css"><div class="social-share"></div><script src="https://cdnjs.loli.net/ajax/libs/social-share.js/1.0.16/js/social-share.min.js"></script></article></div><div class="card"><div class="card-content"><h3 class="menu-label has-text-centered">喜欢这篇文章？打赏一下作者吧</h3><div class="buttons is-centered"><a class="button donate" data-type="alipay"><span class="icon is-small"><i class="fab fa-alipay"></i></span><span>支付宝</span><span class="qrcode"><img src="/img/alipay%EF%BF%A5.png" alt="支付宝"></span></a><a class="button donate" data-type="wechat"><span class="icon is-small"><i class="fab fa-weixin"></i></span><span>微信</span><span class="qrcode"><img src="/img/wechat%EF%BF%A5.png" alt="微信"></span></a></div></div></div><nav class="post-navigation mt-4 level is-mobile"><div class="level-start"><a class="article-nav-prev level level-item link-muted" href="/2022/05/09/rhca/DO447/Ansible%E6%9C%80%E4%BD%B3%E5%AE%9E%E8%B7%B5%E4%B9%8Byaml%E6%A0%BC%E5%BC%8F%E4%B8%BB%E6%9C%BA%E6%B8%85%E5%8D%95(inventory)%E7%BC%96%E5%86%99%E5%8F%8A%E5%8F%98%E9%87%8F%E7%AE%A1%E7%90%86/"><i class="level-item fas fa-chevron-left"></i><span class="level-item">Ansible最佳实践之yaml格式主机清单(inventory)编写及变量管理</span></a></div><div class="level-end"><a class="article-nav-next level level-item link-muted" href="/2022/05/05/K8s/%E5%8D%8E%E4%B8%BA%E4%BA%91/%E4%BA%91%E5%8E%9F%E7%94%9F%E5%85%A5%E9%97%A8%E7%BA%A7%E5%BC%80%E5%8F%91%E8%80%85%E8%AE%A4%E8%AF%81%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0%E4%B9%8B%E5%BE%AE%E6%9C%8D%E5%8A%A1%E6%9E%B6%E6%9E%84%E4%BB%8B%E7%BB%8D/"><span class="level-item">云原生入门级开发者认证学习笔记之微服务架构介绍</span><i class="level-item fas fa-chevron-right"></i></a></div></nav><!--!--><div class="card"><div class="card-content"><div class="title is-5">评论</div><div id="comment-container"></div><link rel="stylesheet" href="https://cdnjs.loli.net/ajax/libs/gitalk/1.6.0/gitalk.css"><script> $.getScript('/js/gitalk.min.js', function () { 
+            var gitalk = new Gitalk({
+            language:'zh-CN',
+            id: 'ca296089ba36af22851d67fb405291a0',
+            repo: 'blog_comment',
+            owner: 'LIRUILONGS',
+            clientID: '9fdc9739266d48d5f62e',
+            clientSecret: 'c1cc33697d099a2197650ec9dadcb16bd4904655',
+            admin: ["LIRUILONGS"],
+            createIssueManually: true,
+            distractionFreeMode: true,
+            perPage: 10,
+            pagerDirection: 'last',
+            proxy: 'https://cors-anywhere.azm.workers.dev/https://github.com/login/oauth/access_token',
+            
+            enableHotKey: true,
+            isLocked: false
+        })
+        gitalk.render('comment-container')});</script></div></div></div><div class="column column-left is-4-tablet is-4-desktop is-3-widescreen  order-1 is-sticky"><div class="card widget" id="toc" data-type="toc"><div class="card-content"><div class="menu"><h3 class="menu-label">目录</h3><ul class="menu-list"><li><a class="is-flex is-mobile" href="#写在前面"><span class="mr-2">1</span><span>写在前面</span></a></li><li><a class="is-flex is-mobile" href="#SRE-方法论的由来"><span class="mr-2">2</span><span>SRE 方法论的由来</span></a><ul class="menu-list"><li><a class="is-flex is-mobile" href="#系统管理员模式"><span class="mr-2">2.1</span><span>系统管理员模式</span></a></li><li><a class="is-flex is-mobile" href="#Google的解决之道：SRE"><span class="mr-2">2.2</span><span>Google的解决之道：SRE</span></a><ul class="menu-list"><li><a class="is-flex is-mobile" href="#DevOps还是SRE？"><span class="mr-2">2.2.1</span><span>DevOps还是SRE？</span></a></li></ul></li></ul></li><li><a class="is-flex is-mobile" href="#SRE方法论"><span class="mr-2">3</span><span>SRE方法论</span></a><ul class="menu-list"><ul class="menu-list"><li><a class="is-flex is-mobile" href="#确保长期关注研发工作"><span class="mr-2">3.1.1</span><span>确保长期关注研发工作</span></a></li><li><a class="is-flex is-mobile" href="#在保障服务SLO的前提下最大化迭代速度"><span class="mr-2">3.1.2</span><span>在保障服务SLO的前提下最大化迭代速度.</span></a></li><li><a class="is-flex is-mobile" href="#监控系统"><span class="mr-2">3.1.3</span><span>监控系统</span></a></li><li><a class="is-flex is-mobile" href="#应急事件处理"><span class="mr-2">3.1.4</span><span>应急事件处理</span></a></li><li><a class="is-flex is-mobile" href="#变更管理"><span class="mr-2">3.1.5</span><span>变更管理</span></a></li><li><a class="is-flex is-mobile" href="#需求预测和容量规划"><span class="mr-2">3.1.6</span><span>需求预测和容量规划</span></a></li><li><a class="is-flex is-mobile" href="#资源部署"><span class="mr-2">3.1.7</span><span>资源部署</span></a></li><li><a class="is-flex is-mobile" href="#效率与性能"><span class="mr-2">3.1.8</span><span>效率与性能</span></a></li></ul></ul></li></ul></div></div><style>.menu-list > li > a.is-active + .menu-list { display: block; }.menu-list > li > a + .menu-list { display: none; }</style><script src="/js/toc.js" defer></script></div><div class="card widget" data-type="profile"><div class="card-content"><nav class=""><div class="level-item has-text-centered flex-shrink-1"><div><figure class="image is-128x128 mx-auto mb-2"><img class="avatar" src="/img/%E5%BE%AE%E4%BF%A1%E5%85%AC%E4%BC%97%E5%8F%B7.jpg" alt="山河已无恙"></figure><p class="title is-size-4 is-block" style="line-height:inherit;">山河已无恙</p><p class="is-size-6 is-block">爱自己，是终生浪漫的开始</p><p class="is-size-6 is-flex justify-content-center"><i class="fas fa-map-marker-alt mr-1"></i><span>中国·呼和浩特</span></p></div></div></nav><nav class="level is-mobile"><div class="level-item has-text-centered is-marginless"><div><p class="heading">文章</p><a href="/archives"><p class="title">275</p></a></div></div><div class="level-item has-text-centered is-marginless"><div><p class="heading">分类</p><a href="/categories"><p class="title">86</p></a></div></div><div class="level-item has-text-centered is-marginless"><div><p class="heading">标签</p><a href="/tags"><p class="title">137</p></a></div></div></nav><div class="level"><a class="level-item button is-primary is-rounded" href="https://liruilong.blog.csdn.net/?t=1&amp;type=blog" target="_blank" rel="noopener">关注我</a></div><div class="level is-mobile"><a class="level-item button is-transparent is-marginless" target="_blank" rel="noopener" title="Github" href="https://github.com/LIRUILONGS"><i class="fab fa-github"></i></a><a class="level-item button is-transparent is-marginless" target="_blank" rel="noopener" title="CSDN" href="https://liruilong.blog.csdn.net/"><i class="fa fa-code"></i></a><a class="level-item button is-transparent is-marginless" target="_blank" rel="noopener" title="Email" href="mailto:1224965096@qq.com"><i class="fa fa-envelope"></i></a></div></div></div><div class="card widget" data-type="links"><div class="card-content"><div class="menu"><h3 class="menu-label">链接</h3><ul class="menu-list"><li><a class="level is-mobile" href="https://liruilong.blog.csdn.net/?t=1&amp;type=blog" target="_blank" rel="noopener"><span class="level-left"><span class="level-item">CSDN</span></span><span class="level-right"><span class="level-item tag">liruilong.blog.csdn.net</span></span></a></li><li><a class="level is-mobile" href="https://www.cnblogs.com/liruilong/" target="_blank" rel="noopener"><span class="level-left"><span class="level-item">博客园</span></span><span class="level-right"><span class="level-item tag">www.cnblogs.com</span></span></a></li><li><a class="level is-mobile" href="https://github.com/LIRUILONGS" target="_blank" rel="noopener"><span class="level-left"><span class="level-item">Githup</span></span><span class="level-right"><span class="level-item tag">github.com</span></span></a></li><li><a class="level is-mobile" href="https://gitee.com/liruilonger" target="_blank" rel="noopener"><span class="level-left"><span class="level-item">码云</span></span><span class="level-right"><span class="level-item tag">gitee.com</span></span></a></li></ul></div></div></div><!--!--><div class="card widget"><div class="card-content"><h3 class="menu-label">最新文章</h3><article class="media"><div class="media-content"><p class="date"><time dateTime="2023-06-25T09:31:04.000Z">2023-06-25</time></p><p class="title"><a href="/2023/06/25/%E5%BE%85%E5%8F%91%E5%B8%83/Ceph%EF%BC%9A%E5%85%B3%E4%BA%8ECeph%20%E9%9B%86%E7%BE%A4%E4%B8%AD%E6%95%B0%E6%8D%AE%E5%88%86%E5%B8%83%E5%92%8C%E5%AE%B9%E7%81%BE%E6%95%B4%E7%90%86%E7%9A%84%E4%B8%80%E4%BA%9B%E7%AC%94%E8%AE%B0/">Ceph：关于Ceph 集群中数据分布和容灾整理的一些笔记</a></p><p class="categories"><a href="/categories/Ceph/">Ceph</a></p></div></article><article class="media"><div class="media-content"><p class="date"><time dateTime="2023-06-20T11:34:31.000Z">2023-06-20</time></p><p class="title"><a href="/2023/06/20/%E5%BE%85%E5%8F%91%E5%B8%83/K8s%EF%BC%9AK8s-20%E4%B8%AA%E5%B8%B8%E7%94%A8%E5%91%BD%E4%BB%A4%E6%B1%87%E6%80%BB/">K8s：K8s 20个常用命令汇总</a></p><p class="categories"><a href="/categories/Kubernetes/">Kubernetes</a></p></div></article><article class="media"><div class="media-content"><p class="date"><time dateTime="2023-06-18T18:22:57.000Z">2023-06-18</time></p><p class="title"><a href="/2023/06/18/%E5%BE%85%E5%8F%91%E5%B8%83/K8s%EF%BC%9AK8s%E6%95%85%E9%9A%9C%E6%8E%92%E9%99%A4%E6%96%B9%E6%B3%95%E8%AE%BA/">K8s：Kubernetes 故障排除方法论</a></p><p class="categories"><a href="/categories/Kubernetes/">Kubernetes</a></p></div></article><article class="media"><div class="media-content"><p class="date"><time dateTime="2023-06-15T13:57:37.000Z">2023-06-15</time></p><p class="title"><a href="/2023/06/15/%E5%BE%85%E5%8F%91%E5%B8%83/Nvidia%203060%20%E6%98%BE%E5%8D%A1%20CUDA%20%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA(Ubuntu22.04+Nvidia%20510+Cuda11.6+cudnn8.8)/">Nvidia 3060 显卡 CUDA 环境搭建(Ubuntu22.04+Nvidia 510+Cuda11.6+cudnn8.8)</a></p><p class="categories"><a href="/categories/%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/">深度学习</a></p></div></article><article class="media"><div class="media-content"><p class="date"><time dateTime="2023-06-12T17:07:12.000Z">2023-06-12</time></p><p class="title"><a href="/2023/06/12/%E5%BE%85%E5%8F%91%E5%B8%83/%E5%9F%BA%E4%BA%8EDAD-3DHeads-%E7%9A%84%E5%A7%BF%E6%80%81%E8%AF%84%E4%BC%B0%E5%A4%B4%E9%83%A83D%E5%AF%B9%E9%BD%90Demo/">基于DAD-3DHeads 的特征点标记、姿态评估、头部3D对齐Demo</a></p><p class="categories"><a href="/categories/DAD-3DHeads/">DAD-3DHeads</a></p></div></article></div></div><div class="card widget"><div class="card-content"><div class="menu"><h3 class="menu-label">分类</h3><ul class="menu-list"><li><a class="level is-mobile is-marginless" href="/categories/Ajax/"><span class="level-start"><span class="level-item">Ajax</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/Ansible/"><span class="level-start"><span class="level-item">Ansible</span></span><span class="level-end"><span class="level-item tag">23</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/AppCube/"><span class="level-start"><span class="level-item">AppCube</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/CI-CD/"><span class="level-start"><span class="level-item">CI/CD</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/CSS/"><span class="level-start"><span class="level-item">CSS</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/Ceph/"><span class="level-start"><span class="level-item">Ceph</span></span><span class="level-end"><span class="level-item tag">10</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/DAD-3DHeads/"><span class="level-start"><span class="level-item">DAD-3DHeads</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/DNS/"><span class="level-start"><span class="level-item">DNS</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/DeepFace/"><span class="level-start"><span class="level-item">DeepFace</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/DevOps/"><span class="level-start"><span class="level-item">DevOps</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li><a class="level is-mobile is-marginless" href="/categories/"><span class="level-start"><span class="level-item">查看全部&gt;&gt;</span></span></a></ul></div></div></div><div class="card widget"><div class="card-content"><div class="menu"><h3 class="menu-label">归档</h3><ul class="menu-list"><li><a class="level is-mobile is-marginless" href="/archives/2023/06/"><span class="level-start"><span class="level-item">六月 2023</span></span><span class="level-end"><span class="level-item tag">7</span></span></a></li><li><a class="level is-mobile is-marginless" href="/archives/2023/05/"><span class="level-start"><span class="level-item">五月 2023</span></span><span class="level-end"><span class="level-item tag">7</span></span></a></li><li><a class="level is-mobile is-marginless" href="/archives/2023/04/"><span class="level-start"><span class="level-item">四月 2023</span></span><span class="level-end"><span class="level-item tag">13</span></span></a></li><li><a class="level is-mobile is-marginless" href="/archives/2023/03/"><span class="level-start"><span class="level-item">三月 2023</span></span><span class="level-end"><span class="level-item tag">6</span></span></a></li><li><a class="level is-mobile is-marginless" href="/archives/2023/02/"><span class="level-start"><span class="level-item">二月 2023</span></span><span class="level-end"><span class="level-item tag">11</span></span></a></li><a class="level is-mobile is-marginless" href="/archives/"><span class="level-start"><span class="level-item">查看全部&gt;&gt;</span></span></a></ul></div></div></div><div class="card widget"><div class="card-content"><div class="menu"><h3 class="menu-label">标签</h3><div class="field is-grouped is-grouped-multiline"><div class="control"><a class="tags has-addons" href="/tags/Kubernetes/"><span class="tag">Kubernetes</span><span class="tag is-grey-lightest">85</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Linux/"><span class="tag">Linux</span><span class="tag is-grey-lightest">29</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Ansible/"><span class="tag">Ansible</span><span class="tag is-grey-lightest">25</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Python/"><span class="tag">Python</span><span class="tag is-grey-lightest">14</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Ceph/"><span class="tag">Ceph</span><span class="tag is-grey-lightest">10</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Docker/"><span class="tag">Docker</span><span class="tag is-grey-lightest">8</span></a></div><div class="control"><a class="tags has-addons" href="/tags/JAVA/"><span class="tag">JAVA</span><span class="tag is-grey-lightest">8</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Git/"><span class="tag">Git</span><span class="tag is-grey-lightest">7</span></a></div><div class="control"><a class="tags has-addons" href="/tags/OpenShift/"><span class="tag">OpenShift</span><span class="tag is-grey-lightest">6</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%E7%A8%8B%E5%BA%8F%E4%BA%BA%E7%94%9F/"><span class="tag">程序人生</span><span class="tag is-grey-lightest">6</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Go/"><span class="tag">Go</span><span class="tag is-grey-lightest">5</span></a></div><div class="control"><a class="tags has-addons" href="/tags/OKD/"><span class="tag">OKD</span><span class="tag is-grey-lightest">5</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%E5%AE%B9%E5%99%A8/"><span class="tag">容器</span><span class="tag is-grey-lightest">4</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%E7%BD%91%E7%BB%9C/"><span class="tag">网络</span><span class="tag is-grey-lightest">4</span></a></div><div class="control"><a class="tags has-addons" href="/tags/CKA/"><span class="tag">CKA</span><span class="tag is-grey-lightest">3</span></a></div><div class="control"><a class="tags has-addons" href="/tags/shell/"><span class="tag">shell</span><span class="tag is-grey-lightest">3</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%E4%BA%91%E5%8E%9F%E7%94%9F/"><span class="tag">云原生</span><span class="tag is-grey-lightest">3</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%E5%88%86%E5%B8%83%E5%BC%8F/"><span class="tag">分布式</span><span class="tag is-grey-lightest">3</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%E5%BE%AE%E6%9C%8D%E5%8A%A1/"><span class="tag">微服务</span><span class="tag is-grey-lightest">3</span></a></div><div class="control"><a class="tags has-addons" href="/tags/HCIP/"><span class="tag">HCIP</span><span class="tag is-grey-lightest">2</span></a></div></div><div class="field is-grouped is-grouped-multiline"><a class="tags has-addons" href="/tags/"><span class="tag">查看全部&gt;&gt;</span></a></div></div></div></div><div class="card widget" data-type="subscribe-email"><div class="card-content"><div class="menu"><h3 class="menu-label">订阅更新</h3><form action="https://feedburner.google.com/fb/a/mailverify" method="post" target="popupwindow" onsubmit="window.open(&#039;https://feedburner.google.com/fb/a/mailverify?uri=&#039;,&#039;popupwindow&#039;,&#039;scrollbars=yes,width=550,height=520&#039;);return true"><input type="hidden" value="" name="uri"><input type="hidden" name="loc" value="en_US"><div class="field has-addons"><div class="control has-icons-left is-expanded"><input class="input" name="email" type="email" placeholder="Email"><span class="icon is-small is-left"><i class="fas fa-envelope"></i></span></div><div class="control"><input class="button" type="submit" value="订阅"></div></div></form></div></div></div><!--!--><div class="column-right-shadow is-hidden-widescreen is-sticky"></div></div></div></div></section><footer class="footer"><div class="container"><div class="level"><div class="level-start"><a class="footer-logo is-block mb-2" href="/"><img src="/img/logo.png" alt="山河已无恙" height="28"></a><p class="size-small"><span>&copy; 2023 山河已无恙</span>  Powered by <a href="https://hexo.io/" target="_blank">Hexo</a> &amp; <a href="https://github.com/ppoffice/hexo-theme-icarus" target="_blank">Icarus</a> &amp; <a href="https://github.com/removeif/hexo-theme-amazing" target="_blank">Amazing</a> <br><span>© <a href="http://www.beian.miit.gov.cn/" target="_blank">备案号</a><br></span><span>© 版权说明：[本网站所有内容均收集于互联网或自己创作,<br />&nbsp;&nbsp;&nbsp;&nbsp;方便于网友与自己学习交流，如有侵权，请<a href="/message" target="_blank">留言</a>，立即处理]<br /></span><span><span id="statistic-times">loading...</span><script>function createTime(time) {
+            var n = new Date(time);
+            now.setTime(now.getTime() + 250),
+                days = (now - n) / 1e3 / 60 / 60 / 24,
+                dnum = Math.floor(days),
+                hours = (now - n) / 1e3 / 60 / 60 - 24 * dnum,
+                hnum = Math.floor(hours),
+            1 == String(hnum).length && (hnum = "0" + hnum),
+                minutes = (now - n) / 1e3 / 60 - 1440 * dnum - 60 * hnum,
+                mnum = Math.floor(minutes),
+            1 == String(mnum).length && (mnum = "0" + mnum),
+                seconds = (now - n) / 1e3 - 86400 * dnum - 3600 * hnum - 60 * mnum,
+                snum = Math.round(seconds),
+            1 == String(snum).length && (snum = "0" + snum),
+                document.getElementById("statistic-times").innerHTML = "❤️本站自 <strong>"+time.split(" ")[0].replace(/\//g,".")+"</strong> 已运行 <strong>" + dnum + "</strong> 天 <strong>" + hnum + "</strong> 小时 <strong>" + mnum + "</strong> 分 <strong>" + snum + "</strong> 秒！❤️";
+        }var now = new Date();setInterval("createTime('2021/6/26 21:27:00')", 250,"");</script><br></span><div class="size-small"><span>❤️感谢 <strong><span id="busuanzi_value_site_uv">99+</span></strong> 小伙伴的 <strong><span id="busuanzi_value_site_pv">99+</span></strong> 次光临！❤️</span></div></p></div><div class="level-end"><div class="field has-addons"><p class="control"><a class="button is-transparent is-large" target="_blank" rel="noopener" title="Creative Commons" href="https://creativecommons.org/"><i class="fab fa-creative-commons"></i></a></p><p class="control"><a class="button is-transparent is-large" target="_blank" rel="noopener" title="Attribution 4.0 International" href="https://creativecommons.org/licenses/by/4.0/"><i class="fab fa-creative-commons-by"></i></a></p><p class="control"><a class="button is-transparent is-large" target="_blank" rel="noopener" title="Download on GitHub" href="https://github.com/removeif/hexo-theme-amazing"><i class="fab fa-github"></i></a></p></div><div class="sideMusic"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/aplayer/dist/APlayer.min.css"><script src="/js/APlayer.min.js"></script><script src="https://cdn.jsdelivr.net/npm/meting@2/dist/Meting.min.js"></script><meting-js style="width: auto;height: 2000px;" server="netease" type="playlist" id="2364053447" theme="#2980b9" loop="all" autoplay="false" order="list" storageName="aplayer-setting" lrctype="0" list-max-height="400px" fixed="true"></meting-js></div></div></div></div></footer><script src="https://cdnjs.loli.net/ajax/libs/moment.js/2.22.2/moment-with-locales.min.js"></script><script src="https://cdnjs.loli.net/ajax/libs/clipboard.js/2.0.4/clipboard.min.js" async></script><script>moment.locale("zh-CN");</script><script>var IcarusThemeSettings = {
+            article: {
+                highlight: {
+                    clipboard: true,
+                    fold: 'unfolded'
+                }
+            }
+        };</script><script src="/js/column.js"></script><!--!--><script src="/js/animation.js"></script><a id="back-to-top" title="回到顶端" href="javascript:;"><i class="fas fa-chevron-up"></i></a><script src="/js/back_to_top.js" defer></script><!--!--><script src="https://cdnjs.loli.net/ajax/libs/lightgallery/1.6.8/js/lightgallery.min.js" defer></script><script src="https://cdnjs.loli.net/ajax/libs/justifiedGallery/3.7.0/js/jquery.justifiedGallery.min.js" defer></script><script>window.addEventListener("load", () => {
+            if (typeof $.fn.lightGallery === 'function') {
+                $('.article').lightGallery({ selector: '.gallery-item' });
+            }
+            if (typeof $.fn.justifiedGallery === 'function') {
+                if ($('.justified-gallery > p > .gallery-item').length) {
+                    $('.justified-gallery > p > .gallery-item').unwrap();
+                }
+                $('.justified-gallery').justifiedGallery();
+            }
+        });</script><!--!--><!--!--><link rel="stylesheet" href="https://cdnjs.loli.net/ajax/libs/KaTeX/0.11.1/katex.min.css"><script src="https://cdnjs.loli.net/ajax/libs/KaTeX/0.11.1/katex.min.js" defer></script><script src="https://cdnjs.loli.net/ajax/libs/KaTeX/0.11.1/contrib/auto-render.min.js" defer></script><script src="https://cdnjs.loli.net/ajax/libs/KaTeX/0.11.1/contrib/mhchem.js" defer></script><script>window.addEventListener("load", function() {
+            document.querySelectorAll('[role="article"] > .content').forEach(function(element) {
+                renderMathInElement(element);
+            });
+        });</script><script type="text/x-mathjax-config">MathJax.Hub.Config({
+            'HTML-CSS': {
+                matchFontHeight: false
+            },
+            SVG: {
+                matchFontHeight: false
+            },
+            CommonHTML: {
+                matchFontHeight: false
+            },
+            tex2jax: {
+                inlineMath: [
+                    ['$','$'],
+                    ['\\(','\\)']
+                ]
+            }
+        });</script><script src="https://cdnjs.loli.net/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-MML-AM_CHTML" defer></script><div id="outdated"><h6>Your browser is out-of-date!</h6><p>Update your browser to view this website correctly.&amp;npsb;<a id="btnUpdateBrowser" target="_blank" rel="noopener" href="http://outdatedbrowser.com/">Update my browser now </a></p><p class="last"><a href="#" id="btnCloseUpdateBrowser" title="Close">×</a></p></div><script src="https://cdnjs.loli.net/ajax/libs/outdated-browser/1.1.5/outdatedbrowser.min.js" defer></script><script>window.addEventListener("load", function () {
+            outdatedBrowser({
+                bgColor: '#f25648',
+                color: '#ffffff',
+                lowerThan: 'object-fit' // display on IE11 or below
+            });
+        });</script><!--!--><script src="/js/main.js" defer></script><script>$.getScript('/js/comment-issue-data.js',function(){loadIssueData('9fdc9739266d48d5f62e','c1cc33697d099a2197650ec9dadcb16bd4904655','LIRUILONGS','blog_comment',false);})</script><div class="searchbox"><div class="searchbox-container"><div class="searchbox-header"><div class="searchbox-input-container"><input class="searchbox-input" type="text" placeholder="想要查找什么..."></div><a class="searchbox-close" href="javascript:;">×</a></div><div class="searchbox-body"></div></div></div><script src="/js/insight.js" defer></script><script>document.addEventListener('DOMContentLoaded', function () {
+            loadInsight({"contentUrl":"/content.json"}, {"hint":"想要查找什么...","untitled":"(无标题)","posts":"文章","pages":"页面","categories":"分类","tags":"标签"});
+        });</script><script src="https://cdn.jsdelivr.net/npm/pjax@0.2.8/pjax.js"></script><script type="text/javascript">var pjax = new Pjax({
+            elements: "a",//代表点击链接就更新
+            selectors: [  //代表要更新的节点
+                ".section",
+                "title"
+            ],
+            cache: true,
+            cacheBust:false
+        })
+
+        function loadBusuanzi(){
+        $.getScript("//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js", function () {});
+        }
+
+        function loadMathJax() { //加载mathjax
+            $.getScript("//cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.4/MathJax.js?config=TeX-MML-AM_CHTML", function () {
+                MathJax.Hub.Config({ tex2jax: { inlineMath: [['$', '$'], ['\(', '\)']] } });
+                var math = document.getElementsByClassName("entry-content")[0];
+                MathJax.Hub.Queue(["Typeset", MathJax.Hub, math]);
+            });
+        };
+
+        // 开始 PJAX 执行的函数
+        document.addEventListener('pjax:send', function () {
+        });
+        
+        // PJAX 完成之后执行的函数，可以和上面的重载放在一起
+        document.addEventListener('pjax:complete', function () {
+            $(".section").css({opacity:1});
+            if(false){
+                $.getScript('/js/comment-issue-data.js',function(){loadIssueData('9fdc9739266d48d5f62e','c1cc33697d099a2197650ec9dadcb16bd4904655','LIRUILONGS','blog_comment',false);});
+            }
+            if(false){
+                loadMathJax();
+            }
+            loadMainJs(jQuery, window.moment, window.ClipboardJS, window.IcarusThemeSettings);
+            loadBackTop();
+            loadBusuanzi();
+            if(typeof loadBanner == 'function'){
+                loadBanner();
+            }
+        });</script></body></html>
