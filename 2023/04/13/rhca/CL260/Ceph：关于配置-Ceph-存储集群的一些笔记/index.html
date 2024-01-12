@@ -1,0 +1,502 @@
+<!doctype html>
+<html lang="zh"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"><meta><title>Ceph：关于 Ceph 存储集群配置的一些笔记 - 山河已无恙</title><link rel="manifest" href="/manifest.json"><meta name="application-name" content="山河已无恙"><meta name="msapplication-TileImage" content="https://cdn.jsdelivr.net/gh/removeif/removeif-demo@latest/img/favicon.png"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="山河已无恙"><meta name="apple-mobile-web-app-status-bar-style" content="default"><meta description="对每个人而言，真正的职责只有一个：找到自我。然后在心中坚守其一生，全心全意，永不停息。所有其它的路都是不完整的，是人的逃避方式，是对大众理想的懦弱回归，是随波逐流，是对内心的恐惧 ——赫尔曼·黑塞《德米安》"><meta property="og:type" content="blog"><meta property="og:title" content="山河已无恙"><meta property="og:url" content="https://liruilong.blog.csdn.net/?t=1&amp;type=blog"><meta property="og:site_name" content="山河已无恙"><meta property="og:description" content="对每个人而言，真正的职责只有一个：找到自我。然后在心中坚守其一生，全心全意，永不停息。所有其它的路都是不完整的，是人的逃避方式，是对大众理想的懦弱回归，是随波逐流，是对内心的恐惧 ——赫尔曼·黑塞《德米安》"><meta property="og:locale" content="zh_CN"><meta property="og:image" content="https://liruilong.blog.csdn.net/img/头像.jpg"><meta property="article:published_time" content="2023-04-13T13:59:42.000Z"><meta property="article:modified_time" content="2023-07-23T04:54:00.654Z"><meta property="article:author" content="LIRUILONGS"><meta property="article:tag" content="Ceph"><meta property="twitter:card" content="summary"><meta property="twitter:image" content="/img/头像.jpg"><script type="application/ld+json">{"@context":"https://schema.org","@type":"BlogPosting","mainEntityOfPage":{"@type":"WebPage","@id":"https://liruilongs.github.io/2023/04/13/rhca/CL260/Ceph%EF%BC%9A%E5%85%B3%E4%BA%8E%E9%85%8D%E7%BD%AE-Ceph-%E5%AD%98%E5%82%A8%E9%9B%86%E7%BE%A4%E7%9A%84%E4%B8%80%E4%BA%9B%E7%AC%94%E8%AE%B0/"},"headline":"山河已无恙","image":["https://img-blog.csdnimg.cn/665936cc47e34027819bc4ae244baf8a.png"],"datePublished":"2023-04-13T13:59:42.000Z","dateModified":"2023-07-23T04:54:00.654Z","author":{"@type":"Person","name":"山河已无恙"},"description":"对每个人而言，真正的职责只有一个：找到自我。然后在心中坚守其一生，全心全意，永不停息。所有其它的路都是不完整的，是人的逃避方式，是对大众理想的懦弱回归，是随波逐流，是对内心的恐惧 ——赫尔曼·黑塞《德米安》"}</script><link rel="canonical" href="https://liruilongs.github.io/2023/04/13/rhca/CL260/Ceph%EF%BC%9A%E5%85%B3%E4%BA%8E%E9%85%8D%E7%BD%AE-Ceph-%E5%AD%98%E5%82%A8%E9%9B%86%E7%BE%A4%E7%9A%84%E4%B8%80%E4%BA%9B%E7%AC%94%E8%AE%B0/"><link rel="alternate" href="/path/to/atom.xml" title="山河已无恙" type="application/atom+xml"><link rel="icon" href="https://cdn.jsdelivr.net/gh/removeif/removeif-demo@latest/img/favicon.png"><meta name="referrer" content="no-referrer-when-downgrade"><link rel="stylesheet" href="https://cdnjs.loli.net/ajax/libs/font-awesome/5.12.0/css/all.min.css"><link rel="stylesheet" href="https://cdnjs.loli.net/ajax/libs/highlight.js/9.12.0/styles/dracula.min.css"><link rel="stylesheet" href="https://fonts.loli.net/css2?family=Ubuntu:wght@400;600&amp;family=Source+Code+Pro"><link rel="stylesheet" href="/css/default.css"><link rel="stylesheet" href="https://cdnjs.loli.net/ajax/libs/font-awesome/5.12.0/css/all.min.css"><link rel="stylesheet" href="https://fonts.loli.net/css?family=Ubuntu:400,600|Source+Code+Pro|Monda:300,300italic,400,400italic,700,700italic|Roboto Slab:300,300italic,400,400italic,700,700italic|Microsoft YaHei:300,300italic,400,400italic,700,700italic|PT Mono:300,300italic,400,400italic,700,700italic&amp;amp;subset=latin,latin-ext|Inconsolata|Itim|Lobster.css"><script src="https://cdnjs.loli.net/ajax/libs/jquery/3.3.1/jquery.min.js"></script><script src="/js/globalUtils.js"></script><script src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js" defer></script><style>body>.footer,body>.navbar,body>.section{opacity:0}</style><!--!--><script>var _hmt = _hmt || [];
+        (function() {
+            var hm = document.createElement("script");
+            hm.src = "//hm.baidu.com/hm.js?3f06f2b732a5b1034c989f74e28d0eea";
+            var s = document.getElementsByTagName("script")[0];
+            s.parentNode.insertBefore(hm, s);
+        })();</script><link rel="stylesheet" href="https://cdnjs.loli.net/ajax/libs/lightgallery/1.6.8/css/lightgallery.min.css"><link rel="stylesheet" href="https://cdnjs.loli.net/ajax/libs/justifiedGallery/3.7.0/css/justifiedGallery.min.css"><!--!--><!--!--><!--!--><!--!--><link rel="stylesheet" href="https://cdnjs.loli.net/ajax/libs/outdated-browser/1.1.5/outdatedbrowser.min.css"><script src="https://cdnjs.loli.net/ajax/libs/pace/1.0.2/pace.min.js"></script><meta name="generator" content="Hexo 5.4.2"></head><body class="is-3-column has-navbar-fixed-top"><nav class="navbar navbar-main is-fixed-top"><div class="container"><div class="navbar-brand justify-content-center"><a class="navbar-item navbar-logo" href="/"><img src="/img/logo.png" alt="山河已无恙" height="28"></a></div><div class="navbar-menu"><div class="navbar-start"><a class="navbar-item" href="/">首页</a><a class="navbar-item" href="/archives">归档</a><a class="navbar-item" href="/categories">分类</a><a class="navbar-item" href="/tags">标签</a><a class="navbar-item" href="/media">影音</a><a class="navbar-item" href="/album">相册</a><a class="navbar-item" href="/friend">友链</a><a class="navbar-item" href="/self-talking">生活小记</a><a class="navbar-item" href="/message">留言墙</a><a class="navbar-item" href="/about">关于</a></div><div class="navbar-end"><a class="navbar-item" target="_blank" rel="noopener" title="Gitee" href="https://gitee.com/liruilonger"><i class="fab fa-git-square fa-1x"></i></a><a class="navbar-item" target="_blank" rel="noopener" title="GitHub" href="https://github.com/LIRUILONGS"><i class="fab fa-github fa-1x"></i></a><a class="navbar-item is-hidden-tablet catalogue" title="目录" href="javascript:;"><i class="fas fa-list-ul fa-1x"></i></a><a class="navbar-item search" title="搜索" href="javascript:;"><i class="fas fa-search fa-1x"></i></a><a class="navbar-item" id="night-nav" title="Night Mode" href="javascript:;"><i class="fas fa-moon fa-1x" id="night-icon"></i></a></div></div></div></nav><script type="text/javascript" src="/js/theme-setting.js"></script><section class="section"><div class="container"><div class="columns"><div class="column order-2 column-main is-8-tablet is-8-desktop is-9-widescreen"><!--!--><div class="card"><article class="card-content article" role="article"><div class="article-meta size-small is-uppercase level is-mobile"><div class="level-left"><i class="far fa-calendar-plus"> </i>2023-04-13  <a class="commentCountImg" href="/2023/04/13/rhca/CL260/Ceph%EF%BC%9A%E5%85%B3%E4%BA%8E%E9%85%8D%E7%BD%AE-Ceph-%E5%AD%98%E5%82%A8%E9%9B%86%E7%BE%A4%E7%9A%84%E4%B8%80%E4%BA%9B%E7%AC%94%E8%AE%B0/#comment-container"><span class="display-none-class">1e8b8d66b358409ef103c1aa3ab04fe8</span><i class="far fa-comment-dots"></i> <span class="commentCount" id="1e8b8d66b358409ef103c1aa3ab04fe8">99+</span>  </a><span class="level-item"><i class="far fa-clock"> </i>1 小时  <i class="fas fa-pencil-alt"> </i>7.2 k</span><span class="level-item" id="busuanzi_container_page_pv"><span id="busuanzi_value_page_pv">0</span>次访问</span></div></div><h1 class="title is-3 is-size-4-mobile">Ceph：关于 Ceph 存储集群配置的一些笔记</h1><div class="content"><p><strong><font color="009688"> 对每个人而言，真正的职责只有一个：找到自我。然后在心中坚守其一生，全心全意，永不停息。所有其它的路都是不完整的，是人的逃避方式，是对大众理想的懦弱回归，是随波逐流，是对内心的恐惧 ——赫尔曼·黑塞《德米安》</strong></font></p>
+<span id="more"></span>
+<h2 id="写在前面"><a href="#写在前面" class="headerlink" title="写在前面"></a>写在前面</h2><hr>
+<ul>
+<li>Ceph 考试整理笔记，老师总结基础上，略有补充</li>
+<li>博文内容涉及：<ul>
+<li>ceph 集群的配置简单介绍</li>
+<li>永久和零时修改集群配置文件</li>
+<li>集群 Mon 的配置</li>
+<li>集群身份验证的配置</li>
+<li>集群多网络的配置</li>
+</ul>
+</li>
+<li>理解不足小伙伴帮忙指正</li>
+</ul>
+<p><strong><font color="009688"> 对每个人而言，真正的职责只有一个：找到自我。然后在心中坚守其一生，全心全意，永不停息。所有其它的路都是不完整的，是人的逃避方式，是对大众理想的懦弱回归，是随波逐流，是对内心的恐惧 ——赫尔曼·黑塞《德米安》</strong></font></p>
+<hr>
+<h1 id="集群管理配置"><a href="#集群管理配置" class="headerlink" title="集群管理配置"></a>集群管理配置</h1><h2 id="Ceph集群配置简介"><a href="#Ceph集群配置简介" class="headerlink" title="Ceph集群配置简介"></a>Ceph集群配置简介</h2><p>所有的 Ceph 存储集群配置包含这些必需的定义:</p>
+<ul>
+<li>集群网络配置</li>
+<li>集群监视器(MON)配置和引导程序选项</li>
+<li>集群身份验证配置</li>
+<li>守护进程的配置选项</li>
+</ul>
+<p>Ceph 配置设置使用唯一的名称，该名称由小写字母与下划线连接，每个 Ceph 守护进程、进程和库都从以下来源访问它的配置:</p>
+<ol>
+<li>编译后的默认值</li>
+<li>集中式配置数据库</li>
+<li>保存在本地主机上的配置文件</li>
+<li>环境变量</li>
+<li>命令行参数</li>
+<li>运行时将覆盖</li>
+</ol>
+<p><code>监视器(MON)</code> 节点管理集中的 <code>配置数据库</code>，在启动时，Ceph 守护进程通过命令行选项解析环境变量和本地集群配置文件提供的配置选项，守护进程然后联系 <code>MON集群</code> 以检索存储在集中配置数据库中的配置设置。</p>
+<p>Red Hat Ceph Storage 5 已降级 <code>/etc/ceph/ceph.conf</code> 配置文件，使集中<code>配置数据库</code>成为存储配置设置的<code>首选方式</code></p>
+<h2 id="修改集群配置文件"><a href="#修改集群配置文件" class="headerlink" title="修改集群配置文件"></a>修改集群配置文件</h2><p>每个 <code>Ceph</code> 节点存储一个<code>本地集群配置文件</code>，集群配置文件的默认位置为 <code>/etc/ceph/ceph.conf</code>，<code>cephadm</code> 工具使用最小的选项集创建一个初始的 Ceph 配置文件</p>
+<p>配置文件使用一种  INI 文件格式，包含几个部分，其中包括对</p>
+<ul>
+<li>Ceph守护进程</li>
+<li>client</li>
+</ul>
+<p>的配置，每个 section 都有一个名称，它是用[name]头定义的，以及定义为键值对的一个或多个参数</p>
+<figure class="highlight ini"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="section">[name]</span> </span><br><span class="line"><span class="attr">parameterl</span> = valuel</span><br><span class="line"><span class="attr">parameter2</span> = value2 </span><br></pre></td></tr></table></figure>
+
+<p>使用<code>井号#分号;</code>来禁用设置或添加注释，设置引导集群时使用集群配置文件以及自定义设置，使用 <code>cephadm boostrap</code> 带有 <code>--config</code> 选项的命令来传递配置文件</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[root@node ~]<span class="comment"># cephadm bootstrap --config ceph-config.yaml</span></span><br></pre></td></tr></table></figure>
+
+
+
+<h3 id="配置-Sections"><a href="#配置-Sections" class="headerlink" title="配置 Sections"></a>配置 Sections</h3><p>Ceph 将配置设置组织到组中，无论是存储在 <code>配置文件</code> 中还是存储在 <code>配置数据库</code>，使用 sections 调用它们应用到的守护进程或客户端</p>
+<ul>
+<li><code>[global]</code> 存储所有守护进程或读取配置的任何进程(包括客户端)通用的通用配置，可以通过为各个守护进程或客户端创建被调用的部分来覆盖[global]参数</li>
+<li><code>[mon]</code>: 存储了监视器(mon)的配置</li>
+<li><code>[osd]</code>: 存储osd守护进程的配置</li>
+<li><code>[mgr]</code>: 存储Managers (mgr)的配置</li>
+<li><code>[mds]</code>: 存储元数据服务器(mds)的配置</li>
+<li><code>[client]</code> 存储了应用于所有Ceph客户端的配置</li>
+</ul>
+<h3 id="实例设置"><a href="#实例设置" class="headerlink" title="实例设置"></a>实例设置</h3><p>将应用于特定守护进程实例的设置分组在各自的部分中，名称为 <code>[daemon-type.instance-id]</code></p>
+<figure class="highlight ini"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="section">[mon]</span></span><br><span class="line">设置全局的</span><br><span class="line"><span class="section">[mon.serverc]</span></span><br><span class="line">设置单个实例的</span><br></pre></td></tr></table></figure>
+
+<p>同样的命名也适用于[osd]， [mgr]， [mds]和[client]段。对于OSD进程，实例ID总是为数字，例如[osd.0]，对于客户端，实例ID为活动用户名，例如[client.operator3]</p>
+<h3 id="元变量"><a href="#元变量" class="headerlink" title="元变量"></a>元变量</h3><p>元变量是 <code>ceph</code> 定义的变量。使用它们可以简化配置</p>
+<ul>
+<li><code>$cluster</code>：Red Hat Ceph Storage 5集群名称，默认集群名称为ceph</li>
+<li><code>$type</code>：守护进程类型，例如monitor使用mon，OSDs使用osd、MDSes使用mds, MGRs使用mgr，client应用程序使用client</li>
+<li><code>$id</code>：守护进程实例ID，在serverc上的monitor变量的值为的serverc，osd 1的id是osd.1，client应用程序是用户名</li>
+<li><code>$name</code>：守护进程名称和实例ID，这个变量是<code>$type.$id</code>的快捷方式</li>
+<li><code>$host</code>：运行守护进程的主机名</li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">[root@serverc ~]<span class="comment"># ceph status</span></span><br><span class="line">  cluster:</span><br><span class="line">    id:     4c759c0c-d869-11ed-bfcb-52540000fa0c</span><br><span class="line">    health: HEALTH_OK</span><br><span class="line"></span><br><span class="line">  services:</span><br><span class="line">    mon: 3 daemons, quorum serverc.lab.example.com,serverd,servere (age 2h)</span><br><span class="line">    mgr: serverc.lab.example.com.cbhfyf(active, since 3h), standbys: serverd.itakzd, servere.teklwv</span><br><span class="line">    osd: 9 osds: 9 up (since 2h), 9 <span class="keyword">in</span> (since 2h)</span><br><span class="line"></span><br><span class="line">  data:</span><br><span class="line">    pools:   1 pools, 1 pgs</span><br><span class="line">    objects: 0 objects, 0 B</span><br><span class="line">    usage:   51 MiB used, 90 GiB / 90 GiB avail</span><br><span class="line">    pgs:     1 active+clean</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<h2 id="使用集中式配置数据库"><a href="#使用集中式配置数据库" class="headerlink" title="使用集中式配置数据库"></a>使用集中式配置数据库</h2><p><code>MON</code> 集群在 <code>MON</code>节点上管理和存储<code>集中配置数据库</code>，可以临时更改设置(直到守护进程重新启动)，也可以配置设置永久保存并存储在数据库中，可以在<code>集群运行时更改大多数配置设置</code></p>
+<p>使用 <code>ceph config</code> 命令查询数据库，查看配置信息</p>
+<ul>
+<li><code>ceph config ls</code> 列出所有可能的配置设置</li>
+<li><code>ceph config help setting</code> 查询特定的配置设置的帮助</li>
+<li><code>ceph config dump</code> 显示集群配置数据库设置</li>
+<li><code>ceph config show $type.$id</code>显示特定守护进程的数据库设置。使用show-with -defaults包含默认设置</li>
+<li><code>ceph config get $type.$id</code>，以获得特定的配置设置</li>
+<li><code>ceph config set $type.$id</code>，用于设置特定的配置设置</li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[root@serverc ~]<span class="comment"># ceph config set mon mon_allow_pool_delete true</span></span><br></pre></td></tr></table></figure>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># cephadm shell</span></span><br><span class="line">[ceph: root@clienta /]<span class="comment"># ceph config dump</span></span><br><span class="line">[ceph: root@clienta /]<span class="comment"># ceph config show osd.1</span></span><br><span class="line"></span><br><span class="line">[ceph: root@clienta /]<span class="comment"># ceph config \</span></span><br><span class="line">show osd.1 debug_ms</span><br><span class="line">[ceph: root@clienta /]<span class="comment"># ceph config \</span></span><br><span class="line">get osd.1 debug_ms</span><br><span class="line"></span><br><span class="line">[ceph: root@clienta /]<span class="comment"># ceph config \</span></span><br><span class="line"><span class="built_in">set</span> osd.1 debug_ms 10</span><br><span class="line"></span><br><span class="line">[ceph: root@clienta /]<span class="comment"># ceph config \</span></span><br><span class="line">show osd.1 debug_ms</span><br><span class="line">[ceph: root@clienta /]<span class="comment"># ceph config \</span></span><br><span class="line">get osd.1 debug_ms</span><br><span class="line"></span><br><span class="line">[ceph: root@clienta /]<span class="comment"># ceph orch \</span></span><br><span class="line">daemon restart osd.1</span><br><span class="line"></span><br><span class="line">[ceph: root@clienta /]<span class="comment"># ceph config \</span></span><br><span class="line">show osd.1 debug_ms</span><br><span class="line">10/10</span><br><span class="line">[ceph: root@clienta /]<span class="comment"># ceph config \</span></span><br><span class="line">get osd.1 debug_ms</span><br></pre></td></tr></table></figure>
+
+
+<p>这里的配置为永久的，如果使用 <code>ceph tell</code> 命令则为临时修改</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">[ceph: root@clienta /]<span class="comment"># ceph tell \</span></span><br><span class="line">osd.1 config get debug_ms</span><br><span class="line">[ceph: root@clienta /]<span class="comment"># ceph tell \</span></span><br><span class="line">osd.1 config <span class="built_in">set</span> debug_ms 5</span><br><span class="line">[ceph: root@clienta /]<span class="comment"># ceph tell \</span></span><br><span class="line">osd.1 config get debug_ms</span><br><span class="line">5</span><br><span class="line">[ceph: root@clienta /]<span class="comment"># ceph orch \</span></span><br><span class="line">daemon restart osd.1</span><br><span class="line">[ceph: root@clienta /]<span class="comment"># ceph tell \</span></span><br><span class="line">osd.1 config get debug_ms</span><br><span class="line"></span><br><span class="line">[ceph: root@clienta /]<span class="comment"># &lt;Ctrl-D&gt;</span></span><br><span class="line"></span><br><span class="line">[root@clienta ~]<span class="comment"># &lt;Ctrl-D&gt;</span></span><br></pre></td></tr></table></figure>
+
+
+<p>将现有的 <code>ceph.conf</code> 配置文件导入到 <code>Ceph</code> 配置数据库中。当您有一个现有的 ceph.conf 文件并希望将其与 Ceph 集群一起使用，但不想手动输入所有配置选项时，此命令非常有用。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[ceph: root@node /]<span class="comment"># ceph config assimilate-conf -i ceph.conf</span></span><br></pre></td></tr></table></figure>
+
+
+<p><code>assimilate-conf</code> 命令读取 ceph.conf 文件并将配置选项导入到 Ceph 配置数据库中。这使您可以使用 ceph config 命令管理配置选项，该命令提供了一种更结构化和组织化的管理配置选项的方式。</p>
+<h2 id="集群引导选项"><a href="#集群引导选项" class="headerlink" title="集群引导选项"></a>集群引导选项</h2><p>一些选项提供启动集群所需的信息。<code>MON</code> 节点通过读取 <code>monmap</code> 来找到其他的 <code>MON</code> 并建立 <code>quorum</code>。 <code>MON</code> 节点读取 <code>ceph.conf</code> 文件来确定如何与其他 <code>MONs</code> 进行通信</p>
+<p><code>mon_host</code> 选项列出集群监视器，此选项非常重要，不能存储在配置数据库中，为了避免使用集群配置文件，Ceph 集群支持使用 DNS 服务记录来提供 <code>mon_host</code> 列表</p>
+<p>本地集群配置文件可以包含其他选项以满足的需求：</p>
+<ul>
+<li><code>mon_host_override</code>，集群要联系以开始通信的初始监视器列表</li>
+<li><code>mon_dns_serv_name</code>, 要检查的DNS SRV记录的名称，以便通过DNS识别集群监视器</li>
+<li><code>mon_data, osd_data, mds_data, mgr_data</code>，定义守护进程的本地数据存储目录</li>
+<li><code>Keyring，keyfile和key</code>，它们是要用监视器进行身份验证的身份验证凭证</li>
+</ul>
+<h2 id="使用服务配置文件"><a href="#使用服务配置文件" class="headerlink" title="使用服务配置文件"></a>使用服务配置文件</h2><p>服务配置文件是引导存储集群和其他 <code>Ceph</code> 服务的 YAML 文件。<code>cephadm</code> 工具通过平衡集群中运行的守护进程来协调服务部署、大小和放置，通过各种参数，可以更明确地部署 <code>osd、mon</code> 等服务</p>
+<p>下面是一个服务配置文件示例：</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">service_type:</span> <span class="string">mon</span></span><br><span class="line"><span class="attr">placement:</span></span><br><span class="line">  <span class="attr">host_pattern:</span> <span class="string">&quot;mon&quot;</span></span><br><span class="line">  <span class="attr">count:</span> <span class="number">3</span> </span><br><span class="line"><span class="meta">---</span></span><br><span class="line"><span class="attr">service_type:</span> <span class="string">osd</span> </span><br><span class="line"><span class="attr">service_id:</span> <span class="string">default_drive_group</span> </span><br><span class="line"><span class="attr">placement:</span> </span><br><span class="line">  <span class="attr">host_pattern:</span> <span class="string">&quot;osd*&quot;</span> </span><br><span class="line"><span class="attr">data_devices:</span> </span><br><span class="line">  <span class="attr">all:</span> <span class="literal">true</span></span><br></pre></td></tr></table></figure>
+
+<ol>
+<li><p>Service_type定义了服务的类型，如mon、mds、mgr、rgw等</p>
+</li>
+<li><p>位置定义要部署的服务的位置和数量，可以定义主机、主机模式或标签来选择目标服务器</p>
+</li>
+<li><p><code>data_devices</code> 是特定于 <code>OSD</code> 服务的，支持的过滤参数为大小、模型或路径等</p>
+</li>
+</ol>
+<p>使用 <code>cephadm bootstrap - -apply- spec</code> 命令应用指定文件中的服务配置</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">[root@node ~]<span class="comment"># cephadm bootstrap \</span></span><br><span class="line">	--apply-spec service-config.yaml </span><br></pre></td></tr></table></figure>
+
+
+
+<h2 id="在运行时覆盖配置设置"><a href="#在运行时覆盖配置设置" class="headerlink" title="在运行时覆盖配置设置"></a>在运行时覆盖配置设置</h2><p>可以在运行时更改大多数集群配置设置，可以在<code>守护进程运行时临时更改配置设置</code></p>
+<h3 id="ceph-tell-方式"><a href="#ceph-tell-方式" class="headerlink" title="ceph tell 方式"></a>ceph tell 方式</h3><p><code>ceph tell $type.$id config</code> 命令临时覆盖配置设置，并且要求所配置的<code>MONs和守护进程都在运行</code>，在任何配置为<code>运行 ceph 命令</code>的<code>集群主机</code>上运行此命令，使用该命令更改的设置<code>在守护进程重新启动时恢复到原来的设置</code></p>
+<ul>
+<li><code>ceph tell $type.$id config get</code> 获取守护进程的特定运行时设置</li>
+<li><code>ceph tell $type.$id config set</code> 设置守护进程的特定运行时设置，当守护进程重新启动时，这些临时设置会恢复到原来的值</li>
+</ul>
+<p><code>ceph tell $type.$id config</code> 命令还可以接受通配符来获取或设置同一类型的所有守护进程的值。例如<code>ceph tell osd.* config get debug_ms</code> 显示集群中所有OSD守护进程的该设置的值</p>
+<h3 id="ceph-daemon-方式"><a href="#ceph-daemon-方式" class="headerlink" title="ceph daemon 方式"></a>ceph daemon 方式</h3><p>可以使用<code>ceph daemon $type.$id config</code> 临时覆盖配置设置，在<code>需要设置的集群节点</code>上运行此命令,</p>
+<p><code>ceph daemon</code> 不需要通过 <code>MONs</code> 进行连接，即使在 <code>MONs</code> 不运行的情况下，<code>ceph daemon</code> 命令仍然可以运行，这对于故障排除很有用</p>
+<ul>
+<li><code>ceph daemon $type.$id config get</code> 获取守护进程的特定运行时设置</li>
+<li><code>ceph daemon $type.$id config set</code> 设置守护进程的特定运行时设置，当守护进程重新启动时，临时设置会恢复到原来的值</li>
+</ul>
+<h3 id="ceph-tell-和-ceph-daemon-有什么区别？"><a href="#ceph-tell-和-ceph-daemon-有什么区别？" class="headerlink" title="ceph tell  和 ceph daemon  有什么区别？"></a>ceph tell  和 ceph daemon  有什么区别？</h3><p><code>ceph tell</code> 和 <code>ceph daemon</code> 命令都是用于与 <code>Ceph</code> 守护进程进行交互的命令，但它们的使用方式和目的略有不同。</p>
+<p><code>ceph tell</code> 命令用于向指定的 <code>Ceph</code> 守护进程发送命令。例如，您可以使用 ceph tell osd.0 version 命令向 osd.0 守护进程发送 version 命令，以获取该守护进程的版本信息。ceph tell 命令还可以向多个守护进程发送命令，以便同时执行相同的操作。比如 <code>ceph tell osd.* config get debug_ms</code></p>
+<p>ceph daemon 命令用于直接控制指定的 Ceph 守护进程。例如，您可以使用 ceph daemon osd.0 config show 命令来获取 osd.0 守护进程的配置信息。ceph daemon 命令还可以用于启动、停止、重启和重新加载指定的守护进程。</p>
+<p>总之，<code>ceph tell 命令用于向守护进程发送命令，而 ceph daemon 命令用于直接控制守护进程</code>。</p>
+<h1 id="集群监控配置"><a href="#集群监控配置" class="headerlink" title="集群监控配置"></a>集群监控配置</h1><h2 id="Ceph监控配置"><a href="#Ceph监控配置" class="headerlink" title="Ceph监控配置"></a>Ceph监控配置</h2><p>Ceph监视器(MONs)存储和维护客户端用来查找MON和OSD节点的集群映射，Ceph客户端在向osd读写任何数据之前，必须连接到一个 MON 来检索集群映射，因此，正确配置集群 MONs 至关重要，MONs通过使用一种变异的 Paxos 算法组成一个quorum ，选出一个 leader，在一组分布式计算机之间达成共识，MONs有以下角色之一：</p>
+<ul>
+<li>Leader：第一个获得最新版本的cluster map的MON</li>
+<li>Provider：一个MON，它具有集群映射的最新版本，但不是leader</li>
+<li>Requester：一个MON，它没有最新版本的集群映射，并且在重新加入仲裁之前必须与 Provider 同步</li>
+</ul>
+<p><code>同步总是在新的 MON 加入集群时发生</code>，每个 MON 定期检查相邻的监视器是否有最新版本的集群映射，如果一个MON没有集群映射的最新版本，那么它必须同步并获取它</p>
+<p>要建立仲裁，集群中的大多数 MONs 必须处于运行状态，例如，如果部署了 5 个 MONs，那么必须运行3个MONs来建立仲裁，<code>在生产Ceph集群中部署至少三个MON节点</code>，以确保高可用性.</p>
+<p>支持对运行中的集群添加或移除mon，集群配置文件定义了用于集群操作的MON主机IP地址和端口，<code>rnon_host</code> 设置可以包含IP地址或DNS名称，<code>cephadm</code> 工具无法更新集群配置文件，定义一个策略来保持集群配置文件在集群节点之间同步，例如使用rsync</p>
+<figure class="highlight ini"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="section">[global]</span></span><br><span class="line"><span class="attr">mon_host</span> = [v2:<span class="number">172.25</span>.<span class="number">250.12</span>:<span class="number">3300</span>,v1:<span class="number">172.25</span>.<span class="number">250.12</span>:<span class="number">6789</span>], [v2:<span class="number">172.25</span>.<span class="number">250.13</span>:<span class="number">3300</span>,v1:<span class="number">172.25</span>.<span class="number">250.13</span>:<span class="number">6789</span>], [v2:<span class="number">172.25</span>.<span class="number">250.14</span>:<span class="number">3300</span>, v1:<span class="number">172.25</span>.<span class="number">250.14</span>:<span class="number">6789</span>] </span><br></pre></td></tr></table></figure>
+
+<p>不建议在集群部署并运行后修改MON节点IP地址</p>
+<h2 id="查看Monitor仲裁"><a href="#查看Monitor仲裁" class="headerlink" title="查看Monitor仲裁"></a>查看Monitor仲裁</h2><p>使用 <code>ceph status</code>或 <code>ceph mon stat</code> 命令验证 <code>MON</code> 仲裁状态</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">[ceph: root@clienta /]<span class="comment">#  ceph mon stat</span></span><br><span class="line">e4: 4 mons at &#123;clienta=[v2:172.25.250.10:3300/0,v1:172.25.250.10:6789/0],serverc.lab.example.com=[v2:172.25.250.12:3300/0,v1:172.25.250.12:6789/0],serverd=[v2:172.25.250.13:3300/0,v1:172.25.250.13:6789/0],servere=[v2:172.25.250.14:3300/0,v1:172.25.250.14:6789/0]&#125;, election epoch 134, leader 0 serverc.lab.example.com, quorum 0,1,2,3 serverc.lab.example.com,clienta,serverd,servere</span><br></pre></td></tr></table></figure>
+
+<p>或者，使用<code> ceph quorum_status</code>命令。添加 <code>-f json-pretty</code> 选项以创建更可读的输出</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">[ceph: root@clienta /]# ceph quorum_status -f json-pretty</span><br><span class="line"></span><br><span class="line">&#123;</span><br><span class="line">    <span class="attr">&quot;election_epoch&quot;</span>: <span class="number">134</span>,</span><br><span class="line">    <span class="attr">&quot;quorum&quot;</span>: [</span><br><span class="line">        <span class="number">0</span>,</span><br><span class="line">        <span class="number">1</span>,</span><br><span class="line">        <span class="number">2</span>,</span><br><span class="line">        <span class="number">3</span></span><br><span class="line">    ],</span><br><span class="line">    <span class="attr">&quot;quorum_names&quot;</span>: [</span><br><span class="line">        <span class="string">&quot;serverc.lab.example.com&quot;</span>,</span><br><span class="line">        <span class="string">&quot;clienta&quot;</span>,</span><br><span class="line">        <span class="string">&quot;serverd&quot;</span>,</span><br><span class="line">        <span class="string">&quot;servere&quot;</span></span><br><span class="line">    ],</span><br><span class="line">    <span class="attr">&quot;quorum_leader_name&quot;</span>: <span class="string">&quot;serverc.lab.example.com&quot;</span>,</span><br></pre></td></tr></table></figure>
+
+<p>也可以在 <code>Dashboard</code> 中查看 <code>MONs</code> 的状态。在仪表板中，单击 <code>Cluster--&gt;Monitors</code>，查看 <code>Monitor节点</code>和仲裁的状态</p>
+<h2 id="分析-mon-map"><a href="#分析-mon-map" class="headerlink" title="分析 mon map"></a>分析 mon map</h2><p>Ceph 集群地图包括 <code>MON map、OSD map、PG map、MDS map 和 CRUSH map</code></p>
+<p>MON 映射包含集群 fsid(文件系统ID)，以及与每个MON节点通信的名称、IP地址和网口。fsid是一个惟一的、自动生成的标识符(UUID)，用于标识 Ceph 集群</p>
+<p>MON 映射还保存映射版本信息，例如最后一次更改的序号(epoch )和时间，MON节点通过同步更改和对当前版本达成一致来维护映射</p>
+<p>使用 <code>ceph mon dump</code> 命令查看当前的mon映射。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">[ceph: root@clienta /]<span class="comment"># ceph mon dump</span></span><br><span class="line">epoch 4</span><br><span class="line">fsid 2ae6d05a-229a-11ec-925e-52540000fa0c</span><br><span class="line">last_changed 2021-10-01T09:33:53.880442+0000</span><br><span class="line">created 2021-10-01T09:30:30.146231+0000</span><br><span class="line">min_mon_release 16 (pacific)</span><br><span class="line">election_strategy: 1</span><br><span class="line">0: [v2:172.25.250.12:3300/0,v1:172.25.250.12:6789/0] mon.serverc.lab.example.com</span><br><span class="line">1: [v2:172.25.250.10:3300/0,v1:172.25.250.10:6789/0] mon.clienta</span><br><span class="line">2: [v2:172.25.250.13:3300/0,v1:172.25.250.13:6789/0] mon.serverd</span><br><span class="line">3: [v2:172.25.250.14:3300/0,v1:172.25.250.14:6789/0] mon.servere</span><br><span class="line">dumped monmap epoch 4</span><br></pre></td></tr></table></figure>
+
+
+
+<h2 id="管理集中式配置数据库"><a href="#管理集中式配置数据库" class="headerlink" title="管理集中式配置数据库"></a>管理集中式配置数据库</h2><p>MON节点存储和维护集中式配置数据库，数据库在每个MON节点上的默认位置是<code>/var/lib/ceph/$fsid/mon.$host/store.db</code>，不建议更改数据库的位置。</p>
+<p>随着时间的推移，数据库可能会变大，运行 <code>ceph tell mon.$id compact</code> 命令用于压缩数据库以提高性能，另外，将<code>mon_compact_on_start</code> 配置设置为true，以便在每次daemon启动时压缩数据库:</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">[ceph: root@clienta /]<span class="comment"># ceph \</span></span><br><span class="line">	config <span class="built_in">set</span> mon mon_compact_on_start <span class="literal">true</span> </span><br></pre></td></tr></table></figure>
+
+<p>定义基于数据库大小触发健康状态更改的阈值设置：</p>
+<table>
+<thead>
+<tr>
+<th>描述</th>
+<th>设置</th>
+<th>默认值</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>配置数据库超过此大小时，将群集健康状态更改为HEALTH_WARN</td>
+<td>mon_data_size_warn</td>
+<td>15 (GB)</td>
+</tr>
+<tr>
+<td>当存储配置数据库的文件系统的剩余容量小于或等于该百分比时，将集群健康状态更改为HEALTH_WARN</td>
+<td>mon_data_avail_warn</td>
+<td>30 (%)</td>
+</tr>
+<tr>
+<td>当存储配置数据库的文件系统的剩余容量小于或等于该百分比时，将集群健康状态更改为HEALTH_ ERR</td>
+<td>mon_ data avail_crit</td>
+<td>5 (%)</td>
+</tr>
+</tbody></table>
+<h1 id="集群的身份验证"><a href="#集群的身份验证" class="headerlink" title="集群的身份验证"></a>集群的身份验证</h1><p>Ceph 默认使用 Cephx 协议在 Ceph 组件之间进行加密身份验证，并使用共享密钥进行身份验证。</p>
+<p>Cephx 是 Ceph 用于认证客户端和服务器的安全认证协议。它旨在通过加密客户端和服务器之间传输的所有数据来提供安全通信。</p>
+<p>Cephx 使用对称和非对称加密的组合来提供安全通信。当客户端连接到 Ceph 集群时，它首先使用共享的密钥进行身份验证。然后使用此密钥生成会话密钥，该密钥用于加密客户端和服务器之间的所有后续通信。</p>
+<p>Cephx 还支持使用公钥加密进行身份验证。在此模式下，客户端和服务器交换公钥并使用它们来加密和解密消息。这提供了额外的安全层，因为它确保只有授权的客户端可以连接到 Ceph 集群。</p>
+<p>使用 <code>cephadm</code> 部署集群时，默认启用 <code>cephx</code>。如果需要，可以禁用 <code>Cephx</code>，但不建议这样做，因为它会削弱集群的安全性，为启用或禁用cephx，<code>ceph config set</code>命令可以管理多个设置</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">[ceph: root@clienta /]<span class="comment"># ceph \</span></span><br><span class="line">	config get mon auth_service_required</span><br><span class="line">[ceph: root@clienta /]<span class="comment"># ceph \</span></span><br><span class="line">	config get mon auth_cluster_required</span><br><span class="line">[ceph: root@clienta /]<span class="comment"># ceph \</span></span><br><span class="line">	config get mon auth_client_required</span><br></pre></td></tr></table></figure>
+
+<p><code>/etc/ceph</code> 目录和守护进程数据目录中包含<code>cepphx</code> 密钥环文件，对于MONs，数据目录为<code>/var/lib/ceph/$fsid/mon.$host/</code></p>
+<h2 id="ceph-auth-命令创建、查看和管理集群密钥。"><a href="#ceph-auth-命令创建、查看和管理集群密钥。" class="headerlink" title="ceph auth 命令创建、查看和管理集群密钥。"></a><code>ceph auth</code> 命令创建、查看和管理集群密钥。</h2><p>ceph auth 命令用于管理 Ceph 集群中的 Cephx 认证。它允许您创建和管理密钥环文件，其中包含用于身份验证的共享密钥。</p>
+<p>以下是您可以使用 ceph auth 命令执行的一些操作：</p>
+<ul>
+<li>创建新的密钥环文件： 您可以使用 ceph auth get-or-create-key 命令为客户端或监视器创建新的密钥环文件。例如，要为名为 client.foo 的客户端创建密钥环文件，可以运行以下命令：</li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ceph auth get-or-create-key client.foo mon <span class="string">&#x27;allow r&#x27;</span> osd <span class="string">&#x27;allow rw&#x27;</span> -o /path/to/keyring/file</span><br></pre></td></tr></table></figure>
+
+
+<p>此命令在 &#x2F;path&#x2F;to&#x2F;keyring&#x2F;file 处创建新的密钥环文件，并授予 client.foo 客户端对监视器的读取访问权限以及对 OSD 的读写访问权限。</p>
+<ul>
+<li>向现有密钥环文件添加新密钥： 您可以使用 ceph auth add 命令向现有密钥环文件添加新密钥。例如，要将名为 client.bar 的客户端的新密钥添加到 &#x2F;path&#x2F;to&#x2F;keyring&#x2F;file 中的现有密钥环文件中，可以运行以下命令：</li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ceph auth add client.bar -i /path/to/new/keyring/file</span><br></pre></td></tr></table></figure>
+
+
+
+<p>此命令将新密钥添加到 &#x2F;path&#x2F;to&#x2F;keyring&#x2F;file 中的现有密钥环文件中。</p>
+<ul>
+<li>列出密钥环文件中的密钥： 您可以使用 ceph auth list 命令列出密钥环文件中的密钥。例如，要列出 &#x2F;path&#x2F;to&#x2F;keyring&#x2F;file 中的密钥环文件中的所有密钥，可以运行以下命令：</li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ceph auth list -i /path/to/keyring/file</span><br></pre></td></tr></table></figure>
+
+
+<p>此命令列出密钥环文件中的所有密钥。</p>
+<ul>
+<li>从密钥环文件中删除密钥： 您可以使用 ceph auth del 命令从密钥环文件中删除密钥。例如，要从 &#x2F;path&#x2F;to&#x2F;keyring&#x2F;file 中的密钥环文件中删除名为 client.foo 的客户端的密钥，可以运行以下命令：</li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ceph auth del client.foo -i /path/to/keyring/file</span><br></pre></td></tr></table></figure>
+
+
+
+<p>此命令从密钥环文件中删除 client.foo 的密钥。</p>
+<h2 id="ceph-authtool-命令创建-key-ring-文件"><a href="#ceph-authtool-命令创建-key-ring-文件" class="headerlink" title="ceph-authtool 命令创建 key-ring 文件"></a><code>ceph-authtool</code> 命令创建 key-ring 文件</h2><p>ceph-authtool 命令用于在 Ceph 集群之外管理 Cephx 认证。它可以用于创建新的密钥环文件，向现有密钥环文件添加新密钥以及显示密钥环文件的内容。</p>
+<p>下面的命令为MON节点创建一个密钥环文件</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">[ceph: root@clienta /]<span class="comment"># ceph-authtool \</span></span><br><span class="line">	--create-keyring /tmp/ceph.mon.keyring \</span><br><span class="line">	--gen-key \</span><br><span class="line">	-n mon \</span><br><span class="line">	--<span class="built_in">cap</span> mon <span class="string">&#x27;allow *&#x27;</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="ceph-auth-命令和-ceph-authtool-命令的区别"><a href="#ceph-auth-命令和-ceph-authtool-命令的区别" class="headerlink" title="ceph auth 命令和 ceph-authtool 命令的区别?"></a>ceph auth 命令和 ceph-authtool 命令的区别?</h2><p><code>ceph auth </code> 命令用于管理 <code>Ceph</code> 集群中的 <code>Cephx</code> 认证，而 <code>ceph-authtool</code> 命令用于管理 <code>Cephx</code> 认证，但是是在 <code>Ceph</code> 集群之外。</p>
+<p><code>ceph auth </code> 命令允许您创建和管理 <code>密钥环</code>文件，其中包含用于身份验证的共享密钥。您可以使用它来创建新的密钥环文件，向现有密钥环文件添加新密钥，列出密钥环文件中的密钥以及从密钥环文件中删除密钥。</p>
+<p>另一方面，<code>ceph-authtool</code> 命令用于在 Ceph 集群之外创建、修改和显示 <code>Cephx</code> 认证密钥和密钥环文件。它可以用于创建新的密钥环文件，向现有密钥环文件添加新密钥以及显示密钥环文件的内容。</p>
+<p>cephadm 工具在 <code>/etc/ceph</code> 目录下创建 <code>client.admin</code> 用户，它允许运行管理命令和创建其他ceph客户端用户帐户</p>
+<h1 id="配置集群网络"><a href="#配置集群网络" class="headerlink" title="配置集群网络"></a>配置集群网络</h1><h2 id="配置公共网络和集群网络"><a href="#配置公共网络和集群网络" class="headerlink" title="配置公共网络和集群网络"></a>配置公共网络和集群网络</h2><p>public 网络是所有 Ceph 集群通信的默认网络，cephadm 工具假设第一个 MON 守护进程IP地址的网络是 public 网络，新的 MON 守护进程部署在 public 网络中，除非显式地定义了不同的网络</p>
+<p>Ceph客户端通过集群的public网络直接向osd发出请求，OSD复制和恢复流量使用public网络，除非为此配置单独的cluster网络</p>
+<p><code>配置单独的cluster网络可以通过减少public网络流量负载和将客户端流量与后端OSD操作流量分离来提高集群性能</code></p>
+<p><img src="https://img-blog.csdnimg.cn/665936cc47e34027819bc4ae244baf8a.png" alt="在这里插入图片描述"></p>
+<p>执行以下步骤，为单独的集群网络配置节点：</p>
+<ol>
+<li>在每个集群节点上配置一个额外的网络接口</li>
+<li>在每个节点的新网口上配置相应的cluster网络IP地址</li>
+<li>使用 <code>cephadm bootstrap</code> 命令的 <code>--cluster-network</code> 选项在集群 <code>bootstrap</code> 创建 <code>cluster</code> 网络</li>
+</ol>
+<p>可以使用集群配置文件来设置public和cluster网络。每个网络可以配置多个子网，子网之间以“，”分隔。子网使用CIDR符号表示，例如:172.25.250.0&#x2F;24</p>
+<figure class="highlight ini"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="section">[global]</span> </span><br><span class="line"><span class="attr">public_network</span> = <span class="number">172.25</span>.<span class="number">250.0</span>/<span class="number">24</span>, <span class="number">172.25</span>.<span class="number">251.0</span>/<span class="number">24</span> </span><br><span class="line"><span class="attr">cluster_network</span> = <span class="number">172.25</span>.<span class="number">249.0</span>/<span class="number">24</span> </span><br></pre></td></tr></table></figure>
+
+<p>可以使用ceph config set命令或ceph config assimilate-conf命令更改public和cluster网络</p>
+<h3 id="配置特定的守护进程"><a href="#配置特定的守护进程" class="headerlink" title="配置特定的守护进程"></a>配置特定的守护进程</h3><p>MON守护进程绑定特定的IP地址，而MGR、OSD和MOS守护进程默认绑定任何可用的IP地址.</p>
+<p>在Red Hat Ceph Storage 5中，cephadm通过对大多数服务使用public网络在任意主机上部署守护进程，为了处理cephadm部署新守护进程的位置，可以定义一个特定的子网供服务使用，只有IP地址在同一子网的主机才会考虑部署该服务。</p>
+<p>设置172.25.252.0&#x2F;24子网到MON守护进程</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">[ceph: root@node /)<span class="comment"># ceph \</span></span><br><span class="line">	config <span class="built_in">set</span> mon public_network 172.25.252.0/24</span><br></pre></td></tr></table></figure>
+
+<p>这个示例命令等价于集群配置文件中的下面的[mon]部分</p>
+<figure class="highlight ini"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="section">[mon) </span></span><br><span class="line"><span class="section">public_network = 172.25.252.0/24 </span></span><br></pre></td></tr></table></figure>
+
+<p>使用<code>ceph orch daemon add</code>命令手动将守护进程部署到特定的子网或IP地址</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">[ceph: root@node /)<span class="comment"># ceph orch \</span></span><br><span class="line">	daemon add mon cluster-host02:172.25.251.0/24 </span><br><span class="line">[ceph: root@node /)<span class="comment"># ceph orch \</span></span><br><span class="line">	daemon rm mon.cluster-host01</span><br></pre></td></tr></table></figure>
+
+<p>不建议使用运行时ceph orch守护进程命令进行配置更改，相反，建议使用服务规范文件作为管理Ceph集群的方法</p>
+<h3 id="运行IPV6"><a href="#运行IPV6" class="headerlink" title="运行IPV6"></a>运行IPV6</h3><p><code>ms_bind_ipv4</code>的缺省值为true, <code>ms_bind_ipv6</code>的缺省值为false，要将Ceph守护进程绑定到IPv6地址，需要在集群配置文件中设置<code>ms_bind_ipv6</code>为true，设置<code>ms_bind_ipv4</code>为false</p>
+<figure class="highlight ini"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="section">[global]</span> </span><br><span class="line"><span class="attr">public_network</span> = &lt;<span class="number">1</span>Pv6 public-network/netmask&gt;</span><br><span class="line"><span class="attr">cluster_network</span> = &lt;IPv6 cluster-network/netmask&gt;</span><br></pre></td></tr></table></figure>
+
+
+
+<h3 id="启用巨型帧"><a href="#启用巨型帧" class="headerlink" title="启用巨型帧"></a>启用巨型帧</h3><p>建议在存储网络上配置网络MTU以支持巨型帧，这可能会提高性能，在集群网口上配置 MTU 值为<code>9000</code>，以支持巨型帧</p>
+<p><code>同一通信路径下的所有节点和网络设备的MTU值必须相同</code>。对于 bound 网口，配置 bound 网口的MTU值后，底层接口继承相同的MTU值</p>
+<h2 id="配置网络安全"><a href="#配置网络安全" class="headerlink" title="配置网络安全"></a>配置网络安全</h2><p>通过减少public网络上的攻击面，挫败针对集群的某些类型的拒绝服务(DoS)攻击，并防止osd之间的通信中断，配置单独的cluster网络还可以提高集群的安全性和可用性。当osd之间的通信中断时，可以防止客户端读写数据</p>
+<p>将后端OSD流量隔离到自己的网络中可能有助于防止public网络上的数据泄露，为保证后端cluster网络安全，请确保流量不能在cluster与public之间路由</p>
+<h2 id="配置防火墙规则"><a href="#配置防火墙规则" class="headerlink" title="配置防火墙规则"></a>配置防火墙规则</h2><p>Ceph OSD和MDS默认绑定的TCP端口范围为6800 ~ 7300。要配置不同的范围，请修改ms_bind_port_min和ms_bind_port_max设置</p>
+<p>下表列出了Red Hat Ceph Storage 5的默认端口。</p>
+<table>
+<thead>
+<tr>
+<th>服务名称</th>
+<th>端口</th>
+<th>描述</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Monitor (MON)</td>
+<td>6789&#x2F;TCP (msgr),3300&#x2F;TCP (msgr2)</td>
+<td>Ceph集群内的通信</td>
+</tr>
+<tr>
+<td>OSD</td>
+<td>6800-7300&#x2F;TCP</td>
+<td>每个OSD使用3个端口:1个用于通过public与客户端和MONs通信；一个用于通过cluster网络向其他osd发送数据，如果前者不存在，则通过public网络发送数据；另一个用于在cluster网络或public网络上交换心跳数据包，如果前者不存在的话</td>
+</tr>
+<tr>
+<td>Metadata Server(MDS)</td>
+<td>6800-7300&#x2F;TCP</td>
+<td>与Ceph元数据服务器通信</td>
+</tr>
+<tr>
+<td>Dashboard&#x2F;Manager(MGR)</td>
+<td>8443&#x2F;TCP</td>
+<td>通过SSL与Ceph管理器仪表板通信</td>
+</tr>
+<tr>
+<td>Manager RESTful Module</td>
+<td>8003&#x2F;TCP</td>
+<td>通过SSL与Ceph Manager RESTful模块通信</td>
+</tr>
+<tr>
+<td>Manager Prometheus Module</td>
+<td>9283&#x2F;TCP</td>
+<td>与Ceph Manager Prometheus插件的通信</td>
+</tr>
+<tr>
+<td>Prometheus Alertmanager</td>
+<td>9093&#x2F;TCP</td>
+<td>与Prometheus Alertmanager服务的通信</td>
+</tr>
+<tr>
+<td>Prometheus Node Exporter</td>
+<td>9100&#x2F;TCP</td>
+<td>与Prometheus Node Exporter守护进程通信</td>
+</tr>
+<tr>
+<td>Grafana server</td>
+<td>3000&#x2F;TCP</td>
+<td>与Grafana服务沟通</td>
+</tr>
+<tr>
+<td>Ceph Object Gateway (RGW)</td>
+<td>80&#x2F;TCP</td>
+<td>与Ceph RADOSGW通信。如果client.rgw配置段为空，Cephadm使用默认的80端口</td>
+</tr>
+<tr>
+<td>Ceph iSCSI Gateway</td>
+<td>9287&#x2F;TCP</td>
+<td>与Ceph iSCSI网关通信</td>
+</tr>
+</tbody></table>
+<p>MONs总是在public网络上运行。为了保证的MON节点安全可以启用防火墙规则，需要配置带有public接口和public网络IP地址的规则。可以手动将端口添加到防火墙规则中</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">[root@node ~]<span class="comment"># firewall-cmd --permanent --zone=public \</span></span><br><span class="line">	--add-port=6789/tcp</span><br><span class="line">[root@node ~]<span class="comment"># firewall-cmd --reload </span></span><br></pre></td></tr></table></figure>
+
+<p>还可以通过将ceph-mon服务添加到防火墙规则中来保护MON节点</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">[root@node ~]<span class="comment"># firewall-cmd --permanent --zone=public \</span></span><br><span class="line">	--add-service=ceph-mon </span><br><span class="line">[root@node ~]<span class="comment"># firewall-cmd --reload</span></span><br></pre></td></tr></table></figure>
+
+<p>为了配置cluster网络，osd需要同时配置public网络和cluster网络的规则，客户端通过public连接osd, osd之间通过cluster网络通信</p>
+<p>为了保护OSD不受防火墙规则的影响，需要配置相应的规则网口和IP地址</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">[root@node ~]<span class="comment"># firewall-cmd --permanent \</span></span><br><span class="line">	--zone=&lt;public-or-cluster&gt; --add-port=6800-7300/tcp </span><br><span class="line">[root@node ~]<span class="comment"># firewall-cmd --reload</span></span><br></pre></td></tr></table></figure>
+
+<p>也可以通过在防火墙规则中添加ceph服务来保护OSD的安全</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">[root@node ~]<span class="comment"># firewall-cmd --permanent \</span></span><br><span class="line">	--zone=&lt;public-or-cluster&gt; --add-service=ceph </span><br><span class="line">[root@node ~]<span class="comment"># firewall-cmd --reload</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="一些-Demo"><a href="#一些-Demo" class="headerlink" title="一些 Demo"></a>一些 Demo</h2><h3 id="管理集群配置设置"><a href="#管理集群配置设置" class="headerlink" title="管理集群配置设置"></a>管理集群配置设置</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">[root@clienta ~]<span class="comment"># ceph config show osd.1 debug_ms</span></span><br><span class="line">0/0</span><br><span class="line">[root@clienta ~]<span class="comment"># ceph config get  osd.1 debug_ms</span></span><br><span class="line">0/0</span><br><span class="line">[root@clienta ~]<span class="comment"># ceph config set  osd.1 debug_ms 10</span></span><br><span class="line">[root@clienta ~]<span class="comment"># ceph config get  osd.1 debug_ms</span></span><br><span class="line">10/10</span><br><span class="line">[root@clienta ~]<span class="comment">#</span></span><br></pre></td></tr></table></figure>
+
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">[root@clienta ~]<span class="comment"># ceph tell osd.1  config get debug_ms</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="string">&quot;debug_ms&quot;</span>: <span class="string">&quot;10/10&quot;</span></span><br><span class="line">&#125;</span><br><span class="line">[root@clienta ~]<span class="comment"># ceph tell osd.1  config set debug_ms 5</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="string">&quot;success&quot;</span>: <span class="string">&quot;&quot;</span></span><br><span class="line">&#125;</span><br><span class="line">[root@clienta ~]<span class="comment"># ceph tell osd.1  config get debug_ms</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="string">&quot;debug_ms&quot;</span>: <span class="string">&quot;5/5&quot;</span></span><br><span class="line">&#125;</span><br><span class="line">[root@clienta ~]<span class="comment">#</span></span><br></pre></td></tr></table></figure>
+
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">[root@clienta ~]<span class="comment"># ceph orch daemon restart osd.1</span></span><br><span class="line">Scheduled to restart osd.1 on host <span class="string">&#x27;serverc.lab.example.com&#x27;</span></span><br><span class="line">[root@clienta ~]<span class="comment"># ceph tell osd.1  config get debug_ms</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="string">&quot;debug_ms&quot;</span>: <span class="string">&quot;10/10&quot;</span></span><br><span class="line">&#125;</span><br><span class="line">[root@clienta ~]<span class="comment">#</span></span><br></pre></td></tr></table></figure>
+
+
+<h3 id="配置集群-Monitors"><a href="#配置集群-Monitors" class="headerlink" title="配置集群 Monitors"></a>配置集群 Monitors</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">[root@clienta ~]<span class="comment"># ceph config set mon mon_compact_on_start true</span></span><br><span class="line">[root@clienta ~]<span class="comment"># ceph health</span></span><br><span class="line">HEALTH_OK</span><br><span class="line">[root@clienta ~]<span class="comment">#</span></span><br></pre></td></tr></table></figure>
+
+
+
+<h2 id="博文部分内容参考"><a href="#博文部分内容参考" class="headerlink" title="博文部分内容参考"></a>博文部分内容参考</h2><p>© 文中涉及参考链接内容版权归原作者所有，如有侵权请告知，这是一个开源项目，如果你认可它，不要吝啬星星哦 :)</p>
+<hr>
+<p><a target="_blank" rel="noopener" href="https://docs.ceph.com/en/pacific/architecture/">https://docs.ceph.com/en/pacific/architecture/</a></p>
+<p><a target="_blank" rel="noopener" href="https://github.com/ceph/ceph">https://github.com/ceph/ceph</a></p>
+<p><a target="_blank" rel="noopener" href="https://docs.ceph.com/">https://docs.ceph.com</a></p>
+<p>RHCA CL260 授课笔记</p>
+<hr>
+<p>© 2018-2023 <a href="mailto:&#x6c;&#x69;&#114;&#117;&#105;&#108;&#111;&#x6e;&#x67;&#101;&#114;&#64;&#x67;&#x6d;&#x61;&#105;&#108;&#x2e;&#99;&#x6f;&#x6d;">&#x6c;&#x69;&#114;&#117;&#105;&#108;&#111;&#x6e;&#x67;&#101;&#114;&#64;&#x67;&#x6d;&#x61;&#105;&#108;&#x2e;&#99;&#x6f;&#x6d;</a>, All rights reserved. 保持署名-非商用-相同方式共享(CC BY-NC-SA 4.0)</p>
+</div><div class="article-licensing box"><div class="licensing-title"><p>Ceph：关于 Ceph 存储集群配置的一些笔记</p><p><a href="https://liruilongs.github.io/2023/04/13/rhca/CL260/Ceph：关于配置-Ceph-存储集群的一些笔记/">https://liruilongs.github.io/2023/04/13/rhca/CL260/Ceph：关于配置-Ceph-存储集群的一些笔记/</a></p></div><div class="licensing-meta level is-mobile"><div class="level-left"><div class="level-item is-narrow"><div><h6>作者</h6><a href="https://liruilongs.github.io"><p>山河已无恙</p></a></div></div><div class="level-item is-narrow"><div><h6>发布于</h6><p>2023-04-13</p></div></div><div class="level-item is-narrow"><div><h6>更新于</h6><p>2023-07-23</p></div></div><div class="level-item is-narrow"><div><h6>许可协议</h6><p><a class="icon" rel="noopener" target="_blank" title="Creative Commons" href="https://creativecommons.org/"><i class="fab fa-creative-commons"></i></a><a class="icon" rel="noopener" target="_blank" title="Attribution" href="https://creativecommons.org/licenses/by/4.0/"><i class="fab fa-creative-commons-by"></i></a><a class="icon" rel="noopener" target="_blank" title="Noncommercial" href="https://creativecommons.org/licenses/by-nc/4.0/"><i class="fab fa-creative-commons-nc"></i></a></p></div></div></div></div></div><div class="recommend-area"><div class="recommend-post"><span class="is-size-6 has-text-grey has-mr-7"># 相关文章</span><br><span>  1.<a class="is-size-6" href="/2023/10/16/%E5%BE%85%E5%8F%91%E5%B8%83/Ceph%EF%BC%9A%E5%85%B3%E4%BA%8ECeph-%E4%B8%AD%E5%88%9B%E5%BB%BA%E5%92%8C%E7%AE%A1%E7%90%86%E8%87%AA%E5%AE%9A%E4%B9%89-CRUSH-map%E7%9A%84%E4%B8%80%E4%BA%9B%E7%AC%94%E8%AE%B0%E6%95%B4%E7%90%86/" target="_blank">Ceph：关于Ceph 中创建和管理自定义 CRUSH map的一些笔记整理</a><br></span><span>  2.<a class="is-size-6" href="/2023/06/25/rhca/CL260/Ceph%EF%BC%9A%E5%85%B3%E4%BA%8ECeph%20%E9%9B%86%E7%BE%A4%E4%B8%AD%E6%95%B0%E6%8D%AE%E5%88%86%E5%B8%83%E5%92%8C%E5%AE%B9%E7%81%BE%E6%95%B4%E7%90%86%E7%9A%84%E4%B8%80%E4%BA%9B%E7%AC%94%E8%AE%B0/" target="_blank">Ceph：关于Ceph 集群中数据分布和容灾整理的一些笔记</a><br></span><span>  3.<a class="is-size-6" href="/2023/05/29/rhca/CL260/Ceph%EF%BC%9A%E5%85%B3%E4%BA%8E-Ceph-%E4%B8%ADBlueStore-%E6%9E%B6%E6%9E%84%E4%BB%A5%E5%8F%8AOSD%E5%88%9B%E5%BB%BA%E7%9A%84%E4%B8%80%E4%BA%9B%E7%AC%94%E8%AE%B0/" target="_blank">Ceph：关于 Ceph 中 BlueStore 架构以及 OSD 创建的一些笔记</a><br></span><span>  4.<a class="is-size-6" href="/2023/05/20/rhca/CL260/Ceph%EF%BC%9A%E5%85%B3%E4%BA%8ECeph-%E9%9B%86%E7%BE%A4%E5%A6%82%E4%BD%95%E8%AE%BF%E9%97%AE%E7%9A%84%E4%B8%80%E4%BA%9B%E7%AC%94%E8%AE%B0/" target="_blank">Ceph：关于Ceph 集群如何访问的一些笔记</a><br></span><span>  5.<a class="is-size-6" href="/2023/05/17/rhca/CL260/Ceph%EF%BC%9A%E5%85%B3%E4%BA%8ECeph%E7%94%A8%E6%88%B7%E8%AE%A4%E8%AF%81%E6%8E%88%E6%9D%83%E7%AE%A1%E7%90%86%E7%9A%84%E4%B8%80%E4%BA%9B%E7%AC%94%E8%AE%B0/" target="_blank">Ceph：关于 Ceph 用户认证授权管理的一些笔记</a><br></span><span>  6.<a class="is-size-6" href="/2023/05/11/rhca/CL260/Ceph%EF%BC%9A%E5%85%B3%E4%BA%8ECeph-%E9%9B%86%E7%BE%A4%E4%B8%AD%E6%B1%A0%E7%AE%A1%E7%90%86%E7%9A%84%E4%B8%80%E4%BA%9B%E7%AC%94%E8%AE%B0/" target="_blank">Ceph：关于Ceph 集群中池管理的一些笔记</a><br></span><span>  7.<a class="is-size-6" href="/2023/04/30/rhca/CL260/Ceph%EF%BC%9A%E5%85%B3%E4%BA%8ECeph%20%E9%9B%86%E7%BE%A4%E7%AE%A1%E7%90%86%E5%B7%A5%E5%85%B7%E7%9A%84%E4%B8%80%E4%BA%9B%E7%AC%94%E8%AE%B0/" target="_blank">Ceph：关于Ceph 集群管理工具的一些笔记</a><br></span><span>  8.<a class="is-size-6" href="/2023/04/29/rhca/CL260/Ceph%EF%BC%9ACeph-%E6%98%AF%E4%BB%80%E4%B9%88%EF%BC%9F/" target="_blank">Ceph：Ceph 是什么？</a><br></span></div><div class="recommend-post"><span class="is-size-6 has-text-grey has-mr-7"># 推荐文章</span><br><span>  1.<a class="is-size-6" href="/2021/08/27/K8s/%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/%E3%80%8AKubernetes%E6%9D%83%E5%A8%81%E6%8C%87%E5%8D%97-%E4%BB%8EDocker%E5%88%B0Kubernetes%E5%AE%9E%E8%B7%B5%E5%85%A8%E6%8E%A5%E8%A7%A6%E3%80%8B%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/" target="_blank">《Kubernetes权威指南:从Docker到Kubernetes实践全接触》读书笔记</a><br></span><span>  2.<a class="is-size-6" href="/2023/06/17/AI&amp;%E4%BA%BA%E8%84%B8%E8%AF%86%E5%88%AB/AdaFace%EF%BC%9A-%E9%80%9A%E8%BF%87AdaFace%E5%AE%9E%E7%8E%B0%E4%BD%8E%E8%B4%A8%E9%87%8F%E9%9D%A2%E9%83%A8%E6%95%B0%E6%8D%AE%E9%9B%86%E7%9A%84%E7%B2%BE%E5%87%86%E4%BA%BA%E8%84%B8%E8%AF%86%E5%88%AB/" target="_blank">AdaFace(CVPR(2022))：通过AdaFace实现低质量面部数据集的人脸识别</a><br></span><span>  3.<a class="is-size-6" href="/2023/05/04/AI&amp;%E4%BA%BA%E8%84%B8%E8%AF%86%E5%88%AB/DeepFace%EF%BC%9A%E4%BA%BA%E8%84%B8%E8%AF%86%E5%88%AB%E5%BA%93%20DeepFace%20%E7%AE%80%E5%8D%95%E8%AE%A4%E7%9F%A5/" target="_blank">DeepFace：人脸识别库 DeepFace 简单认知</a><br></span><span>  4.<a class="is-size-6" href="/2023/07/24/AI&amp;%E4%BA%BA%E8%84%B8%E8%AF%86%E5%88%AB/%E4%BD%BF%E7%94%A8-OpenCV-%E8%BF%9B%E8%A1%8C%E5%9B%BE%E5%83%8F%E6%A8%A1%E7%B3%8A%E5%BA%A6%E6%A3%80%E6%B5%8B-%E6%8B%89%E6%99%AE%E6%8B%89%E6%96%AF%E6%96%B9%E5%B7%AE%E6%96%B9%E6%B3%95/" target="_blank">使用 OpenCV 进行图像模糊度检测(拉普拉斯方差方法)</a><br></span><span>  5.<a class="is-size-6" href="/2023/06/15/AI&amp;%E4%BA%BA%E8%84%B8%E8%AF%86%E5%88%AB/Nvidia%203060%20%E6%98%BE%E5%8D%A1%20CUDA%20%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA(Ubuntu22.04+Nvidia%20510+Cuda11.6+cudnn8.8)/" target="_blank">Nvidia 3060 显卡 CUDA 环境搭建(Ubuntu22.04+Nvidia 510+Cuda11.6+cudnn8.8)</a><br></span><span>  6.<a class="is-size-6" href="/2023/05/17/AI&amp;%E4%BA%BA%E8%84%B8%E8%AF%86%E5%88%AB/%E5%85%B3%E4%BA%8EOpenCv%E5%9B%BE%E5%83%8F%E5%A4%84%E7%90%86%E5%B7%A5%E5%85%B7%E5%8C%85-imutils-%E7%AE%80%E5%8D%95%E8%AE%A4%E7%9F%A5/" target="_blank">关于 OpenCV 图像处理工具包 imutils 简单认知</a><br></span></div></div><link rel="stylesheet" href="https://cdnjs.loli.net/ajax/libs/social-share.js/1.0.16/css/share.min.css"><div class="social-share"></div><script src="https://cdnjs.loli.net/ajax/libs/social-share.js/1.0.16/js/social-share.min.js"></script></article></div><div class="card"><div class="card-content"><h3 class="menu-label has-text-centered">喜欢这篇文章？打赏一下作者吧</h3><div class="buttons is-centered"><a class="button donate" data-type="alipay"><span class="icon is-small"><i class="fab fa-alipay"></i></span><span>支付宝</span><span class="qrcode"><img src="/img/alipay%EF%BF%A5.png" alt="支付宝"></span></a><a class="button donate" data-type="wechat"><span class="icon is-small"><i class="fab fa-weixin"></i></span><span>微信</span><span class="qrcode"><img src="/img/wechat%EF%BF%A5.png" alt="微信"></span></a></div></div></div><nav class="post-navigation mt-4 level is-mobile"><div class="level-start"><a class="article-nav-prev level level-item link-muted" href="/2023/04/14/rhca/DO280/OpenShift%EF%BC%9A%E5%85%B3%E4%BA%8EOpen-Shift-OKD-%E4%B8%AD-%E7%94%A8%E6%88%B7%E8%AE%A4%E8%AF%81%E3%80%81%E6%9D%83%E9%99%90%E7%AE%A1%E7%90%86%E7%9A%84%E4%B8%80%E4%BA%9B%E7%AC%94%E8%AE%B0/"><i class="level-item fas fa-chevron-left"></i><span class="level-item">关于Open Shift(OKD) 中 用户认证、权限管理、SCC 管理的一些笔记</span></a></div><div class="level-end"><a class="article-nav-next level level-item link-muted" href="/2023/04/11/K8s/%E7%8E%AF%E5%A2%83%E9%83%A8%E7%BD%B2&amp;&amp;%E8%BF%90%E7%BB%B4/%E6%B2%A1%E6%9C%89%20telnet%20%E4%B8%8D%E8%83%BD%E6%B5%8B%E8%AF%95%E7%AB%AF%E5%8F%A3%EF%BC%9F%E5%AE%B9%E5%99%A8%E5%8C%96%E9%83%A8%E7%BD%B2%E6%9C%80%E4%BD%B3%E7%9A%84%E7%AB%AF%E5%8F%A3%E6%B5%8B%E8%AF%95%E6%96%B9%E5%BC%8F/"><span class="level-item">没有 telnet 不能测试端口？容器化部署最佳的端口测试方式</span><i class="level-item fas fa-chevron-right"></i></a></div></nav><!--!--><div class="card"><div class="card-content"><div class="title is-5">评论</div><div id="comment-container"></div><link rel="stylesheet" href="https://cdnjs.loli.net/ajax/libs/gitalk/1.6.0/gitalk.css"><script> $.getScript('/js/gitalk.min.js', function () { 
+            var gitalk = new Gitalk({
+            language:'zh-CN',
+            id: '1e8b8d66b358409ef103c1aa3ab04fe8',
+            repo: 'blog_comment',
+            owner: 'LIRUILONGS',
+            clientID: '9fdc9739266d48d5f62e',
+            clientSecret: 'c1cc33697d099a2197650ec9dadcb16bd4904655',
+            admin: ["LIRUILONGS"],
+            createIssueManually: true,
+            distractionFreeMode: true,
+            perPage: 10,
+            pagerDirection: 'last',
+            proxy: 'https://cors-anywhere.azm.workers.dev/https://github.com/login/oauth/access_token',
+            
+            enableHotKey: true,
+            isLocked: false
+        })
+        gitalk.render('comment-container')});</script></div></div></div><div class="column column-left is-4-tablet is-4-desktop is-3-widescreen  order-1 is-sticky"><div class="card widget" id="toc" data-type="toc"><div class="card-content"><div class="menu"><h3 class="menu-label">目录</h3><ul class="menu-list"><ul class="menu-list"><li><a class="is-flex is-mobile" href="#写在前面"><span class="mr-2">1.1</span><span>写在前面</span></a></li></ul><li><a class="is-flex is-mobile" href="#集群管理配置"><span class="mr-2">2</span><span>集群管理配置</span></a><ul class="menu-list"><li><a class="is-flex is-mobile" href="#Ceph集群配置简介"><span class="mr-2">2.1</span><span>Ceph集群配置简介</span></a></li><li><a class="is-flex is-mobile" href="#修改集群配置文件"><span class="mr-2">2.2</span><span>修改集群配置文件</span></a><ul class="menu-list"><li><a class="is-flex is-mobile" href="#配置-Sections"><span class="mr-2">2.2.1</span><span>配置 Sections</span></a></li><li><a class="is-flex is-mobile" href="#实例设置"><span class="mr-2">2.2.2</span><span>实例设置</span></a></li><li><a class="is-flex is-mobile" href="#元变量"><span class="mr-2">2.2.3</span><span>元变量</span></a></li></ul></li><li><a class="is-flex is-mobile" href="#使用集中式配置数据库"><span class="mr-2">2.3</span><span>使用集中式配置数据库</span></a></li><li><a class="is-flex is-mobile" href="#集群引导选项"><span class="mr-2">2.4</span><span>集群引导选项</span></a></li><li><a class="is-flex is-mobile" href="#使用服务配置文件"><span class="mr-2">2.5</span><span>使用服务配置文件</span></a></li><li><a class="is-flex is-mobile" href="#在运行时覆盖配置设置"><span class="mr-2">2.6</span><span>在运行时覆盖配置设置</span></a><ul class="menu-list"><li><a class="is-flex is-mobile" href="#ceph-tell-方式"><span class="mr-2">2.6.1</span><span>ceph tell 方式</span></a></li><li><a class="is-flex is-mobile" href="#ceph-daemon-方式"><span class="mr-2">2.6.2</span><span>ceph daemon 方式</span></a></li><li><a class="is-flex is-mobile" href="#ceph-tell-和-ceph-daemon-有什么区别？"><span class="mr-2">2.6.3</span><span>ceph tell  和 ceph daemon  有什么区别？</span></a></li></ul></li></ul></li><li><a class="is-flex is-mobile" href="#集群监控配置"><span class="mr-2">3</span><span>集群监控配置</span></a><ul class="menu-list"><li><a class="is-flex is-mobile" href="#Ceph监控配置"><span class="mr-2">3.1</span><span>Ceph监控配置</span></a></li><li><a class="is-flex is-mobile" href="#查看Monitor仲裁"><span class="mr-2">3.2</span><span>查看Monitor仲裁</span></a></li><li><a class="is-flex is-mobile" href="#分析-mon-map"><span class="mr-2">3.3</span><span>分析 mon map</span></a></li><li><a class="is-flex is-mobile" href="#管理集中式配置数据库"><span class="mr-2">3.4</span><span>管理集中式配置数据库</span></a></li></ul></li><li><a class="is-flex is-mobile" href="#集群的身份验证"><span class="mr-2">4</span><span>集群的身份验证</span></a><ul class="menu-list"><li><a class="is-flex is-mobile" href="#ceph-auth-命令创建、查看和管理集群密钥。"><span class="mr-2">4.1</span><span>ceph auth 命令创建、查看和管理集群密钥。</span></a></li><li><a class="is-flex is-mobile" href="#ceph-authtool-命令创建-key-ring-文件"><span class="mr-2">4.2</span><span>ceph-authtool 命令创建 key-ring 文件</span></a></li><li><a class="is-flex is-mobile" href="#ceph-auth-命令和-ceph-authtool-命令的区别"><span class="mr-2">4.3</span><span>ceph auth 命令和 ceph-authtool 命令的区别?</span></a></li></ul></li><li><a class="is-flex is-mobile" href="#配置集群网络"><span class="mr-2">5</span><span>配置集群网络</span></a><ul class="menu-list"><li><a class="is-flex is-mobile" href="#配置公共网络和集群网络"><span class="mr-2">5.1</span><span>配置公共网络和集群网络</span></a><ul class="menu-list"><li><a class="is-flex is-mobile" href="#配置特定的守护进程"><span class="mr-2">5.1.1</span><span>配置特定的守护进程</span></a></li><li><a class="is-flex is-mobile" href="#运行IPV6"><span class="mr-2">5.1.2</span><span>运行IPV6</span></a></li><li><a class="is-flex is-mobile" href="#启用巨型帧"><span class="mr-2">5.1.3</span><span>启用巨型帧</span></a></li></ul></li><li><a class="is-flex is-mobile" href="#配置网络安全"><span class="mr-2">5.2</span><span>配置网络安全</span></a></li><li><a class="is-flex is-mobile" href="#配置防火墙规则"><span class="mr-2">5.3</span><span>配置防火墙规则</span></a></li><li><a class="is-flex is-mobile" href="#一些-Demo"><span class="mr-2">5.4</span><span>一些 Demo</span></a><ul class="menu-list"><li><a class="is-flex is-mobile" href="#管理集群配置设置"><span class="mr-2">5.4.1</span><span>管理集群配置设置</span></a></li><li><a class="is-flex is-mobile" href="#配置集群-Monitors"><span class="mr-2">5.4.2</span><span>配置集群 Monitors</span></a></li></ul></li><li><a class="is-flex is-mobile" href="#博文部分内容参考"><span class="mr-2">5.5</span><span>博文部分内容参考</span></a></li></ul></li></ul></div></div><style>.menu-list > li > a.is-active + .menu-list { display: block; }.menu-list > li > a + .menu-list { display: none; }</style><script src="/js/toc.js" defer></script></div><div class="card widget" data-type="profile"><div class="card-content"><nav class=""><div class="level-item has-text-centered flex-shrink-1"><div><figure class="image is-128x128 mx-auto mb-2"><img class="avatar" src="/img/%E5%BE%AE%E4%BF%A1%E5%85%AC%E4%BC%97%E5%8F%B7.jpg" alt="山河已无恙"></figure><p class="title is-size-4 is-block" style="line-height:inherit;">山河已无恙</p><p class="is-size-6 is-block">爱自己，是终生浪漫的开始</p><p class="is-size-6 is-flex justify-content-center"><i class="fas fa-map-marker-alt mr-1"></i><span>中国·呼和浩特</span></p></div></div></nav><nav class="level is-mobile"><div class="level-item has-text-centered is-marginless"><div><p class="heading">文章</p><a href="/archives"><p class="title">318</p></a></div></div><div class="level-item has-text-centered is-marginless"><div><p class="heading">分类</p><a href="/categories"><p class="title">102</p></a></div></div><div class="level-item has-text-centered is-marginless"><div><p class="heading">标签</p><a href="/tags"><p class="title">153</p></a></div></div></nav><div class="level"><a class="level-item button is-primary is-rounded" href="https://liruilong.blog.csdn.net/?t=1&amp;type=blog" target="_blank" rel="noopener">关注我</a></div><div class="level is-mobile"><a class="level-item button is-transparent is-marginless" target="_blank" rel="noopener" title="Github" href="https://github.com/LIRUILONGS"><i class="fab fa-github"></i></a><a class="level-item button is-transparent is-marginless" target="_blank" rel="noopener" title="CSDN" href="https://liruilong.blog.csdn.net/"><i class="fa fa-code"></i></a><a class="level-item button is-transparent is-marginless" target="_blank" rel="noopener" title="Email" href="mailto:1224965096@qq.com"><i class="fa fa-envelope"></i></a></div></div></div><div class="card widget" data-type="links"><div class="card-content"><div class="menu"><h3 class="menu-label">链接</h3><ul class="menu-list"><li><a class="level is-mobile" href="https://liruilong.blog.csdn.net/?t=1&amp;type=blog" target="_blank" rel="noopener"><span class="level-left"><span class="level-item">CSDN</span></span><span class="level-right"><span class="level-item tag">liruilong.blog.csdn.net</span></span></a></li><li><a class="level is-mobile" href="https://www.cnblogs.com/liruilong/" target="_blank" rel="noopener"><span class="level-left"><span class="level-item">博客园</span></span><span class="level-right"><span class="level-item tag">www.cnblogs.com</span></span></a></li><li><a class="level is-mobile" href="https://github.com/LIRUILONGS" target="_blank" rel="noopener"><span class="level-left"><span class="level-item">Githup</span></span><span class="level-right"><span class="level-item tag">github.com</span></span></a></li><li><a class="level is-mobile" href="https://gitee.com/liruilonger" target="_blank" rel="noopener"><span class="level-left"><span class="level-item">码云</span></span><span class="level-right"><span class="level-item tag">gitee.com</span></span></a></li></ul></div></div></div><div class="card widget"><div class="card-content"><h3 class="menu-label">最新评论</h3><span class="body_hot_comment">加载中，最新评论有1分钟缓存...</span></div></div><div class="card widget"><div class="card-content"><h3 class="menu-label">最新文章</h3><article class="media"><div class="media-content"><p class="date"><time dateTime="2023-11-19T19:40:00.000Z">2023-11-20</time></p><p class="title"><a href="/2023/11/20/%E5%BE%85%E5%8F%91%E5%B8%83/Golang%20VScode%20%E5%BC%80%E5%8F%91%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA/">Golang VScode 开发环境搭建</a></p><p class="categories"><a href="/categories/GO/">GO</a></p></div></article><article class="media"><div class="media-content"><p class="date"><time dateTime="2023-11-15T12:44:37.000Z">2023-11-15</time></p><p class="title"><a href="/2023/11/15/%E5%BE%85%E5%8F%91%E5%B8%83/%E5%9F%BA%E4%BA%8E%20selenium%20%E5%AE%9E%E7%8E%B0%E7%BD%91%E7%AB%99%E5%9B%BE%E7%89%87%E9%87%87%E9%9B%86/">基于 selenium 实现网站图片采集</a></p><p class="categories"><a href="/categories/selenium/">selenium</a></p></div></article><article class="media"><div class="media-content"><p class="date"><time dateTime="2023-11-13T20:29:38.000Z">2023-11-14</time></p><p class="title"><a href="/2023/11/14/%E5%BE%85%E5%8F%91%E5%B8%83/%E5%85%B3%E4%BA%8E-Kubernetes%E4%B8%ADAdmission-Controllers-%E7%9A%84%E4%B8%80%E4%BA%9B%E7%AC%94%E8%AE%B0/">关于 Kubernetes中Admission Controllers(准入控制器) 认知的一些笔记</a></p><p class="categories"><a href="/categories/Kubernetes/">Kubernetes</a></p></div></article><article class="media"><div class="media-content"><p class="date"><time dateTime="2023-11-13T19:52:18.000Z">2023-11-14</time></p><p class="title"><a href="/2023/11/14/%E5%BE%85%E5%8F%91%E5%B8%83/K8s%20Pod%20%E5%88%9B%E5%BB%BA%E5%9F%8B%E7%82%B9%E5%A4%84%E7%90%86(Mutating%20%20Admission%20Webhook)/">K8s Pod 创建埋点处理(Mutating  Admission Webhook)</a></p><p class="categories"><a href="/categories/test3/">test3</a></p></div></article><article class="media"><div class="media-content"><p class="date"><time dateTime="2023-11-09T18:55:27.000Z">2023-11-10</time></p><p class="title"><a href="/2023/11/10/%E5%BE%85%E5%8F%91%E5%B8%83/Linux-%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96%E4%B9%8B%E4%BD%BF%E7%94%A8-Tuned-%E9%85%8D%E7%BD%AE%E4%BC%98%E5%8C%96%E6%96%B9%E6%A1%88/">Linux 性能优化之使用 Tuned 配置优化方案</a></p><p class="categories"><a href="/categories/Linux/">Linux</a></p></div></article></div></div><div class="card widget"><div class="card-content"><div class="menu"><h3 class="menu-label">分类</h3><ul class="menu-list"><li><a class="level is-mobile is-marginless" href="/categories/AdaFace/"><span class="level-start"><span class="level-item">AdaFace</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/Ajax/"><span class="level-start"><span class="level-item">Ajax</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/Ansible/"><span class="level-start"><span class="level-item">Ansible</span></span><span class="level-end"><span class="level-item tag">23</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/AppCube/"><span class="level-start"><span class="level-item">AppCube</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/Bind9/"><span class="level-start"><span class="level-item">Bind9</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/CI-CD/"><span class="level-start"><span class="level-item">CI/CD</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/CSS/"><span class="level-start"><span class="level-item">CSS</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/Ceph/"><span class="level-start"><span class="level-item">Ceph</span></span><span class="level-end"><span class="level-item tag">11</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/DAD-3DHeads/"><span class="level-start"><span class="level-item">DAD-3DHeads</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/DNS/"><span class="level-start"><span class="level-item">DNS</span></span><span class="level-end"><span class="level-item tag">5</span></span></a></li><a class="level is-mobile is-marginless" href="/categories/"><span class="level-start"><span class="level-item">查看全部&gt;&gt;</span></span></a></ul></div></div></div><div class="card widget"><div class="card-content"><div class="menu"><h3 class="menu-label">归档</h3><ul class="menu-list"><li><a class="level is-mobile is-marginless" href="/archives/2023/11/"><span class="level-start"><span class="level-item">十一月 2023</span></span><span class="level-end"><span class="level-item tag">7</span></span></a></li><li><a class="level is-mobile is-marginless" href="/archives/2023/10/"><span class="level-start"><span class="level-item">十月 2023</span></span><span class="level-end"><span class="level-item tag">9</span></span></a></li><li><a class="level is-mobile is-marginless" href="/archives/2023/09/"><span class="level-start"><span class="level-item">九月 2023</span></span><span class="level-end"><span class="level-item tag">4</span></span></a></li><li><a class="level is-mobile is-marginless" href="/archives/2023/08/"><span class="level-start"><span class="level-item">八月 2023</span></span><span class="level-end"><span class="level-item tag">11</span></span></a></li><li><a class="level is-mobile is-marginless" href="/archives/2023/07/"><span class="level-start"><span class="level-item">七月 2023</span></span><span class="level-end"><span class="level-item tag">7</span></span></a></li><a class="level is-mobile is-marginless" href="/archives/"><span class="level-start"><span class="level-item">查看全部&gt;&gt;</span></span></a></ul></div></div></div><div class="card widget"><div class="card-content"><div class="menu"><h3 class="menu-label">标签</h3><div class="field is-grouped is-grouped-multiline"><div class="control"><a class="tags has-addons" href="/tags/Kubernetes/"><span class="tag">Kubernetes</span><span class="tag is-grey-lightest">91</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Linux/"><span class="tag">Linux</span><span class="tag is-grey-lightest">34</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Ansible/"><span class="tag">Ansible</span><span class="tag is-grey-lightest">25</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Python/"><span class="tag">Python</span><span class="tag is-grey-lightest">14</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Ceph/"><span class="tag">Ceph</span><span class="tag is-grey-lightest">11</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Docker/"><span class="tag">Docker</span><span class="tag is-grey-lightest">8</span></a></div><div class="control"><a class="tags has-addons" href="/tags/JAVA/"><span class="tag">JAVA</span><span class="tag is-grey-lightest">8</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Git/"><span class="tag">Git</span><span class="tag is-grey-lightest">7</span></a></div><div class="control"><a class="tags has-addons" href="/tags/OpenShift/"><span class="tag">OpenShift</span><span class="tag is-grey-lightest">6</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%E7%A8%8B%E5%BA%8F%E4%BA%BA%E7%94%9F/"><span class="tag">程序人生</span><span class="tag is-grey-lightest">6</span></a></div><div class="control"><a class="tags has-addons" href="/tags/DNS/"><span class="tag">DNS</span><span class="tag is-grey-lightest">5</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Go/"><span class="tag">Go</span><span class="tag is-grey-lightest">5</span></a></div><div class="control"><a class="tags has-addons" href="/tags/OKD/"><span class="tag">OKD</span><span class="tag is-grey-lightest">5</span></a></div><div class="control"><a class="tags has-addons" href="/tags/selenium/"><span class="tag">selenium</span><span class="tag is-grey-lightest">4</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%E5%AE%B9%E5%99%A8/"><span class="tag">容器</span><span class="tag is-grey-lightest">4</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%E7%BD%91%E7%BB%9C/"><span class="tag">网络</span><span class="tag is-grey-lightest">4</span></a></div><div class="control"><a class="tags has-addons" href="/tags/CKA/"><span class="tag">CKA</span><span class="tag is-grey-lightest">3</span></a></div><div class="control"><a class="tags has-addons" href="/tags/GO/"><span class="tag">GO</span><span class="tag is-grey-lightest">3</span></a></div><div class="control"><a class="tags has-addons" href="/tags/ISCSI/"><span class="tag">ISCSI</span><span class="tag is-grey-lightest">3</span></a></div><div class="control"><a class="tags has-addons" href="/tags/NFS/"><span class="tag">NFS</span><span class="tag is-grey-lightest">3</span></a></div></div><div class="field is-grouped is-grouped-multiline"><a class="tags has-addons" href="/tags/"><span class="tag">查看全部&gt;&gt;</span></a></div></div></div></div><div class="card widget" data-type="subscribe-email"><div class="card-content"><div class="menu"><h3 class="menu-label">订阅更新</h3><form action="https://feedburner.google.com/fb/a/mailverify" method="post" target="popupwindow" onsubmit="window.open(&#039;https://feedburner.google.com/fb/a/mailverify?uri=&#039;,&#039;popupwindow&#039;,&#039;scrollbars=yes,width=550,height=520&#039;);return true"><input type="hidden" value="" name="uri"><input type="hidden" name="loc" value="en_US"><div class="field has-addons"><div class="control has-icons-left is-expanded"><input class="input" name="email" type="email" placeholder="Email"><span class="icon is-small is-left"><i class="fas fa-envelope"></i></span></div><div class="control"><input class="button" type="submit" value="订阅"></div></div></form></div></div></div><!--!--><div class="column-right-shadow is-hidden-widescreen is-sticky"></div></div></div></div></section><footer class="footer"><div class="container"><div class="level"><div class="level-start"><a class="footer-logo is-block mb-2" href="/"><img src="/img/logo.png" alt="山河已无恙" height="28"></a><p class="size-small"><span>&copy; 2024 山河已无恙</span>  Powered by <a href="https://hexo.io/" target="_blank">Hexo</a> &amp; <a href="https://github.com/ppoffice/hexo-theme-icarus" target="_blank">Icarus</a> &amp; <a href="https://github.com/removeif/hexo-theme-amazing" target="_blank">Amazing</a> <br><span>© <a href="http://www.beian.miit.gov.cn/" target="_blank">备案号</a><br></span><span>© 版权说明：[本网站所有内容均收集于互联网或自己创作,<br />&nbsp;&nbsp;&nbsp;&nbsp;方便于网友与自己学习交流，如有侵权，请<a href="/message" target="_blank">留言</a>，立即处理]<br /></span><span><span id="statistic-times">loading...</span><script>function createTime(time) {
+            var n = new Date(time);
+            now.setTime(now.getTime() + 250),
+                days = (now - n) / 1e3 / 60 / 60 / 24,
+                dnum = Math.floor(days),
+                hours = (now - n) / 1e3 / 60 / 60 - 24 * dnum,
+                hnum = Math.floor(hours),
+            1 == String(hnum).length && (hnum = "0" + hnum),
+                minutes = (now - n) / 1e3 / 60 - 1440 * dnum - 60 * hnum,
+                mnum = Math.floor(minutes),
+            1 == String(mnum).length && (mnum = "0" + mnum),
+                seconds = (now - n) / 1e3 - 86400 * dnum - 3600 * hnum - 60 * mnum,
+                snum = Math.round(seconds),
+            1 == String(snum).length && (snum = "0" + snum),
+                document.getElementById("statistic-times").innerHTML = "❤️本站自 <strong>"+time.split(" ")[0].replace(/\//g,".")+"</strong> 已运行 <strong>" + dnum + "</strong> 天 <strong>" + hnum + "</strong> 小时 <strong>" + mnum + "</strong> 分 <strong>" + snum + "</strong> 秒！❤️";
+        }var now = new Date();setInterval("createTime('2021/6/26 21:27:00')", 250,"");</script><br></span><div class="size-small"><span>❤️感谢 <strong><span id="busuanzi_value_site_uv">99+</span></strong> 小伙伴的 <strong><span id="busuanzi_value_site_pv">99+</span></strong> 次光临！❤️</span></div></p></div><div class="level-end"><div class="field has-addons"><p class="control"><a class="button is-transparent is-large" target="_blank" rel="noopener" title="Creative Commons" href="https://creativecommons.org/"><i class="fab fa-creative-commons"></i></a></p><p class="control"><a class="button is-transparent is-large" target="_blank" rel="noopener" title="Attribution 4.0 International" href="https://creativecommons.org/licenses/by/4.0/"><i class="fab fa-creative-commons-by"></i></a></p><p class="control"><a class="button is-transparent is-large" target="_blank" rel="noopener" title="Download on GitHub" href="https://github.com/removeif/hexo-theme-amazing"><i class="fab fa-github"></i></a></p></div><div class="sideMusic"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/aplayer/dist/APlayer.min.css"><script src="/js/APlayer.min.js"></script><script src="https://cdn.jsdelivr.net/npm/meting@2/dist/Meting.min.js"></script><meting-js style="width: auto;height: 2000px;" server="netease" type="playlist" id="2364053447" theme="#2980b9" loop="all" autoplay="false" order="list" storageName="aplayer-setting" lrctype="0" list-max-height="400px" fixed="true"></meting-js></div></div></div></div></footer><script src="https://cdnjs.loli.net/ajax/libs/moment.js/2.22.2/moment-with-locales.min.js"></script><script src="https://cdnjs.loli.net/ajax/libs/clipboard.js/2.0.4/clipboard.min.js" async></script><script>moment.locale("zh-CN");</script><script>var IcarusThemeSettings = {
+            article: {
+                highlight: {
+                    clipboard: true,
+                    fold: 'unfolded'
+                }
+            }
+        };</script><script src="/js/column.js"></script><!--!--><script src="/js/animation.js"></script><a id="back-to-top" title="回到顶端" href="javascript:;"><i class="fas fa-chevron-up"></i></a><script src="/js/back_to_top.js" defer></script><!--!--><script src="https://cdnjs.loli.net/ajax/libs/lightgallery/1.6.8/js/lightgallery.min.js" defer></script><script src="https://cdnjs.loli.net/ajax/libs/justifiedGallery/3.7.0/js/jquery.justifiedGallery.min.js" defer></script><script>window.addEventListener("load", () => {
+            if (typeof $.fn.lightGallery === 'function') {
+                $('.article').lightGallery({ selector: '.gallery-item' });
+            }
+            if (typeof $.fn.justifiedGallery === 'function') {
+                if ($('.justified-gallery > p > .gallery-item').length) {
+                    $('.justified-gallery > p > .gallery-item').unwrap();
+                }
+                $('.justified-gallery').justifiedGallery();
+            }
+        });</script><!--!--><!--!--><link rel="stylesheet" href="https://cdnjs.loli.net/ajax/libs/KaTeX/0.11.1/katex.min.css"><script src="https://cdnjs.loli.net/ajax/libs/KaTeX/0.11.1/katex.min.js" defer></script><script src="https://cdnjs.loli.net/ajax/libs/KaTeX/0.11.1/contrib/auto-render.min.js" defer></script><script src="https://cdnjs.loli.net/ajax/libs/KaTeX/0.11.1/contrib/mhchem.js" defer></script><script>window.addEventListener("load", function() {
+            document.querySelectorAll('[role="article"] > .content').forEach(function(element) {
+                renderMathInElement(element);
+            });
+        });</script><script type="text/x-mathjax-config">MathJax.Hub.Config({
+            'HTML-CSS': {
+                matchFontHeight: false
+            },
+            SVG: {
+                matchFontHeight: false
+            },
+            CommonHTML: {
+                matchFontHeight: false
+            },
+            tex2jax: {
+                inlineMath: [
+                    ['$','$'],
+                    ['\\(','\\)']
+                ]
+            }
+        });</script><script src="https://cdnjs.loli.net/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-MML-AM_CHTML" defer></script><div id="outdated"><h6>Your browser is out-of-date!</h6><p>Update your browser to view this website correctly.&amp;npsb;<a id="btnUpdateBrowser" target="_blank" rel="noopener" href="http://outdatedbrowser.com/">Update my browser now </a></p><p class="last"><a href="#" id="btnCloseUpdateBrowser" title="Close">×</a></p></div><script src="https://cdnjs.loli.net/ajax/libs/outdated-browser/1.1.5/outdatedbrowser.min.js" defer></script><script>window.addEventListener("load", function () {
+            outdatedBrowser({
+                bgColor: '#f25648',
+                color: '#ffffff',
+                lowerThan: 'object-fit' // display on IE11 or below
+            });
+        });</script><!--!--><script src="/js/main.js" defer></script><script>$.getScript('/js/comment-issue-data.js',function(){loadIssueData('9fdc9739266d48d5f62e','c1cc33697d099a2197650ec9dadcb16bd4904655','LIRUILONGS','blog_comment',false);})</script><div class="searchbox"><div class="searchbox-container"><div class="searchbox-header"><div class="searchbox-input-container"><input class="searchbox-input" type="text" placeholder="想要查找什么..."></div><a class="searchbox-close" href="javascript:;">×</a></div><div class="searchbox-body"></div></div></div><script src="/js/insight.js" defer></script><script>document.addEventListener('DOMContentLoaded', function () {
+            loadInsight({"contentUrl":"/content.json"}, {"hint":"想要查找什么...","untitled":"(无标题)","posts":"文章","pages":"页面","categories":"分类","tags":"标签"});
+        });</script><script src="https://cdn.jsdelivr.net/npm/pjax@0.2.8/pjax.js"></script><script type="text/javascript">var pjax = new Pjax({
+            elements: "a",//代表点击链接就更新
+            selectors: [  //代表要更新的节点
+                ".section",
+                "title"
+            ],
+            cache: true,
+            cacheBust:false
+        })
+
+        function loadBusuanzi(){
+        $.getScript("//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js", function () {});
+        }
+
+        function loadMathJax() { //加载mathjax
+            $.getScript("//cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.4/MathJax.js?config=TeX-MML-AM_CHTML", function () {
+                MathJax.Hub.Config({ tex2jax: { inlineMath: [['$', '$'], ['\(', '\)']] } });
+                var math = document.getElementsByClassName("entry-content")[0];
+                MathJax.Hub.Queue(["Typeset", MathJax.Hub, math]);
+            });
+        };
+
+        // 开始 PJAX 执行的函数
+        document.addEventListener('pjax:send', function () {
+        });
+        
+        // PJAX 完成之后执行的函数，可以和上面的重载放在一起
+        document.addEventListener('pjax:complete', function () {
+            $(".section").css({opacity:1});
+            if(true){
+                $.getScript('/js/comment-issue-data.js',function(){loadIssueData('9fdc9739266d48d5f62e','c1cc33697d099a2197650ec9dadcb16bd4904655','LIRUILONGS','blog_comment',false);});
+            }
+            if(false){
+                loadMathJax();
+            }
+            loadMainJs(jQuery, window.moment, window.ClipboardJS, window.IcarusThemeSettings);
+            loadBackTop();
+            loadBusuanzi();
+            if(typeof loadBanner == 'function'){
+                loadBanner();
+            }
+        });</script></body></html>

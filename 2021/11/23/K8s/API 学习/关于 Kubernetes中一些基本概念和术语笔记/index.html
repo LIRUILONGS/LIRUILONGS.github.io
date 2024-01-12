@@ -1,0 +1,1188 @@
+<!doctype html>
+<html lang="zh"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"><meta><title>关于 Kubernetes中一些基本概念和术语笔记 - 山河已无恙</title><link rel="manifest" href="/manifest.json"><meta name="application-name" content="山河已无恙"><meta name="msapplication-TileImage" content="https://cdn.jsdelivr.net/gh/removeif/removeif-demo@latest/img/favicon.png"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="山河已无恙"><meta name="apple-mobile-web-app-status-bar-style" content="default"><meta description="一个不欣赏自己的人，是难以快乐的。——-三毛"><meta property="og:type" content="blog"><meta property="og:title" content="山河已无恙"><meta property="og:url" content="https://liruilong.blog.csdn.net/?t=1&amp;type=blog"><meta property="og:site_name" content="山河已无恙"><meta property="og:description" content="一个不欣赏自己的人，是难以快乐的。——-三毛"><meta property="og:locale" content="zh_CN"><meta property="og:image" content="https://liruilong.blog.csdn.net/img/头像.jpg"><meta property="article:published_time" content="2021-11-23T14:31:23.000Z"><meta property="article:modified_time" content="2023-06-21T11:25:59.049Z"><meta property="article:author" content="LIRUILONGS"><meta property="article:tag" content="Kubernetes"><meta property="twitter:card" content="summary"><meta property="twitter:image" content="/img/头像.jpg"><script type="application/ld+json">{"@context":"https://schema.org","@type":"BlogPosting","mainEntityOfPage":{"@type":"WebPage","@id":"https://liruilongs.github.io/2021/11/23/K8s/API%20%E5%AD%A6%E4%B9%A0/%E5%85%B3%E4%BA%8E%20Kubernetes%E4%B8%AD%E4%B8%80%E4%BA%9B%E5%9F%BA%E6%9C%AC%E6%A6%82%E5%BF%B5%E5%92%8C%E6%9C%AF%E8%AF%AD%E7%AC%94%E8%AE%B0/"},"headline":"山河已无恙","image":["https://img-blog.csdnimg.cn/1c7068e2aae14cf3b56b43d143c1cc92.png","https://img-blog.csdnimg.cn/2d9e7e7523af4399b773e2fa61cca095.png"],"datePublished":"2021-11-23T14:31:23.000Z","dateModified":"2023-06-21T11:25:59.049Z","author":{"@type":"Person","name":"山河已无恙"},"description":"一个不欣赏自己的人，是难以快乐的。——-三毛"}</script><link rel="canonical" href="https://liruilongs.github.io/2021/11/23/K8s/API%20%E5%AD%A6%E4%B9%A0/%E5%85%B3%E4%BA%8E%20Kubernetes%E4%B8%AD%E4%B8%80%E4%BA%9B%E5%9F%BA%E6%9C%AC%E6%A6%82%E5%BF%B5%E5%92%8C%E6%9C%AF%E8%AF%AD%E7%AC%94%E8%AE%B0/"><link rel="alternate" href="/path/to/atom.xml" title="山河已无恙" type="application/atom+xml"><link rel="icon" href="https://cdn.jsdelivr.net/gh/removeif/removeif-demo@latest/img/favicon.png"><meta name="referrer" content="no-referrer-when-downgrade"><link rel="stylesheet" href="https://cdnjs.loli.net/ajax/libs/font-awesome/5.12.0/css/all.min.css"><link rel="stylesheet" href="https://cdnjs.loli.net/ajax/libs/highlight.js/9.12.0/styles/dracula.min.css"><link rel="stylesheet" href="https://fonts.loli.net/css2?family=Ubuntu:wght@400;600&amp;family=Source+Code+Pro"><link rel="stylesheet" href="/css/default.css"><link rel="stylesheet" href="https://cdnjs.loli.net/ajax/libs/font-awesome/5.12.0/css/all.min.css"><link rel="stylesheet" href="https://fonts.loli.net/css?family=Ubuntu:400,600|Source+Code+Pro|Monda:300,300italic,400,400italic,700,700italic|Roboto Slab:300,300italic,400,400italic,700,700italic|Microsoft YaHei:300,300italic,400,400italic,700,700italic|PT Mono:300,300italic,400,400italic,700,700italic&amp;amp;subset=latin,latin-ext|Inconsolata|Itim|Lobster.css"><script src="https://cdnjs.loli.net/ajax/libs/jquery/3.3.1/jquery.min.js"></script><script src="/js/globalUtils.js"></script><script src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js" defer></script><style>body>.footer,body>.navbar,body>.section{opacity:0}</style><!--!--><script>var _hmt = _hmt || [];
+        (function() {
+            var hm = document.createElement("script");
+            hm.src = "//hm.baidu.com/hm.js?3f06f2b732a5b1034c989f74e28d0eea";
+            var s = document.getElementsByTagName("script")[0];
+            s.parentNode.insertBefore(hm, s);
+        })();</script><link rel="stylesheet" href="https://cdnjs.loli.net/ajax/libs/lightgallery/1.6.8/css/lightgallery.min.css"><link rel="stylesheet" href="https://cdnjs.loli.net/ajax/libs/justifiedGallery/3.7.0/css/justifiedGallery.min.css"><!--!--><!--!--><!--!--><!--!--><link rel="stylesheet" href="https://cdnjs.loli.net/ajax/libs/outdated-browser/1.1.5/outdatedbrowser.min.css"><script src="https://cdnjs.loli.net/ajax/libs/pace/1.0.2/pace.min.js"></script><meta name="generator" content="Hexo 5.4.2"></head><body class="is-3-column has-navbar-fixed-top"><nav class="navbar navbar-main is-fixed-top"><div class="container"><div class="navbar-brand justify-content-center"><a class="navbar-item navbar-logo" href="/"><img src="/img/logo.png" alt="山河已无恙" height="28"></a></div><div class="navbar-menu"><div class="navbar-start"><a class="navbar-item" href="/">首页</a><a class="navbar-item" href="/archives">归档</a><a class="navbar-item" href="/categories">分类</a><a class="navbar-item" href="/tags">标签</a><a class="navbar-item" href="/media">影音</a><a class="navbar-item" href="/album">相册</a><a class="navbar-item" href="/friend">友链</a><a class="navbar-item" href="/self-talking">生活小记</a><a class="navbar-item" href="/message">留言墙</a><a class="navbar-item" href="/about">关于</a></div><div class="navbar-end"><a class="navbar-item" target="_blank" rel="noopener" title="Gitee" href="https://gitee.com/liruilonger"><i class="fab fa-git-square fa-1x"></i></a><a class="navbar-item" target="_blank" rel="noopener" title="GitHub" href="https://github.com/LIRUILONGS"><i class="fab fa-github fa-1x"></i></a><a class="navbar-item is-hidden-tablet catalogue" title="目录" href="javascript:;"><i class="fas fa-list-ul fa-1x"></i></a><a class="navbar-item search" title="搜索" href="javascript:;"><i class="fas fa-search fa-1x"></i></a><a class="navbar-item" id="night-nav" title="Night Mode" href="javascript:;"><i class="fas fa-moon fa-1x" id="night-icon"></i></a></div></div></div></nav><script type="text/javascript" src="/js/theme-setting.js"></script><section class="section"><div class="container"><div class="columns"><div class="column order-2 column-main is-8-tablet is-8-desktop is-9-widescreen"><!--!--><div class="card"><article class="card-content article" role="article"><div class="article-meta size-small is-uppercase level is-mobile"><div class="level-left"><i class="far fa-calendar-plus"> </i>2021-11-23  <a class="commentCountImg" href="/2021/11/23/K8s/API%20%E5%AD%A6%E4%B9%A0/%E5%85%B3%E4%BA%8E%20Kubernetes%E4%B8%AD%E4%B8%80%E4%BA%9B%E5%9F%BA%E6%9C%AC%E6%A6%82%E5%BF%B5%E5%92%8C%E6%9C%AF%E8%AF%AD%E7%AC%94%E8%AE%B0/#comment-container"><span class="display-none-class">3cc82bec32db54b818f5be924cc1728b</span><i class="far fa-comment-dots"></i> <span class="commentCount" id="3cc82bec32db54b818f5be924cc1728b">99+</span>  </a><span class="level-item"><i class="far fa-clock"> </i>1 小时  <i class="fas fa-pencil-alt"> </i>12.1 k</span><span class="level-item" id="busuanzi_container_page_pv"><span id="busuanzi_value_page_pv">0</span>次访问</span></div></div><h1 class="title is-3 is-size-4-mobile">关于 Kubernetes中一些基本概念和术语笔记</h1><div class="content"><p><strong><font color="009688"> 一个不欣赏自己的人，是难以快乐的。——-三毛</strong></font></p>
+<span id="more"></span>
+<h2 id="写在前面"><a href="#写在前面" class="headerlink" title="写在前面"></a>写在前面</h2><hr>
+<ul>
+<li>学习K8s，所以整理记忆</li>
+<li>大部分部分内容来源于<code>《Kubernetes权威指南:从Docker到Kubernetes实践全接触》</code>第一章,感兴趣小伙伴可以支持作者一波</li>
+</ul>
+<p><strong><font color="009688"> 一个不欣赏自己的人，是难以快乐的。——-三毛</strong></font></p>
+<hr>
+<h2 id="一、简述"><a href="#一、简述" class="headerlink" title=" 一、简述"></a><font color=blue> 一、简述</font></h2><p><strong><font color=blue><code>Kubernetes</code>中的大部分概念如<code>Node</code>, <code>Pod</code>,<code>Replication Controller</code>, <code>Service</code>等都可以看作一种“<code>资源对象</code>”,几乎所有的资源对象都可以通过<code>Kubernetes</code>提供的<code>kubect</code>工具(或者<code>API</code>编程调用)执行增、删、改、查等操作并将其保存在<code>etcd</code>中持久化存储。从这个角度来看,<code> Kubernetes</code>其实是一个<code>高度自动化的资源控制系统</code>,它通过&#96;跟踪对比etcd库里保存的“资源期望状态”与当前环境中的“实际资源状态”的差异来实现自动控制和自动纠错的高级功能。</font></strong></p>
+<h3 id="K8s中相关资源：随版本变化"><a href="#K8s中相关资源：随版本变化" class="headerlink" title="K8s中相关资源：随版本变化"></a><font color=red>K8s中相关资源：随版本变化</font></h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">┌──[root@vms81.liruilongs.github.io]-[~/ansible/k8s-pod-create]</span><br><span class="line">└─<span class="variable">$kubectl</span> api-resources</span><br></pre></td></tr></table></figure>
+
+<table>
+<thead>
+<tr>
+<th>NAME(名字)</th>
+<th>SHORTNAMES(简称)</th>
+<th>APIVERSION(版本)</th>
+<th>NAMESPACED(命名空间隔离)</th>
+<th>KIND(种类)</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>bindings</td>
+<td></td>
+<td>v1</td>
+<td>true</td>
+<td>Binding</td>
+</tr>
+<tr>
+<td>componentstatuses</td>
+<td>cs</td>
+<td>v1</td>
+<td>false</td>
+<td>ComponentStatus</td>
+</tr>
+<tr>
+<td>configmaps</td>
+<td>cm</td>
+<td>v1</td>
+<td>true</td>
+<td>ConfigMap</td>
+</tr>
+<tr>
+<td>endpoints</td>
+<td>ep</td>
+<td>v1</td>
+<td>true</td>
+<td>Endpoints</td>
+</tr>
+<tr>
+<td>events</td>
+<td>ev</td>
+<td>v1</td>
+<td>true</td>
+<td>Event</td>
+</tr>
+<tr>
+<td>limitranges</td>
+<td>limits</td>
+<td>v1</td>
+<td>true</td>
+<td>LimitRange</td>
+</tr>
+<tr>
+<td>namespaces</td>
+<td>ns</td>
+<td>v1</td>
+<td>false</td>
+<td>Namespace</td>
+</tr>
+<tr>
+<td>nodes</td>
+<td>no</td>
+<td>v1</td>
+<td>false</td>
+<td>Node</td>
+</tr>
+<tr>
+<td>persistentvolumeclaims</td>
+<td>pvc</td>
+<td>v1</td>
+<td>true</td>
+<td>PersistentVolumeClaim</td>
+</tr>
+<tr>
+<td>persistentvolumes</td>
+<td>pv</td>
+<td>v1</td>
+<td>false</td>
+<td>PersistentVolume</td>
+</tr>
+<tr>
+<td>pods</td>
+<td>po</td>
+<td>v1</td>
+<td>true</td>
+<td>Podpodtemplates</td>
+</tr>
+<tr>
+<td>replicationcontrollers</td>
+<td>rc</td>
+<td>v1</td>
+<td>true</td>
+<td>ReplicationController</td>
+</tr>
+<tr>
+<td>resourcequotas</td>
+<td>quota</td>
+<td>v1</td>
+<td>true</td>
+<td>ResourceQuota</td>
+</tr>
+<tr>
+<td>secrets</td>
+<td></td>
+<td>v1</td>
+<td>true</td>
+<td>Secret</td>
+</tr>
+<tr>
+<td>serviceaccounts</td>
+<td>sa</td>
+<td>v1</td>
+<td>true</td>
+<td>ServiceAccount</td>
+</tr>
+<tr>
+<td>services</td>
+<td>svc</td>
+<td>v1</td>
+<td>true</td>
+<td>Service</td>
+</tr>
+<tr>
+<td>mutatingwebhookconfigurations</td>
+<td></td>
+<td>admissionregistration.k8s.io&#x2F;v1</td>
+<td>false</td>
+<td>MutatingWebhookConfiguration</td>
+</tr>
+<tr>
+<td>validatingwebhookconfigurations</td>
+<td></td>
+<td>admissionregistration.k8s.io&#x2F;v1</td>
+<td>false</td>
+<td>ValidatingWebhookConfiguration</td>
+</tr>
+<tr>
+<td>customresourcedefinitions</td>
+<td>crd,crds</td>
+<td>apiextensions.k8s.io&#x2F;v1</td>
+<td>false</td>
+<td>CustomResourceDefinition</td>
+</tr>
+<tr>
+<td>apiservices</td>
+<td></td>
+<td>apiregistration.k8s.io&#x2F;v1</td>
+<td>false</td>
+<td>APIService</td>
+</tr>
+<tr>
+<td>controllerrevisions</td>
+<td></td>
+<td>apps&#x2F;v1</td>
+<td>true</td>
+<td>ControllerRevision</td>
+</tr>
+<tr>
+<td>daemonsets</td>
+<td>ds</td>
+<td>apps&#x2F;v1</td>
+<td>true</td>
+<td>DaemonSet</td>
+</tr>
+<tr>
+<td>deployments</td>
+<td>deploy</td>
+<td>apps&#x2F;v1</td>
+<td>true</td>
+<td>Deployment</td>
+</tr>
+<tr>
+<td>replicasets</td>
+<td>rs</td>
+<td>apps&#x2F;v1</td>
+<td>true</td>
+<td>ReplicaSet</td>
+</tr>
+<tr>
+<td>statefulsets</td>
+<td>sts</td>
+<td>apps&#x2F;v1</td>
+<td>true</td>
+<td>StatefulSet</td>
+</tr>
+<tr>
+<td>tokenreviews</td>
+<td></td>
+<td>authentication.k8s.io&#x2F;v1</td>
+<td>false</td>
+<td>TokenReview</td>
+</tr>
+<tr>
+<td>localsubjectaccessreviews</td>
+<td></td>
+<td>authorization.k8s.io&#x2F;v1</td>
+<td>true</td>
+<td>LocalSubjectAccessReview</td>
+</tr>
+<tr>
+<td>selfsubjectaccessreviews</td>
+<td></td>
+<td>authorization.k8s.io&#x2F;v1</td>
+<td>false</td>
+<td>SelfSubjectAccessReview</td>
+</tr>
+<tr>
+<td>selfsubjectrulesreviews</td>
+<td></td>
+<td>authorization.k8s.io&#x2F;v1</td>
+<td>false</td>
+<td>SelfSubjectRulesReview</td>
+</tr>
+<tr>
+<td>subjectaccessreviews</td>
+<td></td>
+<td>authorization.k8s.io&#x2F;v1</td>
+<td>false</td>
+<td>SubjectAccessReview</td>
+</tr>
+<tr>
+<td>horizontalpodautoscalers</td>
+<td>hpa</td>
+<td>autoscaling&#x2F;v1</td>
+<td>true</td>
+<td>HorizontalPodAutoscaler</td>
+</tr>
+<tr>
+<td>cronjobs</td>
+<td>cj</td>
+<td>batch&#x2F;v1</td>
+<td>true</td>
+<td>CronJob</td>
+</tr>
+<tr>
+<td>jobs</td>
+<td></td>
+<td>batch&#x2F;v1</td>
+<td>true</td>
+<td>Jobcertificatesigningrequests</td>
+</tr>
+<tr>
+<td>leases</td>
+<td></td>
+<td>coordination.k8s.io&#x2F;v1</td>
+<td>true</td>
+<td>Lease</td>
+</tr>
+<tr>
+<td>bgpconfigurations</td>
+<td></td>
+<td>crd.projectcalico.org&#x2F;v1</td>
+<td>false</td>
+<td>BGPConfiguration</td>
+</tr>
+<tr>
+<td>bgppeers</td>
+<td></td>
+<td>crd.projectcalico.org&#x2F;v1</td>
+<td>false</td>
+<td>BGPPeer</td>
+</tr>
+<tr>
+<td>blockaffinities</td>
+<td></td>
+<td>crd.projectcalico.org&#x2F;v1</td>
+<td>false</td>
+<td>BlockAffinity</td>
+</tr>
+<tr>
+<td>clusterinformations</td>
+<td></td>
+<td>crd.projectcalico.org&#x2F;v1</td>
+<td>false</td>
+<td>ClusterInformation</td>
+</tr>
+<tr>
+<td>felixconfigurations</td>
+<td></td>
+<td>crd.projectcalico.org&#x2F;v1</td>
+<td>false</td>
+<td>FelixConfiguration</td>
+</tr>
+<tr>
+<td>globalnetworkpolicies</td>
+<td></td>
+<td>crd.projectcalico.org&#x2F;v1</td>
+<td>false</td>
+<td>GlobalNetworkPolicy</td>
+</tr>
+<tr>
+<td>globalnetworksets</td>
+<td></td>
+<td>crd.projectcalico.org&#x2F;v1</td>
+<td>false</td>
+<td>GlobalNetworkSet</td>
+</tr>
+<tr>
+<td>hostendpoints</td>
+<td></td>
+<td>crd.projectcalico.org&#x2F;v1</td>
+<td>false</td>
+<td>HostEndpoint</td>
+</tr>
+<tr>
+<td>ipamblocks</td>
+<td></td>
+<td>crd.projectcalico.org&#x2F;v1</td>
+<td>false</td>
+<td>IPAMBlock</td>
+</tr>
+<tr>
+<td>ipamconfigs</td>
+<td></td>
+<td>crd.projectcalico.org&#x2F;v1</td>
+<td>false</td>
+<td>IPAMConfig</td>
+</tr>
+<tr>
+<td>ipamhandles</td>
+<td></td>
+<td>crd.projectcalico.org&#x2F;v1</td>
+<td>false</td>
+<td>IPAMHandle</td>
+</tr>
+<tr>
+<td>ippools</td>
+<td></td>
+<td>crd.projectcalico.org&#x2F;v1</td>
+<td>false</td>
+<td>IPPool</td>
+</tr>
+<tr>
+<td>kubecontrollersconfigurations</td>
+<td></td>
+<td>crd.projectcalico.org&#x2F;v1</td>
+<td>false</td>
+<td>KubeControllersConfiguration</td>
+</tr>
+<tr>
+<td>networkpolicies</td>
+<td></td>
+<td>crd.projectcalico.org&#x2F;v1</td>
+<td>true</td>
+<td>NetworkPolicy</td>
+</tr>
+<tr>
+<td>networksets</td>
+<td></td>
+<td>crd.projectcalico.org&#x2F;v1</td>
+<td>true</td>
+<td>NetworkSet</td>
+</tr>
+<tr>
+<td>endpointslices</td>
+<td></td>
+<td>discovery.k8s.io&#x2F;v1</td>
+<td>true</td>
+<td>EndpointSlice</td>
+</tr>
+<tr>
+<td>events</td>
+<td>ev</td>
+<td>events.k8s.io&#x2F;v1</td>
+<td>true</td>
+<td>Event</td>
+</tr>
+<tr>
+<td>flowschemas</td>
+<td></td>
+<td>flowcontrol.apiserver.k8s.io&#x2F;v1beta1</td>
+<td>false</td>
+<td>FlowSchema</td>
+</tr>
+<tr>
+<td>prioritylevelconfigurations</td>
+<td></td>
+<td>flowcontrol.apiserver.k8s.io&#x2F;v1beta1</td>
+<td>false</td>
+<td>PriorityLevelConfiguration</td>
+</tr>
+<tr>
+<td>nodes</td>
+<td></td>
+<td>metrics.k8s.io&#x2F;v1beta1</td>
+<td>false</td>
+<td>NodeMetrics</td>
+</tr>
+<tr>
+<td>pods</td>
+<td></td>
+<td>metrics.k8s.io&#x2F;v1beta1</td>
+<td>true</td>
+<td>PodMetrics</td>
+</tr>
+<tr>
+<td>ingressclasses</td>
+<td></td>
+<td>networking.k8s.io&#x2F;v1</td>
+<td>false</td>
+<td>IngressClass</td>
+</tr>
+<tr>
+<td>ingresses</td>
+<td>ing</td>
+<td>networking.k8s.io&#x2F;v1</td>
+<td>true</td>
+<td>Ingress</td>
+</tr>
+<tr>
+<td>networkpolicies</td>
+<td>netpol</td>
+<td>networking.k8s.io&#x2F;v1</td>
+<td>true</td>
+<td>NetworkPolicy</td>
+</tr>
+<tr>
+<td>runtimeclasses</td>
+<td></td>
+<td>node.k8s.io&#x2F;v1</td>
+<td>false</td>
+<td>RuntimeClass</td>
+</tr>
+<tr>
+<td>poddisruptionbudgets</td>
+<td>pdb</td>
+<td>policy&#x2F;v1</td>
+<td>true</td>
+<td>PodDisruptionBudget</td>
+</tr>
+<tr>
+<td>podsecuritypolicies</td>
+<td>psp</td>
+<td>policy&#x2F;v1beta1</td>
+<td>false</td>
+<td>PodSecurityPolicy</td>
+</tr>
+<tr>
+<td>clusterrolebindings</td>
+<td></td>
+<td>rbac.authorization.k8s.io&#x2F;v1</td>
+<td>false</td>
+<td>ClusterRoleBinding</td>
+</tr>
+<tr>
+<td>clusterroles</td>
+<td></td>
+<td>rbac.authorization.k8s.io&#x2F;v1</td>
+<td>false</td>
+<td>ClusterRole</td>
+</tr>
+<tr>
+<td>rolebindings</td>
+<td></td>
+<td>rbac.authorization.k8s.io&#x2F;v1</td>
+<td>true</td>
+<td>RoleBinding</td>
+</tr>
+<tr>
+<td>roles</td>
+<td></td>
+<td>rbac.authorization.k8s.io&#x2F;v1</td>
+<td>true</td>
+<td>Role</td>
+</tr>
+<tr>
+<td>priorityclasses</td>
+<td>pc</td>
+<td>scheduling.k8s.io&#x2F;v1</td>
+<td>false</td>
+<td>PriorityClass</td>
+</tr>
+<tr>
+<td>csidrivers</td>
+<td></td>
+<td>storage.k8s.io&#x2F;v1</td>
+<td>false</td>
+<td>CSIDriver</td>
+</tr>
+<tr>
+<td>csinodes</td>
+<td></td>
+<td>storage.k8s.io&#x2F;v1</td>
+<td>false</td>
+<td>CSINode</td>
+</tr>
+<tr>
+<td>csistoragecapacities</td>
+<td></td>
+<td>storage.k8s.io&#x2F;v1beta1</td>
+<td>true</td>
+<td>CSIStorageCapacity</td>
+</tr>
+<tr>
+<td>storageclasses</td>
+<td>sc</td>
+<td>storage.k8s.io&#x2F;v1</td>
+<td>false</td>
+<td>StorageClass</td>
+</tr>
+<tr>
+<td>volumeattachments</td>
+<td></td>
+<td>storage.k8s.io&#x2F;v1</td>
+<td>false</td>
+<td>VolumeAttachment</td>
+</tr>
+</tbody></table>
+<h2 id="二、Kubernetes集群的两种管理角色-Master和Node"><a href="#二、Kubernetes集群的两种管理角色-Master和Node" class="headerlink" title="二、Kubernetes集群的两种管理角色: Master和Node"></a><font color=green>二、Kubernetes集群的两种管理角色: <code>Master</code>和<code>Node</code></font></h2><table>
+<thead>
+<tr>
+<th><code>Master</code>和<code>Node</code></th>
+</tr>
+</thead>
+<tbody><tr>
+<td><img src="https://img-blog.csdnimg.cn/20210614223114358.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3Nhbmhld3V5YW5n,size_16,color_FFFFFF,t_70" alt="在这里插入图片描述"></td>
+</tr>
+</tbody></table>
+<h3 id="1、Master角色"><a href="#1、Master角色" class="headerlink" title="1、Master角色"></a><font color=green>1、Master角色</font></h3><p>Kubernetes里的Master指的是 <strong><code>集群控制节点</code></strong>,<strong><font color=yellowgreen>每个Kubernetes集群里需要有一个Master节点来负责整个集群的管理和控制,基本上Kubernetes的所有控制命令都发给它,它来负责具体的执行过程,我们后面执行的所有命令基本都是在Master节点上运行的。</font></strong></p>
+<p><code>Master节点通常会占据一个独立的服务器</code>(高可用部署建议用3台服务器),其主要原因是它太重要了,是整个集群的“<code>首脑</code>”,如果宕机或者不可用,那么对集群内容器应用的管理都将失效。<code>Master节点上运行着以下一组关键进程。</code></p>
+<table>
+<thead>
+<tr>
+<th>Master节点上关键进程</th>
+<th>–</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>Kubernetes API Server (kube-apiserver)</code></td>
+<td>提供了HTTP Rest接口的关键服务进程,是Kubernetes里所有资源的增、删、改、查等操作的唯一入口,也是集群控制的入口进程。</td>
+</tr>
+<tr>
+<td><code>Kubernetes Controller Manager (kube-controller-manager)</code></td>
+<td>Kubernetes里所有资源对象的自动化控制中心,可以理解为资源对象的“大总管”。</td>
+</tr>
+<tr>
+<td><code>Kubernetes Scheduler (kube-scheduler)</code></td>
+<td>负责资源调度(Pod调度)的进程,相当于公交公司的“调度室”。</td>
+</tr>
+<tr>
+<td><code>etcd</code></td>
+<td>在Master节点上还需要启动一个<code>etcd</code>服务,因为<code>Kubernetes</code>里的所有资源对象的数据全部是保存在<code>etcd</code>中的。</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p>除了Master,<strong><font color=purple> Kubernetes集群中的其他机器被称为Node节点</font></strong></p>
+</blockquote>
+<h3 id="2、Node角色"><a href="#2、Node角色" class="headerlink" title="2、Node角色"></a><font color=red>2、Node角色</font></h3><p>在较早的版本中也被称为<code>Miniono</code>与<code>Master</code>一样, <code>Node</code>节点可以是一台物理主机,也可以是一台虚拟机。 <strong><font color=plum>Node节点才是Kubermetes集群中的工作负载节点,每个Node都会被Master分配一些工作负载(Docker容器),当某个Node宕机时,其上的工作负载会被Master自动转移到其他节点上去。</font></strong> </p>
+<blockquote>
+<p>每个Node节点上都运行着以下一组关键进程。</p>
+</blockquote>
+<table>
+<thead>
+<tr>
+<th>每个Node节点上都运行关键进程</th>
+<th>–</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>kubelet</code></td>
+<td>负责Pod对应的容器的创建、启停等任务,同时与Master节点密切协作,实现集群管理的基本功能。</td>
+</tr>
+<tr>
+<td><code>kube-proxy</code></td>
+<td>实现<code>Kubernetes Service</code>的<code>通信与负载均衡机制</code>的重要组件。)</td>
+</tr>
+<tr>
+<td><code>Docker Engine</code></td>
+<td>(docker): <code>Docker引擎</code>,负责本机的容器创建和管理工作。</td>
+</tr>
+</tbody></table>
+<p><code>Node节点可以在运行期间动态增加到Kubernetes集群中</code>,前提是这个节点上已经正确安装、配置和启动了上述关键进程,**<font color=seagreen>在默认情况下kubelet会向Master注册自己,这也是Kubernetes推荐的Node管理方式</font>**。</p>
+<p><strong><font color=royalblue>一旦Node被纳入集群管理范围, kubelet进程就会定时向Master节点汇报自身的情报,例如操作系统、Docker版本、机器的CPU和内存情况,以及当前有哪些Pod在运行等,这样Master可以获知每个Node的资源使用情况,并实现高效均衡的资源调度策略。而某个Node超过指定时间不上报信息时,会被Master判定为“失联”, Node的状态被标记为不可用(Not Ready),随后Master会触发“工作负载大转移”的自动流程。</font></strong></p>
+<h4 id="查看集群中的Node节点和节点的详细信息"><a href="#查看集群中的Node节点和节点的详细信息" class="headerlink" title="查看集群中的Node节点和节点的详细信息"></a><font color=seagreen>查看集群中的Node节点和节点的详细信息</font></h4><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">┌──[root@vms81.liruilongs.github.io]-[~]</span><br><span class="line">└─<span class="variable">$kubectl</span> get nodes</span><br><span class="line">NAME                         STATUS     ROLES                  AGE   VERSION</span><br><span class="line">vms81.liruilongs.github.io   Ready      control-plane,master   47d   v1.22.2</span><br><span class="line">vms82.liruilongs.github.io   Ready      worker1                47d   v1.22.2</span><br><span class="line">vms83.liruilongs.github.io   NotReady   worker2                47d   v1.22.2</span><br></pre></td></tr></table></figure>
+
+
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br></pre></td><td class="code"><pre><span class="line">┌──[root@vms81.liruilongs.github.io]-[~]</span><br><span class="line">└─<span class="variable">$kubectl</span> describe  node vms82.liruilongs.github.io</span><br><span class="line"><span class="comment"># Node基本信息:名称、标签、创建时间等。</span></span><br><span class="line">Name:               vms82.liruilongs.github.io</span><br><span class="line">Roles:              worker1</span><br><span class="line">Labels:             beta.kubernetes.io/arch=amd64</span><br><span class="line">                    beta.kubernetes.io/os=linux</span><br><span class="line">                    disktype=node1</span><br><span class="line">                    kubernetes.io/arch=amd64</span><br><span class="line">                    kubernetes.io/hostname=vms82.liruilongs.github.io</span><br><span class="line">                    kubernetes.io/os=linux</span><br><span class="line">                    node-role.kubernetes.io/worker1=</span><br><span class="line">Annotations:        dest: 这是一个工作节点</span><br><span class="line">                    kubeadm.alpha.kubernetes.io/cri-socket: /var/run/dockershim.sock</span><br><span class="line">                    node.alpha.kubernetes.io/ttl: 0</span><br><span class="line">                    projectcalico.org/IPv4Address: 192.168.26.82/24</span><br><span class="line">                    projectcalico.org/IPv4IPIPTunnelAddr: 10.244.171.128</span><br><span class="line">                    volumes.kubernetes.io/controller-managed-attach-detach: <span class="literal">true</span></span><br><span class="line">CreationTimestamp:  Thu, 07 Oct 2021 01:15:45 +0800</span><br><span class="line">Taints:             &lt;none&gt;</span><br><span class="line">Unschedulable:      <span class="literal">false</span></span><br><span class="line">Lease:</span><br><span class="line">  HolderIdentity:  vms82.liruilongs.github.io</span><br><span class="line">  AcquireTime:     &lt;<span class="built_in">unset</span>&gt;</span><br><span class="line">  RenewTime:       Tue, 23 Nov 2021 23:08:16 +0800</span><br><span class="line"><span class="comment"># Node当前的运行状态, Node启动以后会做一系列的自检工作:</span></span><br><span class="line"><span class="comment"># 比如磁盘是否满了,如果满了就标注OutODisk=True</span></span><br><span class="line"><span class="comment"># 否则继续检查内存是否不足(如果内存不足,就标注MemoryPressure=True)</span></span><br><span class="line"><span class="comment"># 最后一切正常,就设置为Ready状态(Ready=True)</span></span><br><span class="line"><span class="comment"># 该状态表示Node处于健康状态, Master将可以在其上调度新的任务了(如启动Pod)  </span></span><br><span class="line">Conditions:</span><br><span class="line">  Type                 Status  LastHeartbeatTime                 LastTransitionTime                Reason</span><br><span class="line">        Message</span><br><span class="line">  ----                 ------  -----------------                 ------------------                ------</span><br><span class="line">        -------</span><br><span class="line">  NetworkUnavailable   False   Tue, 23 Nov 2021 23:02:52 +0800   Tue, 23 Nov 2021 23:02:52 +0800   CalicoIsUp</span><br><span class="line">        Calico is running on this node</span><br><span class="line">  MemoryPressure       False   Tue, 23 Nov 2021 23:05:32 +0800   Tue, 23 Nov 2021 22:45:03 +0800   KubeletHasSufficientMemory   kubelet has sufficient memory available</span><br><span class="line">  DiskPressure         False   Tue, 23 Nov 2021 23:05:32 +0800   Tue, 23 Nov 2021 22:45:03 +0800   KubeletHasNoDiskPressure     kubelet has no disk pressure</span><br><span class="line">  PIDPressure          False   Tue, 23 Nov 2021 23:05:32 +0800   Tue, 23 Nov 2021 22:45:03 +0800   KubeletHasSufficientPID      kubelet has sufficient PID available</span><br><span class="line">  Ready                True    Tue, 23 Nov 2021 23:05:32 +0800   Tue, 23 Nov 2021 22:45:03 +0800   KubeletReady</span><br><span class="line">        kubelet is posting ready status</span><br><span class="line"><span class="comment"># Node的主机地址与主机名。        </span></span><br><span class="line">Addresses:</span><br><span class="line">  InternalIP:  192.168.26.82</span><br><span class="line">  Hostname:    vms82.liruilongs.github.io</span><br><span class="line"><span class="comment"># Node上的资源总量:描述Node可用的系统资源,包括CPU、内存数量、最大可调度Pod数量等,注意到目前Kubernetes已经实验性地支持GPU资源分配了(alpha.kubernetes.io/nvidia-gpu=0)</span></span><br><span class="line">Capacity:</span><br><span class="line">  cpu:                2</span><br><span class="line">  ephemeral-storage:  153525Mi</span><br><span class="line">  hugepages-1Gi:      0</span><br><span class="line">  hugepages-2Mi:      0</span><br><span class="line">  memory:             4030172Ki</span><br><span class="line">  pods:               110</span><br><span class="line"><span class="comment"># Node可分配资源量:描述Node当前可用于分配的资源量。</span></span><br><span class="line">Allocatable:</span><br><span class="line">  cpu:                2</span><br><span class="line">  ephemeral-storage:  144884367121</span><br><span class="line">  hugepages-1Gi:      0</span><br><span class="line">  hugepages-2Mi:      0</span><br><span class="line">  memory:             3927772Ki</span><br><span class="line">  pods:               110</span><br><span class="line"><span class="comment"># 主机系统信息:包括主机的唯一标识UUID, Linux kernel版本号、操作系统类型与版本、Kubernetes版本号、kubelet与kube-proxy的版本号等。  </span></span><br><span class="line">System Info:</span><br><span class="line">  Machine ID:                 1ee67b1c4230405a851cf0107d6e89f5</span><br><span class="line">  System UUID:                C0EA4D56-ED9A-39CF-6942-5B66704F6E6F</span><br><span class="line">  Boot ID:                    b0e42864-9778-4ded-af4c-a88a64f988db</span><br><span class="line">  Kernel Version:             3.10.0-693.el7.x86_64</span><br><span class="line">  OS Image:                   CentOS Linux 7 (Core)</span><br><span class="line">  Operating System:           linux</span><br><span class="line">  Architecture:               amd64</span><br><span class="line">  Container Runtime Version:  docker://20.10.9</span><br><span class="line">  Kubelet Version:            v1.22.2</span><br><span class="line">  Kube-Proxy Version:         v1.22.2</span><br><span class="line">PodCIDR:                      10.244.1.0/24</span><br><span class="line">PodCIDRs:                     10.244.1.0/24</span><br><span class="line"><span class="comment"># 当前正在运行的Pod列表概要信息</span></span><br><span class="line">Non-terminated Pods:          (3 <span class="keyword">in</span> total)</span><br><span class="line">  Namespace                   Name                              CPU Requests  CPU Limits  Memory Requests  Memory Limits  Age</span><br><span class="line">  ---------                   ----                              ------------  ----------  ---------------  -------------  ---</span><br><span class="line">  kube-system                 calico-node-ntm7v                 250m (12%)    0 (0%)      0 (0%)           0 (0%)         47d</span><br><span class="line">  kube-system                 kube-proxy-nzm24                  0 (0%)        0 (0%)      0 (0%)           0 (0%)         35d</span><br><span class="line">  kube-system                 metrics-server-bcfb98c76-wxv5l    0 (0%)        0 (0%)      0 (0%)           0 (0%)         27m</span><br><span class="line"><span class="comment"># 已分配的资源使用概要信息,例如资源申请的最低、最大允许使用量占系统总量的百分比。  </span></span><br><span class="line">Allocated resources:</span><br><span class="line">  (Total limits may be over 100 percent, i.e., overcommitted.)</span><br><span class="line">  Resource           Requests    Limits</span><br><span class="line">  --------           --------    ------</span><br><span class="line">  cpu                250m (12%)  0 (0%)</span><br><span class="line">  memory             0 (0%)      0 (0%)</span><br><span class="line">  ephemeral-storage  0 (0%)      0 (0%)</span><br><span class="line">  hugepages-1Gi      0 (0%)      0 (0%)</span><br><span class="line">  hugepages-2Mi      0 (0%)      0 (0%)</span><br><span class="line"><span class="comment"># Node相关的Event信息。</span></span><br><span class="line">Events:</span><br><span class="line">  Type    Reason                   Age                 From     Message</span><br><span class="line">  ----    ------                   ----                ----     -------</span><br><span class="line">  Normal  NodeHasSufficientMemory  23m (x3 over 3d4h)  kubelet  Node vms82.liruilongs.github.io status is now: NodeHasSufficientMemory</span><br><span class="line">  Normal  NodeHasNoDiskPressure    23m (x3 over 3d4h)  kubelet  Node vms82.liruilongs.github.io status is now: NodeHasNoDiskPressure</span><br><span class="line">  Normal  NodeHasSufficientPID     23m (x3 over 3d4h)  kubelet  Node vms82.liruilongs.github.io status is now: NodeHasSufficientPID</span><br><span class="line">  Normal  NodeReady                23m (x2 over 3d4h)  kubelet  Node vms82.liruilongs.github.io status is now: NodeReady</span><br><span class="line">┌──[root@vms81.liruilongs.github.io]-[~]</span><br><span class="line">└─$</span><br></pre></td></tr></table></figure>
+
+<p><strong><font color=orange>总结一下，我们要操作<code>k8s</code>，在管理节点那我们怎么操作，我们通过<code>kube-apiserver</code>来接受用户的请求，通过<code>kubu-scheduler</code>来负责资源的调度，是使用work1计算节点来处理还是使用work2计算节点来处理，然后在每个节点上要运行一个代理服务kubelet，用来控制每个节点的操作，但是每个节点的状态，是否健康我们不知道，这里我们需要<code>kube-controller-manager</code></font></strong></p>
+<h3 id="3、-Pod资源对象"><a href="#3、-Pod资源对象" class="headerlink" title="3、 Pod资源对象"></a><font color=royalblue>3、 Pod资源对象</font></h3><blockquote>
+<p>Pod是Kubernetes的最重要也最基本的概念,</p>
+</blockquote>
+<p><strong><font color=amber>每个Pod都有一个特殊的被称为“根容器”的<code>Pause容器</code>。<code>Pause容器</code>对应的镜像属于Kubernetes平台的一部分,除了<code>Pause容器</code>,每个Pod还包含一个或多个紧密相关的用户业务容器。</font></strong></p>
+<h4 id="Pause容器"><a href="#Pause容器" class="headerlink" title="Pause容器"></a><font color=plum>Pause容器</font></h4><table>
+<thead>
+<tr>
+<th><strong><font color=royalblue>为什么<code>Kubernetes</code>会设计出一个全新的<code>Pod</code>的概念并且<code>Pod</code>有这样特殊的组成结构?</font></strong></th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong><font color=yellowgreen>原因之一</font></strong>:在<code>一组容器作为一个单元</code>的情况下,我们难以对“整体”简单地进行判断及有效地进行行动。<code>引入业务无关并且不易死亡的Pause容器作为Pod的根容器</code>,<code>以它的状态代表整个容器组的状态</code>,就简单、巧妙地解决了这个难题。</td>
+</tr>
+<tr>
+<td><strong><font color=royalblue>原因之二</font></strong>: <code>Pod</code>里的<code>多个业务容器共享Pause容器的IP</code>,共享<code>Pause容器</code>挂接的<code>Volume</code>,这样既简化了<code>密切关联</code>的<code>业务容器之间的通信</code>问题,也很好地解决了它们之间的<code>文件共享</code>问题。</td>
+</tr>
+</tbody></table>
+<h4 id="Pod-IP"><a href="#Pod-IP" class="headerlink" title="Pod IP"></a><font color=purple>Pod IP</font></h4><p><code>Kubernetes</code> 为每个<code>Pod</code>都分配了<code>唯一的IP地址</code>,称之为<code>Pod IP</code>,一个Pod里的多个容器共享<code>Pod IP</code>地址。 Kuberetes要求底层网络支持集群内任意两个Pod之间的TCP&#x2F;P直接通信,这通常采用<code>虚拟二层网络技术来实现</code>(链路层网桥),</p>
+<blockquote>
+<p>在<code>Kubernetes</code>里,一个<code>Pod</code>里的容器与另外主机上的<code>Pod</code>容器能够直接通信。</p>
+</blockquote>
+<h4 id="普通的Pod及静态Pod-Static-Pod"><a href="#普通的Pod及静态Pod-Static-Pod" class="headerlink" title="普通的Pod及静态Pod (Static Pod)"></a><font color=amber><code>普通的Pod</code>及<code>静态Pod (Static Pod)</code></font></h4><p><strong><font color=royalblue>Pod其实有两种类型:<code>普通的Pod</code>及<code>静态Pod (Static Pod)</code>,如果使用kubeadm的方式部署，静态pod在node节点和master节点创建略有不同</font></strong></p>
+<table>
+<thead>
+<tr>
+<th>Pod两种类型</th>
+<th>描述</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>静态Pod (Static Pod)</code></td>
+<td>并 <strong><font color=orange>不存放在Kubernetes的etcd存储</font></strong> 里,而是存放在某个具体的Node上的一个具体文件中,并且只在此Node上启动运行。</td>
+</tr>
+<tr>
+<td><code>普通的Pod</code></td>
+<td><strong><font color=green>一旦被创建,就会被放入到<code>etcd</code>中存储</font></strong>,随后会被<code>Kubernetes Masten</code>调度到某个具体的<code>Node</code>上并进行绑定(Binding),<code>随后该Pod被对应的Node上的kubelet进程实例化成一组相关的Docker容器并启动起来</code>。</td>
+</tr>
+</tbody></table>
+<p><strong><font color=orange>正常情况下，<code>pod</code>是在<code>master</code>上统一管理的,所谓<code>静态pod</code>就是，即不是由master上创建调度的，是属于node自身特的pod，在node上只要启动kubelet之后，就会自动的创建的pod。这里理解的话，结合java静态熟悉，静态方法理解，即的node节点初始化的时候需要创建的一些pod</font></strong></p>
+<p><strong><font color=orange>比如 kubeadm的安装k8s的话，所以的服务都是通过容器的方式运行的。相比较二进制的方式方便很多,这里的话，那么涉及到master节点的相关组件在没有k8s环境时是如何运行，构建master节点的，这里就涉及到静态pod的问题。</font></strong></p>
+<p><strong><font color=seagreen>在默认情况下,当<code>Pod</code>里的某个容器停止时,<code>Kubernetes</code>会自动检测到这个问题并且重新启动这个<code>Pod </code>(重启Pod里的所有容器),如果Pod所在的<code>Node</code>宕机,则会将这个Node上的所有Pod重新调度到其他节点上.</font></strong></p>
+<table>
+<thead>
+<tr>
+<th>–</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><img src="https://img-blog.csdnimg.cn/1c7068e2aae14cf3b56b43d143c1cc92.png" alt="在这里插入图片描述"></td>
+</tr>
+</tbody></table>
+<p><strong><font color=orange><code>Kubernetes</code>里的所有资源对象都可以采用<code>yaml或者JSON</code>格式的文件来定义或描述,下面是我们在之前<code>Hello World例子里用到的myweb</code>这个<code>Pod</code>的资源定义文件:</font></strong></p>
+<figure class="highlight yml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">apiVersion:</span> <span class="string">v1</span></span><br><span class="line"><span class="attr">kind:</span> <span class="string">Pod</span>                <span class="comment"># Pod 定义</span></span><br><span class="line"><span class="attr">metadata:</span> </span><br><span class="line">  <span class="attr">name:</span> <span class="string">myweb</span>            <span class="comment"># Pod 名字</span></span><br><span class="line">  <span class="attr">lables:</span></span><br><span class="line">    <span class="attr">name:</span> <span class="string">myweb</span></span><br><span class="line"><span class="attr">spec:</span>                    <span class="comment"># 包含的容器组</span></span><br><span class="line">  <span class="attr">containers:</span> </span><br><span class="line">    <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">myweb</span></span><br><span class="line">      <span class="attr">image:</span> <span class="string">kubeguide/tomcat-app:v1</span></span><br><span class="line">      <span class="attr">ports:</span></span><br><span class="line">        <span class="bullet">-</span> <span class="attr">containerPort:</span> <span class="number">8080</span>   </span><br><span class="line">      <span class="attr">env:</span></span><br><span class="line">        <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">MYSQL_SERVICE_HOST</span></span><br><span class="line">          <span class="attr">value:</span> <span class="string">&#x27;mysql&#x27;</span></span><br><span class="line">        <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">MYSQL_SERVICE_PORT</span></span><br><span class="line">          <span class="attr">value:</span> <span class="string">&#x27;3306&#x27;</span>   </span><br></pre></td></tr></table></figure>
+<p><strong><font color=purple><code>Kubernetes</code>的<code>Event</code>概念, <code>Event</code>是一个事件的记录,<code>记录了事件的最早产生时间、最后重现时间、重复次数、发起者、类型,以及导致此事件的原因等众多信息。</code>Event通常会关联到某个具体的资源对象上,是排查故障的重要参考信息,</font></strong></p>
+<p><strong><font color=tomato>Pod同样有Event记录,当我们发现某个Pod迟迟无法创建时,可以用<code>kubectl describe pod xxxx</code>来查看它的描述信息,用来定位问题的原因</font></strong></p>
+<p>在<code>Kubernetes</code>里,一个计算资源进行配额限定需要设定以下两个参数。</p>
+<table>
+<thead>
+<tr>
+<th>计算资源进行配额限定</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong><font color=camel>Requests</font></strong>:该资源的最小申请量,系统必须满足要求。</td>
+</tr>
+<tr>
+<td><strong><font color=royalblue>Limits</font></strong>:该资源最大允许使用的量,不能被突破,当容器试图使用超过这个量的资源时,可能会被Kubernetes Kill并重启。</td>
+</tr>
+</tbody></table>
+<p>通常我们会把Request设置为一个比较小的数值,符合容器平时的工作负载情况下的资源需求,而把Limit设置为峰值负载情况下资源占用的最大量。</p>
+<blockquote>
+<p>比如下面这段定义,表明MysQL容器申请最少0.25个CPU及64MiB内存,在运行过程中MySQL容器所能使用的资源配额为0.5个CPU及128MiB内存: </p>
+</blockquote>
+<figure class="highlight yml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">....</span></span><br><span class="line"><span class="attr">resources:</span></span><br><span class="line">  <span class="attr">requests:</span></span><br><span class="line">    <span class="attr">memory:</span> <span class="string">&quot;64Mi&quot;</span></span><br><span class="line">    <span class="attr">cpu:</span> <span class="string">&quot;250m&quot;</span></span><br><span class="line">  <span class="attr">limits:</span></span><br><span class="line">    <span class="attr">memory:</span> <span class="string">&quot;128Mi&quot;</span></span><br><span class="line">    <span class="attr">cpu:</span> <span class="string">&quot;500m&quot;</span>  </span><br><span class="line"><span class="string">...</span></span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>Pod Pod 周边对象的示意图</p>
+</blockquote>
+<p><img src="https://img-blog.csdnimg.cn/2c4694ab71954408af55a1252d00573c.png?x-oss-process=image/watermark,type_ZHJvaWRzYW5zZmFsbGJhY2s,shadow_50,text_Q1NETiBA5bGx5rKz5bey5peg5oGZ,size_20,color_FFFFFF,t_70,g_se,x_16" alt="在这里插入图片描述"></p>
+<h3 id="4-、Lable-标签"><a href="#4-、Lable-标签" class="headerlink" title="4 、Lable 标签"></a><font color=orange>4 、Lable 标签</font></h3><p>Label是Kubernetes系统中另外一个核心概念。<code>一个Label是一个key-value的键值对</code>。其中key与value由用户自己指定。</p>
+<p><code>Label可以附加到各种资源对象上,例如Node、Pod、Service、RC等</code>,<strong><font color=yellowgreen>一个资源对象可以定义任意数量的Label,同一个Label也可以被添加到任意数量的资源对象上去, Label通常在资源对象定义时确定,也可以在对象创建后动态添加,或者删除。</font></strong></p>
+<p>可以通过<code>给指定的资源对象捆绑一个或多个不同的Label</code>来实现多维度的资源分组管理功能,以便于灵活、方便地进行资源分配、调度、配置、部署等管理工作。</p>
+<blockquote>
+<p>例如:部署不同版本的应用到不同的环境中;或者监控和分析应用(日志记录、监控、告警)等。一些常用的Label示例如下。</p>
+</blockquote>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">版本标签: <span class="string">&quot;release&quot;</span> : <span class="string">&quot;stable&quot;</span>, <span class="string">&quot;release&quot;</span>:<span class="string">&quot;canary&quot;</span>....</span><br><span class="line">环境标签: <span class="string">&quot;environment&quot;</span>:<span class="string">&quot;dev&quot;</span>, <span class="string">&quot;environment&quot;</span>:<span class="string">&quot;ga&quot;</span>,<span class="string">&quot;environment&quot;</span>:<span class="string">&quot;production&quot;</span>·</span><br><span class="line">架构标签: <span class="string">&quot;ier&quot;</span>:<span class="string">&quot;frontend,&quot;</span> <span class="string">&quot;tier&quot;</span>:<span class="string">&quot;backend&quot;</span>, <span class="string">&quot;tier&quot;</span>:<span class="string">&quot;midleware&quot;</span></span><br><span class="line">分区标签: <span class="string">&quot;artition&quot;</span>:<span class="string">&quot;customerA&quot;</span>, <span class="string">&quot;partition&quot;</span>: <span class="string">&quot;customerB&quot;</span>.</span><br><span class="line">质量管控标签: <span class="string">&quot;track&quot;</span>: <span class="string">&quot;daily&quot;</span>,<span class="string">&quot;track&quot;</span>:<span class="string">&quot;weeky&quot;</span> </span><br></pre></td></tr></table></figure>
+<p>可以通过多个<code>Label Selector</code>表达式的组合实现复杂的条件选择,<code>多个表达式之间用“,”进行分隔即可</code>,<strong>几个条件之间是“AND”的关系,即同时满足多个条件</strong>,比如下面的例子:</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">name<span class="operator">=</span>标签名</span><br><span class="line">env <span class="operator">!=</span> 标签名</span><br><span class="line">name <span class="keyword">in</span> (标签<span class="number">1</span>，标签<span class="number">2</span>)</span><br><span class="line">name <span class="keyword">not</span> <span class="keyword">in</span>(标签<span class="number">1</span>)</span><br><span class="line">name <span class="keyword">in</span> (redis<span class="operator">-</span>master, redis<span class="operator">-</span>slave):匹配所有具有标签`name<span class="operator">=</span>redis<span class="operator">-</span>master`或者`name<span class="operator">=</span>redis<span class="operator">-</span>slave`的资源对象。</span><br><span class="line">name <span class="keyword">not</span> <span class="keyword">in</span> (phn<span class="operator">-</span>frontend):匹配所有不具有标签name<span class="operator">=</span>php<span class="operator">-</span>frontend的资源对象。</span><br><span class="line">name<span class="operator">=</span>redis<span class="operator">-</span>slave, env<span class="operator">!=</span>production</span><br><span class="line">name notin (php<span class="operator">-</span>frontend),env<span class="operator">!=</span>production</span><br></pre></td></tr></table></figure>
+<figure class="highlight yml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">apiVersion:</span> <span class="string">v1</span></span><br><span class="line"><span class="attr">kind:</span> <span class="string">Pod</span></span><br><span class="line"><span class="attr">metadata:</span></span><br><span class="line">  <span class="attr">name:</span> <span class="string">myweb</span></span><br><span class="line">  <span class="attr">lables:</span> </span><br><span class="line">    <span class="attr">app:</span> <span class="string">myweb</span></span><br><span class="line"><span class="comment"># 管理对象RC和Service 在 spec 中定义Selector 与 Pod 进行关联。</span></span><br><span class="line"><span class="attr">apiVersion:</span> <span class="string">v1</span></span><br><span class="line"><span class="attr">kind:</span> <span class="string">ReplicationController</span></span><br><span class="line"><span class="attr">metadata:</span></span><br><span class="line">  <span class="attr">name:</span> <span class="string">myweb</span></span><br><span class="line"><span class="attr">spec:</span> </span><br><span class="line">  <span class="attr">replicas:</span> <span class="number">1</span></span><br><span class="line">  <span class="attr">selector:</span></span><br><span class="line">    <span class="attr">app:</span> <span class="string">myweb</span></span><br><span class="line">  <span class="attr">template:</span></span><br><span class="line">  <span class="string">...略...</span></span><br><span class="line"><span class="string">apiVersion&quot;</span> <span class="string">v1</span></span><br><span class="line"><span class="attr">kind:</span> <span class="string">Service</span></span><br><span class="line"><span class="attr">metadata:</span> </span><br><span class="line">  <span class="attr">name:</span> <span class="string">myweb</span></span><br><span class="line"><span class="attr">spec:</span> </span><br><span class="line">  <span class="attr">selector:</span></span><br><span class="line">    <span class="attr">app:</span> <span class="string">myweb</span></span><br><span class="line">  <span class="attr">ports:</span></span><br><span class="line">    <span class="attr">port:</span> <span class="number">8080</span></span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<p><strong><font color=amber>新出现的管理对象如<code>Deployment</code>, <code>ReplicaSet</code>, <code>DaemonSet</code>和<code>Job</code>则可以在<code>Selector</code>中使用基于集合的筛选条件定义,例如: </font></strong></p>
+<figure class="highlight yml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">selector:</span></span><br><span class="line">  <span class="attr">matchLabels:</span></span><br><span class="line">     <span class="attr">app:</span> <span class="string">myweb</span></span><br><span class="line">  <span class="attr">matchExpressions:</span></span><br><span class="line">     <span class="bullet">-</span> &#123;<span class="attr">key:</span> <span class="string">tire</span>,<span class="attr">operator:</span> <span class="string">In</span>,<span class="attr">values:</span> [<span class="string">frontend</span>]&#125;</span><br><span class="line">     <span class="bullet">-</span> &#123;<span class="attr">key:</span> <span class="string">environment</span>, <span class="attr">operator:</span> <span class="string">NotIn</span>, <span class="attr">values:</span> [<span class="string">dev</span>]&#125;</span><br><span class="line">     </span><br></pre></td></tr></table></figure>
+<p><code>matchLabels</code>用于定义一组Label,与直接写在<code>Selector</code>中作用相同; <code>matchExpressions</code>用于定义一组基于集合的筛选条件,可用的条件运算符包括: <code>In, NotIn, Exists和DoesNotExist</code>.</p>
+<p>如果同时设置了<code>matchLabels</code>和<code>matchExpressions</code>,则两组条件为<code>&quot;AND&quot;</code>关系,即所有条件需要同时满足才能完成<code>Selector的筛选</code>。 </p>
+<p><code>Label Selector</code>在<code>Kubernetes</code>中的重要使用场景有以下几处:</p>
+<p><strong><font color=orange><code>kube-controller</code>进程通过资源对象<code>RC</code>上定义的<code>Label Selector</code>来<code>筛选要监控的Pod副本的数量</code>,从而实现Pod副本的数量始终符合预期设定的全自动控制流程</font></strong></p>
+<p><strong><font color=amber><code>kube-proxy</code>进程<code>通过Service的Label Selector来选择对应的Pod</code>, 自动建立起<code>每个Service到对应Pod的请求转发路由表</code>,从而实现<code>Service的智能负载均衡机制</code></font></strong></p>
+<p><strong><font color=tomato>通过对某些<code>Node定义特定的Label</code>,并且在<code>Pod定义文件中使用NodeSelector这种标签调度策略</code>, <code>kube-scheduler</code>进程可以实现<code>Pod “定向调度”的特性</code>。 </font></strong></p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">apiVersion:</span> <span class="string">v1</span></span><br><span class="line"><span class="attr">kind:</span> <span class="string">Pod</span></span><br><span class="line"><span class="attr">metadata:</span></span><br><span class="line">  <span class="attr">creationTimestamp:</span> <span class="literal">null</span></span><br><span class="line">  <span class="attr">labels:</span></span><br><span class="line">    <span class="attr">run:</span> <span class="string">podnodea</span></span><br><span class="line">  <span class="attr">name:</span> <span class="string">podnodea</span></span><br><span class="line"><span class="attr">spec:</span></span><br><span class="line">  <span class="attr">containers:</span></span><br><span class="line">  <span class="bullet">-</span> <span class="attr">image:</span> <span class="string">nginx</span></span><br><span class="line">    <span class="attr">imagePullPolicy:</span> <span class="string">IfNotPresent</span></span><br><span class="line">    <span class="attr">name:</span> <span class="string">podnodea</span></span><br><span class="line">    <span class="attr">resources:</span> &#123;&#125;</span><br><span class="line">  <span class="attr">affinity:</span></span><br><span class="line">    <span class="attr">nodeAffinity:</span> <span class="comment">#主机亲和性</span></span><br><span class="line">      <span class="attr">requiredDuringSchedulingIgnoredDuringExecution:</span> <span class="comment">#硬策略</span></span><br><span class="line">        <span class="attr">nodeSelectorTerms:</span></span><br><span class="line">        <span class="bullet">-</span> <span class="attr">matchExpressions:</span></span><br><span class="line">          <span class="bullet">-</span> <span class="attr">key:</span> <span class="string">kubernetes.io/hostname</span></span><br><span class="line">            <span class="attr">operator:</span> <span class="string">In</span></span><br><span class="line">            <span class="attr">values:</span></span><br><span class="line">            <span class="bullet">-</span> <span class="string">vms85.liruilongs.github.io</span></span><br><span class="line">            <span class="bullet">-</span> <span class="string">vms84.liruilongs.github.io</span></span><br><span class="line">  <span class="attr">dnsPolicy:</span> <span class="string">ClusterFirst</span></span><br><span class="line">  <span class="attr">restartPolicy:</span> <span class="string">Always</span></span><br><span class="line"><span class="attr">status:</span> &#123;&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="5、-Replication-Controller"><a href="#5、-Replication-Controller" class="headerlink" title="5、 Replication Controller"></a><font color=plum>5、 Replication Controller</font></h3><p><strong><font color=green><code>RC是Kubernetes系统中的核心概念之一</code>,简单来说,它其实是<code>定义了一个期望的场景,即声明某种Pod的副本数量在任意时刻都符合某个预期值</code>,所以RC的定义包括如下几个部分。</font></strong></p>
+<table>
+<thead>
+<tr>
+<th>RC的定义</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>Pod </code>期待的副本数(replicas)</td>
+</tr>
+<tr>
+<td>用于筛选目标<code>Pod</code>的<code>Label Selector</code></td>
+</tr>
+<tr>
+<td>当<code>Pod</code>的副本数量小于预期数量时,用于创建新Pod的Pod模板(template)。</td>
+</tr>
+</tbody></table>
+<p>下面是一个完整的RC定义的例子,即确保拥有<code>tier-frontend</code>标签的这个<code>Pod (运行Tomcat容器)</code>在整个Kubernetes集群中始终<font color=green>只有一个副本:</font> </p>
+<figure class="highlight yml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">apiVersion:</span> <span class="string">v1</span></span><br><span class="line"><span class="attr">kind:</span> <span class="string">ReplicationController</span></span><br><span class="line"><span class="attr">metadata:</span> </span><br><span class="line">  <span class="attr">name:</span> <span class="string">frontend</span></span><br><span class="line"><span class="attr">spec:</span></span><br><span class="line">  <span class="attr">replicas:</span> <span class="number">1</span></span><br><span class="line">  <span class="attr">selector:</span></span><br><span class="line">    <span class="attr">tier:</span> <span class="string">frontend</span></span><br><span class="line">  <span class="attr">template:</span> </span><br><span class="line">    <span class="attr">metadata:</span></span><br><span class="line">      <span class="attr">labels:</span></span><br><span class="line">        <span class="attr">app:</span> <span class="string">app-demo</span></span><br><span class="line">        <span class="attr">tier:</span> <span class="string">frontend</span></span><br><span class="line">    <span class="attr">spec:</span></span><br><span class="line">      <span class="attr">containers:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">tomcat-demo</span></span><br><span class="line">        <span class="attr">image:</span> <span class="string">tomcat</span></span><br><span class="line">        <span class="attr">imagePullPolicy:</span> <span class="string">IfNotPresent</span></span><br><span class="line">        <span class="attr">env:</span></span><br><span class="line">        <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">GET_HOSTS_FROM</span></span><br><span class="line">          <span class="attr">value:</span> <span class="string">dns</span></span><br><span class="line">        <span class="attr">ports:</span></span><br><span class="line">        <span class="bullet">-</span> <span class="attr">containerPort:</span> <span class="number">80</span></span><br></pre></td></tr></table></figure>
+<p><strong><font color=red>当我们<code>定义了一个RC并提交到Kubernetes集群</code>中以后, <code>Master节点上的Controller Manager组件</code>就得到通知,定期巡检系统中当前<code>存活的目标Pod</code>,并确保<code>目标Pod实例的数量刚好等于此RC的期望值</code>,如果有过多的Pod副本在运行,系统就会停掉一些Pod,否则系统就会再自动创建一些Pod</font></strong></p>
+<p><strong><font color=green>通过RC, Kubernetes实现了用户应用集群的高可用性,并且大大减少了系统管理员在传统IT环境中需要完成的许多手工运维工作(如主机监控脚本、应用监控脚本、故障恢复脚本等</font></strong>)</p>
+<p>下面我们以<code>3个Node节点的集群</code>为例,说明<code>Kubernetes如何通过RC来实现Pod副本数量自动控制的机制</code>。假如我们的RC里定义redis-slave这个Pod需要保持3个副本,系统将可能在其中的两个Node上创建Pod,图1.9描述了在两个Node上创建redis-slave Pod的情形。<br><img src="https://img-blog.csdnimg.cn/7ebf5696cf04482e98b767be02730d46.png?x-oss-process=image/watermark,type_ZHJvaWRzYW5zZmFsbGJhY2s,shadow_50,text_Q1NETiBA5bGx5rKz5bey5peg5oGZ,size_20,color_FFFFFF,t_70,g_se,x_16" alt="在这里插入图片描述"></p>
+<p><strong><font color=red>在运行时,我们可以通过 <strong><font color=chocolate>修改RC的副本数量,来实现Pod的动态缩放(Scaling)功能</font></strong>,这可以通过执行<code>kubectl scale</code>命令来一键完成:</font></strong></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">kubectl scale rc redsi-slave --replicas=3</span><br></pre></td></tr></table></figure>
+<p><strong><font color=chocolate>需要注意的是</font></strong>,<strong><font color=chocolate>删除RC并不会影响通过该RC已创建好的Pod,为了删除所有Pod,可以设置<code>replicas的值为0</code>,然后更新该RC。另外, kubectl提供了<code>stop和delete</code>命令来一次性删除RC和RC控制的全部Pod。</font></strong></p>
+<p><strong><font color=chocolate>应用升级时</font></strong>,通常会通过Build一个新的Docker镜像,并用新的镜像版本来替代旧的版本的方式达到目的。在系统升级的过程中,我们希望是平滑的方式,比如当前系统中10个对应的旧版本的Pod,最佳的方式是旧版本的Pod每次停止一个,同时创建一个新版本的Pod,在整个升级过程中,此消彼长,而运行中的Pod数量始终是10个,通过RC的机制, Kubernetes很容易就实现了这种高级实用的特性,<strong><font color=brown>被称为“滚动升级” (Rolling Update)</font></strong></p>
+<h3 id="6、-Deployment"><a href="#6、-Deployment" class="headerlink" title="6、 Deployment"></a><font color=orange>6、 Deployment</font></h3><p><strong><font color=orange>Deployment是Kubernetes v1.2引入的新概念,引入的目的是为了更好地解决Pod的编排问题。</font></strong></p>
+<p>**<font color=green>Deployment相对于RC的一个最大升级是我们可以随时知道当前Pod “部署”的进度</font>**。实际上由于一个Pod的创建、调度、绑定节点及在目标Node上启动对应的容器这一完整过程需要一定的时间,所以我们期待系统启动N个Pod副本的目标状态,实际上是一个连续变化的“部署过程”导致的最终状态。</p>
+<blockquote>
+<p>Deployment的典型使用场景有以下几个。</p>
+</blockquote>
+<table>
+<thead>
+<tr>
+<th align="left">Deployment的典型使用场景</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left">创建一个Deployment对象来生成对应的Replica Set并完成Pod副本的创建过程。</td>
+</tr>
+<tr>
+<td align="left">检查Deployment的状态来看部署动作是否完成(Pod副本的数量是否达到预期的值)</td>
+</tr>
+<tr>
+<td align="left">更新Deployment以创建新的Pod (比如镜像升级)。</td>
+</tr>
+<tr>
+<td align="left">如果当前Deployment不稳定,则回滚到一个早先的Deployment版本。</td>
+</tr>
+<tr>
+<td align="left">暂停Deployment以便于一次性修改多个PodTemplateSpec的配置项,之后再恢复Deployment,进行新的发布。</td>
+</tr>
+<tr>
+<td align="left">扩展Deployment以应对高负载。</td>
+</tr>
+<tr>
+<td align="left">查看Deployment的状态,以此作为发布是否成功的指标。</td>
+</tr>
+<tr>
+<td align="left">清理不再需要的旧版本ReplicaSets。</td>
+</tr>
+</tbody></table>
+<p><strong><font color=seagreen>Deployment的定义与Replica Set的定义很类似,除了API声明与Kind类型等有所区别:</font></strong></p>
+<figure class="highlight yml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">apiversion: extensions/vlbetal       apiversion:</span> <span class="string">v1</span></span><br><span class="line"><span class="attr">kind: Deployment                     kind:</span> <span class="string">ReplicaSet</span></span><br><span class="line"><span class="attr">metadata:                            metadata:</span></span><br><span class="line">  <span class="attr">name: nginx-deployment               name:</span> <span class="string">nginx-repset</span></span><br></pre></td></tr></table></figure>
+<p>创建一个 <code>tomcat-deployment.yaml </code> Deployment 描述文件:</p>
+<figure class="highlight yml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">apiVersion:</span> <span class="string">extensions/v1betal</span></span><br><span class="line"><span class="attr">kind:</span> <span class="string">Deployment</span></span><br><span class="line"><span class="attr">metadata:</span> </span><br><span class="line">  <span class="attr">name:</span> <span class="string">frontend</span></span><br><span class="line"><span class="attr">spec:</span> </span><br><span class="line">  <span class="attr">replicas:</span> <span class="number">1</span></span><br><span class="line">  <span class="attr">selector:</span> </span><br><span class="line">  <span class="attr">matchLabels:</span> </span><br><span class="line">    <span class="attr">tier:</span> <span class="string">frontend</span></span><br><span class="line">  <span class="attr">matchExpressions:</span></span><br><span class="line">    <span class="bullet">-</span> &#123;<span class="attr">key:</span> <span class="string">tier</span>, <span class="attr">operator:</span> <span class="string">In</span>,<span class="attr">value:</span> [<span class="string">frontend</span>]&#125;</span><br><span class="line">  <span class="attr">template:</span></span><br><span class="line">    <span class="attr">metadata:</span></span><br><span class="line">      <span class="attr">labels:</span></span><br><span class="line">        <span class="attr">app:</span> <span class="string">app-demo</span></span><br><span class="line">        <span class="attr">tier:</span> <span class="string">frontend</span></span><br><span class="line">    <span class="attr">spec:</span></span><br><span class="line">      <span class="attr">containers:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">tomcat-demo</span></span><br><span class="line">        <span class="attr">images:</span> <span class="string">tomcat</span></span><br><span class="line">        <span class="attr">imagePullPolicy:</span>  <span class="string">IfNotPresent</span></span><br><span class="line">        <span class="attr">ports:</span></span><br><span class="line">        <span class="bullet">-</span> <span class="attr">containerPort:</span> <span class="number">8080</span>  </span><br></pre></td></tr></table></figure>
+<p>运行如下命令创建 Deployment：</p>
+<figure class="highlight yml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">kubectl</span> <span class="string">create</span> <span class="string">-f</span> <span class="string">tomcat-deploment.yaml</span></span><br></pre></td></tr></table></figure>
+
+<p>对上述输出中涉及的数量解释如下。</p>
+<table>
+<thead>
+<tr>
+<th>数量</th>
+<th>解释</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>DESIRED</code></td>
+<td>Pod副本数量的期望值,即Deployment里定义的Replica.</td>
+</tr>
+<tr>
+<td><code>CURRENT</code></td>
+<td>当前Replica的值,实际上是Deployment所创建的Replica Set里的Replica值,这个值不断增加,直到达到DESIRED为止,表明整个部署过程完成。</td>
+</tr>
+<tr>
+<td><code>UP-TO-DATE</code></td>
+<td>最新版本的Pod的副本数量,用于指示在滚动升级的过程中,有多少个Pod副本已经成功升级。</td>
+</tr>
+<tr>
+<td><code>AVAILABLE</code></td>
+<td>当前集群中可用的Pod副本数量,即集群中当前存活的Pod数量。</td>
+</tr>
+</tbody></table>
+<p>运行下述命令查看对应的<code>Replica Set</code>,我们看到它的命名与<code>Deployment</code>的名字有关系:</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">┌──[root@vms81.liruilongs.github.io]-[~/ansible]</span><br><span class="line">└─<span class="variable">$kubectl</span> get rs -A</span><br><span class="line">NAMESPACE     NAME                                 DESIRED   CURRENT   READY   AGE</span><br><span class="line">kube-system   calico-kube-controllers-78d6f96c7b   1         1         1       47d</span><br><span class="line">kube-system   coredns-545d6fc579                   0         0         0       47d</span><br><span class="line">kube-system   coredns-7f6cbbb7b8                   2         2         2       36d</span><br><span class="line">kube-system   kuboard-78dccb7d9f                   1         1         1       11d</span><br><span class="line">kube-system   metrics-server-bcfb98c76</span><br></pre></td></tr></table></figure>
+
+
+<h3 id="7、-Horizontal-Pod-Autoscaler"><a href="#7、-Horizontal-Pod-Autoscaler" class="headerlink" title="7、 Horizontal Pod Autoscaler"></a><font color=royalblue>7、 Horizontal Pod Autoscaler</font></h3><p>**<font color=camel>HPA与之前的RC、 Deployment一样,也属于一种Kubernetes资源对象</font>**。通过 <strong><font color=seagreen>追踪分析RC控制的所有目标Pod的负载变化情况,来确定是否需要针对性地调整目标Pod的副本数,这是HPA的实现原理</font></strong> 。当前, HPA可以有以下两种方式作为Pod负载的度量指标。</p>
+<table>
+<thead>
+<tr>
+<th>Horizontal Pod Autoscaler</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong><font color=red>CPUUtilizationPercentage</font></strong>.</td>
+</tr>
+<tr>
+<td><strong>应用程序自定义的度量指标,比如服务在每秒内的相应的请求数(TPS或QPS)</strong></td>
+</tr>
+</tbody></table>
+<figure class="highlight yml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">apiversion:</span> <span class="string">autoscaling/v1</span></span><br><span class="line"><span class="attr">kind:</span> <span class="string">HorizontalPodAutoscaler</span> </span><br><span class="line"><span class="attr">metadata:</span></span><br><span class="line">  <span class="attr">name:</span> <span class="string">php-apache</span></span><br><span class="line">  <span class="attr">namespace:</span> <span class="string">default</span></span><br><span class="line"><span class="string">spec</span></span><br><span class="line">  <span class="attr">maxReplicas:</span> <span class="number">10</span> </span><br><span class="line">  <span class="attr">minReplicas:</span> <span class="number">1</span></span><br><span class="line">  <span class="attr">scaleTargetRef:</span></span><br><span class="line">    <span class="attr">kind:</span> <span class="string">Deployment</span></span><br><span class="line">    <span class="attr">name:</span> <span class="string">php-apache</span> </span><br><span class="line">  <span class="attr">targetcpuutilizationPercentage:</span> <span class="number">90</span></span><br></pre></td></tr></table></figure>
+
+<p><code>CPUUtilizationPercentage</code>是一个算术平均值,即<code>目标Pod</code>所有副本自身的<code>CPU利用率</code>的平均值。一个<code>Pod自身的CPU利用率</code>是该Pod当前CPU的使用量除以它的Pod Request的值,比,如我们定义一个Pod的Pod Request为0.4,而当前Pod的CPU使用量为0.2,则它的CPU使用率为50%</p>
+<p>根据上面的定义,我们可以知道这个<code>HPA控制的目标对象为一个名叫php-apache Deployment里的Pod副本,当这些Pod副本的CPUUtilizationPercentage的值超过90%时会触发自动动态扩容行为,扩容或缩容时必须满足的一个约束条件是Pod的副本数要介于1与10之间</code>。</p>
+<p>除了可以通过直接定义yaml文件并且调用<code>kubectrl create</code>的命令来创建一个HPA资源对象的方式,我们还能通过下面的简单命令行直接创建等价的<code>HPA对象</code>:</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">kubectl autoscale deployment php-apache --cpu-percent=90--min-1 --max=10</span><br></pre></td></tr></table></figure>
+
+<h3 id="8、-StatefulSet"><a href="#8、-StatefulSet" class="headerlink" title="8、 StatefulSet"></a><font color=blue>8、 StatefulSet</font></h3><p><strong><font color=brown>在Kubernetes系统中, Pod的管理对象RC， Deployment, DaemonSet和Job都是面向无状态的服务。</font></strong> 但现实中有很多服务是有状态的,特别是一些复杂的中间件集群,例如MysQL集·群、MongoDB集群、ZooKeeper集群等,这些应用集群有以下一些共同点:</p>
+<table>
+<thead>
+<tr>
+<th>共同點</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>每个节点都有固定的身份ID,通过这个ID,集群中的成员可以相互发现并且通信。</td>
+</tr>
+<tr>
+<td>集群的规模是比较固定的,集群规模不能随意变动。</td>
+</tr>
+<tr>
+<td>集群里的每个节点都是有状态的,通常会持久化数据到永久存储中。</td>
+</tr>
+<tr>
+<td>如果磁盘损坏,则集群里的某个节点无法正常运行,集群功能受损</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p>如果用<code>RC/Deployment控制Pod副本数</code>的方式来实现上述<code>有状态的集群</code>,则我们会发现第1点是无法满足的,因为Pod的名字是随机产生的, <code>Pod的IP地址也是在运行期才确定且可能有变动的</code>,我们事先无法为每个Pod确定唯一不变的ID,</p>
+</blockquote>
+<p>为了能够在其他节点上恢复某个失败的节点,<strong><font color=chocolate>这种集群中的Pod需要挂接某种共享存储</font></strong>,为了解决这个问题, Kubernetes从v1.4版本开始引入了<code>PetSet这个新的资源对象</code>,并且在v1.5版本时更名为<code>StatefulSet</code>, <code>StatefulSet从本质上来说,可以看作DeploymentRC的一个特殊变种,它有如下一些特性。)</code> </p>
+<table>
+<thead>
+<tr>
+<th>特性</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>StatefulSet</code>里的每个Pod都有<code>稳定、唯一的网络标识</code>,可以用来发现集群内的其他成员。假设<code>StatefulSet</code>的名字叫kafka,那么第1个Pod 叫 kafka-0,第2个叫kafk-1,以此类推。)</td>
+</tr>
+<tr>
+<td><code>StatefulSet控制的Pod副本的启停顺序是受控的</code>,操作第n个Pod时,前n-1个Pod已经是运行且准备好的状态)</td>
+</tr>
+<tr>
+<td><code>StatefulSet里的Pod采用稳定的持久化存储卷</code>,通过PV&#x2F;PVC来实现,删除Pod时默认不会删除与StatefulSet相关的存储卷(为了保证数据的安全)。</td>
+</tr>
+</tbody></table>
+<p><code>statefulSet除了要与PV卷捆绑使用以存储Pod的状态数据</code>,还要与<code>Headless Service</code>配合使用,<strong><font color=yellowgreen>即在每个<code>StatefulSet</code>的定义中要声明它属于哪个Headless Service</font></strong>. <strong><font color=tomato>Headless Service与普通Service的关键区别在于,它没有Cluster IP</font></strong>,如果解析Headless Service的DNS域名,则返回的是该Service对应的全部Pod的Endpoint列表。StatefulSet在Headless <code>Service的基础上又为StatefulSet控制的每个Pod实例创建了一个DNS域名</code>,这个域名的格式为:</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$(podname).$(headless service name) </span><br></pre></td></tr></table></figure>
+<h3 id="9、-Service-服务"><a href="#9、-Service-服务" class="headerlink" title="9、 Service (服务)"></a><font color=yellowgreen>9、 Service (服务)</font></h3><p><code>Service也是Kubernetes里的最核心的资源对象之一</code>, **<font color=amber>Kubernetes里的每个Service其实就是我们经常提起的微服务架构中的一个“微服务”,之前我们所说的Pod, RC等资源对象其实都是为这节所说的“服务”-Kubernetes Service作“嫁衣”的</font><strong>。</strong><font color=camel>Pod,RC与Service的逻辑关系</font>**。 </p>
+<p><img src="https://img-blog.csdnimg.cn/d70972961a1b46efa3ceb309cd602967.png?x-oss-process=image/watermark,type_ZHJvaWRzYW5zZmFsbGJhY2s,shadow_50,text_Q1NETiBA5bGx5rKz5bey5peg5oGZ,size_20,color_FFFFFF,t_70,g_se,x_16" alt="在这里插入图片描述"></p>
+<p><strong><font color=seagreen> <code>Kubernetes的Service定义了一个服务的访问入口地址</code>,<code>前端的应用(Pod)</code>通过这个入口地址访问其背后的一组由Pod副本组成的集群实例, Service与其后端Pod副本集群之间则是通过Label Selector来实现“无缝对接”的。而RC的作用实际上是保证Service的服务能力和服务质量始终处干预期的标准。 </font></strong></p>
+<p>每个Pod都会被分配一个单独的IP地址,而且每个Pod都提供了一个独立的<code>Endpoint(Pod IP+ContainerPort)</code>以被客户端访问,现在多个Pod副本组成了一个集群来提供服务.客户端如何来访问它们呢?一般的做法是部署一个负载均衡器(软件或硬件),</p>
+<p>**<font color=seagreen><code>Kubernetes</code>中运行在每个<code>Node</code>上的<code>kube-proxy</code>进程其实就是一个<code>智能的软件负载均衡器</code>,它负责把对Service的请求转发到后端的某个Pod实例上,并在内部实现服务的负载均衡与会话保持机制</font>**。</p>
+<p>Kubernetes发明了一种很巧妙又影响深远的设计: </p>
+<p>Service不是共用一个负载均衡器的IP地址,而是每个<code>Service</code>分配了一个全局唯一的虚拟IP地址,这个虚拟IP被称为<code>Cluster IP</code>,这样一来,<code>每个服务就变成了具备唯一IP地址的“通信节点”</code>,<code>服务调用就变成了最基础的TCP网络通信问题</code>。</p>
+<p>我们知道, Pod的Endpoint地址会随着Pod的销毁和重新创建而发生改变,因为新Pod的IP地址与之前旧Pod的不同。而 **<font color=seagreen>Service一旦被创建, Kubernetes就会自动为它分配一个可用的Cluster IP,而且在Service的整个生命周期内,它的Cluster IP不会发生改变</font>**。于是,服务发现这个棘手的问题在Kubernetes的架构里也得以轻松解决:只要用Service的Name与Service的Cluster IP地址做一个DNS域名映射即可完美解决问题。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line">┌──[root@vms81.liruilongs.github.io]-[~/ansible/k8s-pod-create]</span><br><span class="line">└─<span class="variable">$kubectl</span> get svc myweb -o yaml</span><br><span class="line">apiVersion: v1</span><br><span class="line">kind: Service</span><br><span class="line">metadata:</span><br><span class="line">  creationTimestamp: <span class="string">&quot;2021-10-16T14:25:08Z&quot;</span></span><br><span class="line">  name: myweb</span><br><span class="line">  namespace: liruilong-pod-create</span><br><span class="line">  resourceVersion: <span class="string">&quot;339816&quot;</span></span><br><span class="line">  uid: 695aa461-166c-4937-89ed-7b16ac49c96b</span><br><span class="line">spec:</span><br><span class="line">  clusterIP: 10.109.233.35</span><br><span class="line">  clusterIPs:</span><br><span class="line">  - 10.109.233.35</span><br><span class="line">  externalTrafficPolicy: Cluster</span><br><span class="line">  ipFamilies:</span><br><span class="line">  - IPv4</span><br><span class="line">  ipFamilyPolicy: SingleStack</span><br><span class="line">  ports:</span><br><span class="line">  - nodePort: 30001</span><br><span class="line">    port: 8080</span><br><span class="line">    protocol: TCP</span><br><span class="line">    targetPort: 8080</span><br><span class="line">  selector:</span><br><span class="line">    app: myweb</span><br><span class="line">  sessionAffinity: None</span><br><span class="line">  <span class="built_in">type</span>: NodePort</span><br><span class="line">status:</span><br><span class="line">  loadBalancer: &#123;&#125;</span><br></pre></td></tr></table></figure>
+
+
+<p>Kubernetes Service支持多个Endpoint(端口),**<font color=royalblue>在存在多个Endpoint的情况下,要求每个Endpoint定义一个名字来区分</font>**。下面是Tomcat多端口的Service定义样例:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">spec:</span></span><br><span class="line">  <span class="attr">ports:</span></span><br><span class="line">  <span class="bullet">-</span> <span class="attr">port:</span> <span class="number">8080</span></span><br><span class="line">    <span class="attr">name:</span> <span class="string">service-port</span></span><br><span class="line">  <span class="bullet">-</span> <span class="attr">port:</span> <span class="number">8005</span></span><br><span class="line">    <span class="attr">name:</span> <span class="string">shutdown-port</span></span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>多端口为什么需要给每个端口命名呢?这就涉及Kubernetes的服务发现机制了</p>
+</blockquote>
+<h4 id="Kubernetes-的服务发现机制"><a href="#Kubernetes-的服务发现机制" class="headerlink" title="Kubernetes 的服务发现机制"></a><strong><font color=brown>Kubernetes 的服务发现机制</font></strong></h4><table>
+<thead>
+<tr>
+<th>Kubernetes 的服务发现机制</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>最早时Kubernetes采用了Linux环境变量的方式解决这个问题,即每个Service生成一些对应的Linux环境变量(ENV),并在每个Pod的容器在启动时,自动注入这些环境变量</td>
+</tr>
+<tr>
+<td>后来Kubernetes通过Add-On增值包的方式引入了DNS系统,把服务名作为DNS域名,这样一来,程序就可以直接使用服务名来建立通信连接了。目前Kubernetes上的大部分应用都已经采用了DNS这些新兴的服务发现机制</td>
+</tr>
+</tbody></table>
+<h4 id="外部系统访问-Service-的问题"><a href="#外部系统访问-Service-的问题" class="headerlink" title="外部系统访问 Service 的问题"></a><font color=blue>外部系统访问 Service 的问题</font></h4><table>
+<thead>
+<tr>
+<th><font color=orange>Kubernetes里的“三种IP”</font></th>
+<th>描述</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong><font color=green>Node IP</font></strong></td>
+<td>Node 节点的IP地址,Node IP是Kubernetes集群中每个节点的物理网卡的IP地址,这是一个真实存在的物理网络,所有属于这个网络的服务器之间都能通过这个网络直接通信,不管它们中是否有部分节点不属于这个Kubernetes集群。**<font color=brown>这也表明了Kubernetes集群之外的节点访问Kubernetes集群之内的某个节点或者TCP&#x2F;IP服务时,必须要通过Node IP进行通信</font>**。</td>
+</tr>
+<tr>
+<td><strong><font color=plum>Pod IP </font></strong></td>
+<td>Pod 的 IP 地址:Pod IP是每个Pod的IP地址,它是<code>Docker Engine</code>根据dockero网桥的IP地址段进行分配的,通常是一个虚拟的二层网络,前面我们说过,<strong><font color=green> Kubernetes要求位于不同Node上的Pod能够彼此直接通信,所以Kubernetes里一个Pod里的容器访问另外一个Pod里的容器,就是通过Pod IP所在的虚拟二层网络进行通信的,而真实的TCP&#x2F;IP流量则是通过Node IP所在的物理网卡流出的。</font></strong></td>
+</tr>
+<tr>
+<td><strong><font color=green>Cluster IP</font></strong></td>
+<td>Service 的IP地址,<strong><font color=brown>Cluster IP仅仅作用于Kubernetes Service这个对象,并由Kubernetes管理和分配IP地址(来源于Cluster IP地址池)。Cluster IP无法被Ping,因为没有一个“实体网络对象”来响应。Cluster IP只能结合Service Port组成一个具体的通信端口,单独的Cluster IP不具备TCPIP通信的基础,并且它们属于Kubernetes集群这样一个封闭的空间,集群之外的节点如果要访问这个通信端口,则需要做一些额外的工作。在Kubernetes集群之内, Node IP网、Pod IP网与Cluster IP网之间的通信,采用的是Kubermetes自己设计的一种编程方式的特殊的路由规则,与我们所熟知的IP路由有很大的不同。</font></strong></td>
+</tr>
+</tbody></table>
+<blockquote>
+<p>外部系统访问 Service,采用NodePort是解决上述问题的最直接、最有效、最常用的做法。具体做法如下,以tomcat-service为例,我们在Service的定义里做如下扩展即可:</p>
+</blockquote>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">...</span></span><br><span class="line"><span class="attr">spec:</span></span><br><span class="line">  <span class="attr">type:</span> <span class="string">NodePort</span></span><br><span class="line">  <span class="string">posts：</span></span><br><span class="line">   <span class="bullet">-</span> <span class="attr">port:</span> <span class="number">8080</span></span><br><span class="line">     <span class="attr">nodePort:</span> <span class="number">31002</span></span><br><span class="line">  <span class="attr">selector:</span></span><br><span class="line">    <span class="attr">tier:</span> <span class="string">frontend</span>   </span><br><span class="line"><span class="string">...</span></span><br></pre></td></tr></table></figure>
+<p><strong><font color=orange>即这里我们可以通过nodePort:31002 来访问Service,NodePort的实现方式是在Kubernetes集群里的每个Node上为需要外部访问的Service开启个对应的TCP监听端口,外部系统只要用任意一个Node的IP地址+具体的NodePort端口即可访问此服务,在任意Node上运行netstat命令,我们就可以看到有NodePort端口被监听:</font></strong></p>
+<p><strong><font color=amber>Service 负载均衡问题</font></strong></p>
+<p>但<code>NodePort</code>还没有完全解决外部访问<code>Service</code>的所有问题,比如<code>负载均衡</code>问题,假如我们的<code>集群中有10个Node</code>,则此时最好有一个<code>负载均衡器</code>,外部的请求只需访问此<code>负载均衡器的IP地址</code>,由负载均衡器负责转发流量到后面某个Node的NodePort上。如图</p>
+<table>
+<thead>
+<tr>
+<th>NodePort的负载均衡</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><img src="https://img-blog.csdnimg.cn/2d9e7e7523af4399b773e2fa61cca095.png" alt="在这里插入图片描述"></td>
+</tr>
+<tr>
+<td><code>Load balancer</code>组件独立于<code>Kubernetes集群</code>之外,通常是一个<code>硬件的负载均衡器</code>,或者是以<code>软件方式实现</code>的,例如<code>HAProxy</code>或者<code>Nginx</code>。对于每个Service,我们通常需要配置一个对应的Load balancer实例来转发流量到后端的Node上</td>
+</tr>
+<tr>
+<td><code>Kubernetes</code>提供了<code>自动化的解决方案</code>,如果我们的集群运行在<code>谷歌的GCE公有云</code>上,那么只要我们把<code>Service的type-NodePort改为type-LoadBalancer</code>,此时<code>Kubernetes</code>会自动创建一个对应的<code>Load balancer</code>实例并返回它的<code>IP地址供外部客户端使用</code>。</td>
+</tr>
+</tbody></table>
+<h3 id="10、-Volume-存储卷"><a href="#10、-Volume-存储卷" class="headerlink" title="10、 Volume (存储卷)"></a><font color=chocolate>10、 Volume (存储卷)</font></h3><p>Volume是Pod中能够被多个容器访问的共享目录。<code>Kuberetes的Volume概念、用途和目的与Docker的Volume比较类似,但两者不能等价</code>。</p>
+<table>
+<thead>
+<tr>
+<th>Volume (存储卷)</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Kubernetes中的<code>Volume定义在Pod上</code>,然后被一个Pod里的多个容器挂载到具体的文件目录下;</td>
+</tr>
+<tr>
+<td>Kubernetes中的<code>Volume与Pod的生命周期相同</code>,但与<code>容器的生命周期不相关</code>,<code>当容器终止或者重启时, Volume中的数据也不会丢失。</code></td>
+</tr>
+<tr>
+<td>Kubernetes支持<code>多种类型的Volume</code>,例如<code>GlusterFS, Ceph</code>等先进的<code>分布式文件系统</code>。</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p><code>Volume</code>的使用也比较简单,在大多数情况下,我们先在<code>Pod</code>上声明一个<code>Volume</code>,然后在容器里引用该<code>Volume</code>并<code>Mount</code>到容器里的某个目录上。举例来说,我们要给之前的<code>Tomcat Pod</code>增加一个名字为<code>datavol</code>的<code>Volume</code>,并且<code>Mount</code>到容器的<code>/mydata-data</code>目录上,则只要对Pod的定义文件做如下修正即可(注意黑体字部分):</p>
+</blockquote>
+<figure class="highlight yml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">template:</span></span><br><span class="line">  <span class="attr">metadata:</span></span><br><span class="line">    <span class="attr">labels:</span></span><br><span class="line">      <span class="attr">app:</span> <span class="string">app-demo</span></span><br><span class="line">      <span class="attr">tier:</span> <span class="string">frontend</span></span><br><span class="line">  <span class="attr">spec:</span></span><br><span class="line">    <span class="attr">volumes:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">datavol</span></span><br><span class="line">        <span class="attr">emptyDir:</span> &#123;&#125;</span><br><span class="line">    <span class="attr">containers:</span></span><br><span class="line">    <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">tomcat-demo</span></span><br><span class="line">      <span class="attr">image:</span> <span class="string">tomcat</span></span><br><span class="line">      <span class="attr">volumeMounts:</span></span><br><span class="line">        <span class="bullet">-</span> <span class="attr">mountPath:</span> <span class="string">/myddata-data</span></span><br><span class="line">          <span class="attr">name:</span> <span class="string">datavol</span></span><br><span class="line">      <span class="attr">imagePullPolicy:</span> <span class="string">IfNotPresent</span></span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>除了可以让一个<code>Pod</code>里的<code>多个容器共享文件、让容器的数据写到宿主机的磁盘上或者写文件到网络存储中</code>, <code>Kubernetes的Volume</code>还扩展出了一种非常有实用价值的功能,即</p>
+</blockquote>
+<p><strong><font color=camel>容器配置文件集中化定义与管理</font></strong>,这是通过<code>ConfigMap</code>这个新的资源对象来实现的.</p>
+<p><font color=purple>Kubernetes提供了非常丰富的<code>Volume类型</code>,下面逐一进行说明。</font></p>
+<h4 id="1-emptyDir"><a href="#1-emptyDir" class="headerlink" title="1. emptyDir"></a><font color=red>1. emptyDir</font></h4><p>**<font color=orange>一个emptyDir Volume是在Pod分配到Node时创建的</font>**。从它的名称就可以看出,它的<code>初始内容为空</code>,并且无须指定宿主机上对应的目录文件,因为这是 <strong><font color=seagreen>Kubernetes自动分配的一个目录</font></strong>,<code>当Pod从Node上移除时, emptyDir中的数据也会被永久删除</code>。emptyDir的一些用途如下。</p>
+<table>
+<thead>
+<tr>
+<th>emptyDir的一些用途</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>临时空间,例如用于某些应用程序运行时所需的临时目录,且无须永久保留。</td>
+</tr>
+<tr>
+<td>长时间任务的中间过程CheckPoint的临时保存目录。</td>
+</tr>
+<tr>
+<td>一个容器需要从另一个容器中获取数据的目录(多容器共享目录)</td>
+</tr>
+</tbody></table>
+<h4 id="2-hostPath"><a href="#2-hostPath" class="headerlink" title="2. hostPath"></a><font color=yellowgreen>2. hostPath</font></h4><p><code>hostPath为在Pod上挂载宿主机上的文件或目录</code>,它通常可以用于以下几方面。</p>
+<p>|容器应用程序生成的日志文件需要永久保存时,可以使用宿主机的高速文件系统进行存储。|</p>
+<p>需要访问宿主机上<code>Docker</code>引擎内部数据结构的容器应用时,可以通过定义<code>hostPath</code>为宿主机<code>/var/lib/docker</code>目录,使容器内部应用可以直接访问<code>Docker</code>的文件系统。</p>
+<p>在使用这种类型的<code>Volume</code>时,需要注意以下几点。</p>
+<p>在不同的Node上具有相同配置的<code>Pod</code>可能会因为宿主机上的目录和文件不同而导致对<code>Volume</code>上目录和文件的访问结果不一致。)</p>
+<p>如果使用了资源配额管理,则Kubernetes无法将hostPath在宿主机上使用的资源纳入管理。在下面的例子中使用宿主机的&#x2F;data目录定义了一个<code>hostPath</code>类型的<code>Volume</code>:</p>
+<figure class="highlight yml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">volumes:</span></span><br><span class="line">  <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">&quot;persistent-storage&quot;</span></span><br><span class="line">    <span class="attr">hostPath:</span></span><br><span class="line">      <span class="attr">path:</span> <span class="string">&quot;/data&quot;</span></span><br></pre></td></tr></table></figure>
+<h4 id="3-gcePersistentDisk"><a href="#3-gcePersistentDisk" class="headerlink" title="3. gcePersistentDisk"></a><font color=camel>3. gcePersistentDisk</font></h4><p>使用这种类型的Volume表示使用谷歌公有云提供的永久磁盘(PersistentDisk, PD)存放Volume的数据,它与emptyDir不同, PD上的内容会被永久存,当Pod被删除时, PD只是被卸载(Unmount),但不会被删除。需要注意是,你需要先创建一个永久磁盘(PD),才能使用gcePersistentDisk.</p>
+<h4 id="4-awsElasticBlockStore"><a href="#4-awsElasticBlockStore" class="headerlink" title="4. awsElasticBlockStore"></a><font color=camel>4. awsElasticBlockStore</font></h4><p>与GCE类似,该类型的Volume使用亚马逊公有云提供的EBS Volume存储数据,需要先创建一个EBS Volume才能使用awsElasticBlockStore. </p>
+<h4 id="5-NFS"><a href="#5-NFS" class="headerlink" title="5. NFS"></a><font color=yellowgreen>5. NFS</font></h4><p>使用NFS网络文件系统提供的共享目录存储数据时,我们需要在系统中部署一个NFSServer,定义NES类型的Volume的示例如下<br><code>yum -y install nfs-utils</code></p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">...</span></span><br><span class="line"><span class="attr">volumes:</span></span><br><span class="line"><span class="bullet">-</span> <span class="attr">name:</span> <span class="string">test-volume</span></span><br><span class="line">  <span class="attr">nfs:</span></span><br><span class="line">    <span class="attr">server:</span> <span class="string">nfs.server.locathost</span></span><br><span class="line">    <span class="attr">path:</span> <span class="string">&quot;/&quot;</span></span><br><span class="line"><span class="string">....</span></span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<h3 id="11、-Persistent-Volume"><a href="#11、-Persistent-Volume" class="headerlink" title="11、 Persistent Volume"></a><font color=seagreen>11、 Persistent Volume</font></h3><p><code>Volume</code>是定义在<code>Pod</code>上的,属于“<code>计算资源</code>”的一部分,而实际上, “<code>网络存储</code>”是相对独立于“<code>计算资源</code>”而存在的一种<code>实体资源</code>。比如在使用<code>虚拟机</code>的情况下,我们通常会先定义一个网络存储,然后从中划出一个“网盘”并挂接到<code>虚拟机</code>上</p>
+<p><code>Persistent Volume(简称PV)</code>和与之相关联的<code>Persistent Volume Claim (简称PVC)</code>也起到了类似的作用。<code>PV</code>可以理解成 <strong><font color=tomato>Kubernetes集群中的某个网络存储中对应的一块存储</font></strong>,它与Volume很类似,但有以下区别。</p>
+<table>
+<thead>
+<tr>
+<th>Persistent Volume与Volume的区别</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>PV只能是网络存储,不属于任何Node,但可以在每个Node上访问。</td>
+</tr>
+<tr>
+<td>PV并不是定义在Pod上的,而是独立于Pod之外定义。</td>
+</tr>
+<tr>
+<td>PV目前支持的类型包括: gcePersistentDisk、 AWSElasticBlockStore, AzureFileAzureDisk, FC (Fibre Channel). Flocker, NFS, isCSI, RBD (Rados Block Device)CephFS. Cinder, GlusterFS. VsphereVolume. Quobyte Volumes, VMware Photon.PortworxVolumes, ScalelO Volumes和HostPath (仅供单机测试)。</td>
+</tr>
+</tbody></table>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">apiversion:</span> <span class="string">v1</span></span><br><span class="line"><span class="attr">kind:</span> <span class="string">PersistentVolume</span> </span><br><span class="line"><span class="attr">metadata:</span></span><br><span class="line">  <span class="attr">name:</span> <span class="string">pv0003</span></span><br><span class="line"><span class="attr">spec:</span></span><br><span class="line">  <span class="attr">capacity:</span></span><br><span class="line">    <span class="attr">storage:</span> <span class="string">5Gi</span></span><br><span class="line">  <span class="attr">accessModes:</span></span><br><span class="line">  <span class="bullet">-</span> <span class="string">ReadWriteOnce</span> </span><br><span class="line">  <span class="attr">nfs:</span> </span><br><span class="line">    <span class="attr">path:</span> <span class="string">/somepath</span> </span><br><span class="line">    <span class="attr">server:</span> <span class="number">172.17</span><span class="number">.0</span><span class="number">.2</span></span><br></pre></td></tr></table></figure>
+<p><strong><font color=purple>PV的accessModes属性</font></strong>, 目前有以下类型:</p>
+<ul>
+<li>ReadWriteOnce:读写权限、并且只能被单个Node挂载。</li>
+<li>ReadOnlyMany:只读权限、允许被多个Node挂载。</li>
+<li>ReadWriteMany:读写权限、允许被多个Node挂载。</li>
+</ul>
+<p><strong><font color=purple>如果某个Pod想申请某种类型的PV,则首先需要定义一个PersistentVolumeClaim (PVC)对象:</font></strong> </p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">kind:</span> <span class="string">Persistentvolumeclaim</span> </span><br><span class="line"><span class="attr">apiversion:</span> <span class="string">v1</span></span><br><span class="line"><span class="attr">metadata:</span> </span><br><span class="line">  <span class="attr">name:</span> <span class="string">myclaim</span> </span><br><span class="line"><span class="attr">spec:</span> </span><br><span class="line">  <span class="attr">accessModes:</span></span><br><span class="line">  <span class="bullet">-</span> <span class="string">Readwriteonce</span></span><br><span class="line">  <span class="attr">resources:</span></span><br><span class="line">    <span class="attr">requests:</span></span><br><span class="line">      <span class="attr">storage:</span> <span class="string">BGi</span> </span><br></pre></td></tr></table></figure>
+<p>引用PVC</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">volumes:</span></span><br><span class="line">  <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">mypd</span> </span><br><span class="line">    <span class="attr">persistentvolumeclaim:</span> </span><br><span class="line">      <span class="attr">claimName:</span> <span class="string">myclaim</span></span><br></pre></td></tr></table></figure>
+<table>
+<thead>
+<tr>
+<th align="left"><code>PV</code>是有状态的对象,它有以下几种状态。</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left"><code>Available</code>:空闲状态。</td>
+</tr>
+<tr>
+<td align="left"><code>Bound</code>:已经绑定到某个Pvc上。</td>
+</tr>
+<tr>
+<td align="left"><code>Released</code>:对应的PVC已经删除,但资源还没有被集群收回。</td>
+</tr>
+<tr>
+<td align="left"><code>Failed</code>: PV自动回收失败。</td>
+</tr>
+</tbody></table>
+<h3 id="12、-Namespace-命名空间"><a href="#12、-Namespace-命名空间" class="headerlink" title="12、 Namespace (命名空间)"></a><font color=tomato>12、 Namespace (命名空间)</font></h3><p><strong><font color=purple>Namespace (命名空间)是Kubernetes系统中非常重要的概念</font></strong>, Namespace在很多情况下用于实现 **<font color=orange>多租户的资源隔离</font>**。Namespace通过将集群内部的资源对象“分配”到不同的Namespace 中,形成逻辑上分组的不同项目、小组或用户组,便于不同的分组在共享使用整个集群的资源的同时还能被分别管理。Kubernetes集群在启动后,会创建一个名为<code>&quot;default&quot;</code>的<code>Namespace</code>,通过<code>kubectl</code>可以查看到:</p>
+<p>|不同的namespace之间互相隔离|<br>|–|–|<br>|查看所有命名空间|kubectl get ns|<br>|查看当前命名空间|kubectl config get-contexts|<br>|设置命名空间|kubectl config set-context 集群名 –namespace&#x3D;命名空间|</p>
+<p><strong><font color=yellowgreen>kub-system 本身的各种 pod，是kubamd默认的空间。pod使用命名空间相互隔离</font></strong></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">┌──[root@vms81.liruilongs.github.io]-[~/ansible]</span><br><span class="line">└─<span class="variable">$kubectl</span> get namespaces</span><br><span class="line">NAME              STATUS   AGE</span><br><span class="line">default           Active   13h</span><br><span class="line">kube-node-lease   Active   13h</span><br><span class="line">kube-public       Active   13h</span><br><span class="line">kube-system       Active   13h</span><br><span class="line">┌──[root@vms81.liruilongs.github.io]-[~/ansible]</span><br><span class="line">└─<span class="variable">$kubectl</span> get ns</span><br><span class="line">NAME              STATUS   AGE</span><br><span class="line">default           Active   13h</span><br><span class="line">kube-node-lease   Active   13h</span><br><span class="line">kube-public       Active   13h</span><br><span class="line">kube-system       Active   13h</span><br><span class="line">┌──[root@vms81.liruilongs.github.io]-[~/ansible]</span><br><span class="line">└─$</span><br></pre></td></tr></table></figure>
+<p><strong><font color=yellowgreen>命名空间基本命令</font></strong></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br></pre></td><td class="code"><pre><span class="line">┌──[root@vms81.liruilongs.github.io]-[~/ansible]</span><br><span class="line">└─<span class="variable">$kubectl</span> create ns liruilong</span><br><span class="line">namespace/liruilong created</span><br><span class="line">┌──[root@vms81.liruilongs.github.io]-[~/ansible]</span><br><span class="line">└─<span class="variable">$kubectl</span> get ns</span><br><span class="line">NAME              STATUS   AGE</span><br><span class="line">default           Active   13h</span><br><span class="line">kube-node-lease   Active   13h</span><br><span class="line">kube-public       Active   13h</span><br><span class="line">kube-system       Active   13h</span><br><span class="line">liruilong         Active   4s</span><br><span class="line">┌──[root@vms81.liruilongs.github.io]-[~/ansible]</span><br><span class="line">└─<span class="variable">$kubectl</span> create ns k8s-demo</span><br><span class="line">namespace/k8s-demo created</span><br><span class="line">┌──[root@vms81.liruilongs.github.io]-[~/ansible]</span><br><span class="line">└─<span class="variable">$kubectl</span> get ns</span><br><span class="line">NAME              STATUS   AGE</span><br><span class="line">default           Active   13h</span><br><span class="line">k8s-demo          Active   3s</span><br><span class="line">kube-node-lease   Active   13h</span><br><span class="line">kube-public       Active   13h</span><br><span class="line">kube-system       Active   13h</span><br><span class="line">liruilong         Active   20s</span><br><span class="line">┌──[root@vms81.liruilongs.github.io]-[~/ansible]</span><br><span class="line">└─<span class="variable">$kubectl</span> delete ns  k8s-demo</span><br><span class="line">namespace <span class="string">&quot;k8s-demo&quot;</span> deleted</span><br><span class="line">┌──[root@vms81.liruilongs.github.io]-[~/ansible]</span><br><span class="line">└─<span class="variable">$kubectl</span> get ns</span><br><span class="line">NAME              STATUS   AGE</span><br><span class="line">default           Active   13h</span><br><span class="line">kube-node-lease   Active   13h</span><br><span class="line">kube-public       Active   13h</span><br><span class="line">kube-system       Active   13h</span><br><span class="line">liruilong         Active   54s</span><br><span class="line">┌──[root@vms81.liruilongs.github.io]-[~/ansible]</span><br><span class="line">└─$</span><br></pre></td></tr></table></figure>
+<p><strong><font color=plum>命名空间切换</font></strong></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">┌──[root@vms81.liruilongs.github.io]-[~/.kube]</span><br><span class="line">└─<span class="variable">$vim</span> config</span><br><span class="line">┌──[root@vms81.liruilongs.github.io]-[~/.kube]</span><br><span class="line">└─<span class="variable">$kubectl</span> config get-contexts</span><br><span class="line">CURRENT   NAME       CLUSTER    AUTHINFO            NAMESPACE</span><br><span class="line">*         context1   cluster1   kubernetes-admin1</span><br><span class="line">          context2   cluster2   kubernetes-admin2</span><br><span class="line">┌──[root@vms81.liruilongs.github.io]-[~/.kube]</span><br><span class="line">└─<span class="variable">$kubectl</span> config set-context context2 --namespace=kube-system</span><br><span class="line">Context <span class="string">&quot;context2&quot;</span> modified.</span><br><span class="line">┌──[root@vms81.liruilongs.github.io]-[~/.kube]</span><br><span class="line">└─<span class="variable">$kubectl</span> config get-contexts</span><br><span class="line">CURRENT   NAME       CLUSTER    AUTHINFO            NAMESPACE</span><br><span class="line">*         context1   cluster1   kubernetes-admin1</span><br><span class="line">          context2   cluster2   kubernetes-admin2   kube-system</span><br><span class="line">┌──[root@vms81.liruilongs.github.io]-[~/.kube]</span><br><span class="line">└─<span class="variable">$kubectl</span> config set-context context1 --namespace=kube-public</span><br><span class="line">Context <span class="string">&quot;context1&quot;</span> modified.</span><br></pre></td></tr></table></figure>
+<p><strong><font color=purple>或者可以这样切换名称空间</font></strong></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">kubectl config set-context $(kubectl config current-context) --namespace=&lt;namespace&gt;</span><br><span class="line">kubectl config view | grep namespace</span><br><span class="line">kubectl get pods</span><br></pre></td></tr></table></figure>
+<p><strong><font color=yellowgreen>创建pod时指定命名空间</font></strong></p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">apiVersion:</span> <span class="string">v1</span></span><br><span class="line"><span class="attr">kind:</span> <span class="string">Pod</span></span><br><span class="line"><span class="attr">metadata:</span></span><br><span class="line">  <span class="attr">creationTimestamp:</span> <span class="literal">null</span></span><br><span class="line">  <span class="attr">labels:</span></span><br><span class="line">    <span class="attr">run:</span> <span class="string">pod-static</span></span><br><span class="line">  <span class="attr">name:</span> <span class="string">pod-static</span></span><br><span class="line">  <span class="attr">namespeace:</span> <span class="string">default</span></span><br><span class="line"><span class="attr">spec:</span></span><br><span class="line">  <span class="attr">containers:</span></span><br><span class="line">  <span class="bullet">-</span> <span class="attr">image:</span> <span class="string">nginx</span></span><br><span class="line">    <span class="attr">imagePullPolicy:</span> <span class="string">IfNotPresent</span></span><br><span class="line">    <span class="attr">name:</span> <span class="string">pod-demo</span></span><br><span class="line">    <span class="attr">resources:</span> &#123;&#125;</span><br><span class="line">  <span class="attr">dnsPolicy:</span> <span class="string">ClusterFirst</span></span><br><span class="line">  <span class="attr">restartPolicy:</span> <span class="string">Always</span></span><br><span class="line"><span class="attr">status:</span> &#123;&#125;</span><br></pre></td></tr></table></figure>
+<p>当我们给每个租户创建一个Namespace来实现多租户的资源隔离时,还能<code>结合Kubernetes&quot;的资源配额管理,限定不同租户能占用的资源,例如CPU使用量、内存使用量</code>等。</p>
+<h3 id="13、-Annotation-注解"><a href="#13、-Annotation-注解" class="headerlink" title="13、 Annotation (注解)"></a><font color=plum>13、 Annotation (注解)</font></h3><p><strong><font color=royalblue>Annotation与Label类似,也使用<code>key/value键值</code>对的形式进行定义。</font></strong></p>
+<p><strong><font color=red>不同的是Label具有严格的命名规则,它定义的是Kubernetes对象的元数据(Metadata),并且用于Label Selector.</font></strong></p>
+<p><strong><font color=green>Annotation则是用户任意定义的“附加”信息,以便于外部工具进行查找, Kubernetes的模块自身会通过Annotation的方式标记资源对象的一些特殊信息。</font></strong></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line">┌──[root@vms81.liruilongs.github.io]-[~/ansible/k8s-pod-create]</span><br><span class="line">└─<span class="variable">$kubectl</span> annotate nodes vms82.liruilongs.github.io <span class="string">&quot;dest=这是一个工作节点&quot;</span></span><br><span class="line">node/vms82.liruilongs.github.io annotated</span><br><span class="line">┌──[root@vms81.liruilongs.github.io]-[~/ansible/k8s-pod-create]</span><br><span class="line">└─<span class="variable">$kubectl</span> describe nodes vms82.liruilongs.github.io</span><br><span class="line">Name:               vms82.liruilongs.github.io</span><br><span class="line">Roles:              worker1</span><br><span class="line">Labels:             beta.kubernetes.io/arch=amd64</span><br><span class="line">                    beta.kubernetes.io/os=linux</span><br><span class="line">                    disktype=node1</span><br><span class="line">                    kubernetes.io/arch=amd64</span><br><span class="line">                    kubernetes.io/hostname=vms82.liruilongs.github.io</span><br><span class="line">                    kubernetes.io/os=linux</span><br><span class="line">                    node-role.kubernetes.io/worker1=</span><br><span class="line">Annotations:        dest: 这是一个工作节点</span><br><span class="line">                    kubeadm.alpha.kubernetes.io/cri-socket: /var/run/dockershim.sock</span><br><span class="line">                    node.alpha.kubernetes.io/ttl: 0</span><br><span class="line">                    projectcalico.org/IPv4Address: 192.168.26.82/24</span><br><span class="line">                    projectcalico.org/IPv4IPIPTunnelAddr: 10.244.171.128</span><br><span class="line">                    volumes.kubernetes.io/controller-managed-attach-detach: <span class="literal">true</span></span><br><span class="line">.....................                    </span><br></pre></td></tr></table></figure>
+<table>
+<thead>
+<tr>
+<th>通常来说,用Annotation来记录的信息如下</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>build信息、 release信息、Docker镜像信息等,例如时间戳、release id号、PR号、镜像hash值、 docker registry地址等。</td>
+</tr>
+<tr>
+<td>日志库、监控库、分析库等资源库的地址信息。</td>
+</tr>
+<tr>
+<td>程序调试工具信息,例如工具名称、版本号等。</td>
+</tr>
+<tr>
+<td>团队的联系信息,例如电话号码、负责人名称、网址等。</td>
+</tr>
+</tbody></table>
+</div><div class="article-licensing box"><div class="licensing-title"><p>关于 Kubernetes中一些基本概念和术语笔记</p><p><a href="https://liruilongs.github.io/2021/11/23/K8s/API 学习/关于 Kubernetes中一些基本概念和术语笔记/">https://liruilongs.github.io/2021/11/23/K8s/API 学习/关于 Kubernetes中一些基本概念和术语笔记/</a></p></div><div class="licensing-meta level is-mobile"><div class="level-left"><div class="level-item is-narrow"><div><h6>作者</h6><a href="https://liruilongs.github.io"><p>山河已无恙</p></a></div></div><div class="level-item is-narrow"><div><h6>发布于</h6><p>2021-11-23</p></div></div><div class="level-item is-narrow"><div><h6>更新于</h6><p>2023-06-21</p></div></div><div class="level-item is-narrow"><div><h6>许可协议</h6><p><a class="icon" rel="noopener" target="_blank" title="Creative Commons" href="https://creativecommons.org/"><i class="fab fa-creative-commons"></i></a><a class="icon" rel="noopener" target="_blank" title="Attribution" href="https://creativecommons.org/licenses/by/4.0/"><i class="fab fa-creative-commons-by"></i></a><a class="icon" rel="noopener" target="_blank" title="Noncommercial" href="https://creativecommons.org/licenses/by-nc/4.0/"><i class="fab fa-creative-commons-nc"></i></a></p></div></div></div></div></div><div class="recommend-area"><div class="recommend-post"><span class="is-size-6 has-text-grey has-mr-7"># 相关文章</span><br><span>  1.<a class="is-size-6" href="/2023/11/14/%E5%BE%85%E5%8F%91%E5%B8%83/%E5%85%B3%E4%BA%8E-Kubernetes%E4%B8%ADAdmission-Controllers-%E7%9A%84%E4%B8%80%E4%BA%9B%E7%AC%94%E8%AE%B0/" target="_blank">关于 Kubernetes中Admission Controllers(准入控制器) 认知的一些笔记</a><br></span><span>  2.<a class="is-size-6" href="/2023/10/26/%E5%BE%85%E5%8F%91%E5%B8%83/%E5%85%B3%E4%BA%8EAI(%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0)%E7%9B%B8%E5%85%B3%E9%A1%B9%E7%9B%AE%20K8s%20%E9%83%A8%E7%BD%B2%E7%9A%84%E4%B8%80%E4%BA%9B%E6%80%9D%E8%80%83/" target="_blank">关于AI(深度学习)相关项目 K8s 部署的一些思考</a><br></span><span>  3.<a class="is-size-6" href="/2023/08/27/K8s/API%20%E5%AD%A6%E4%B9%A0/K8s-Pod-%E5%AE%89%E5%85%A8%E8%AE%A4%E7%9F%A5%EF%BC%8C%E4%BB%8Eopenshift-SCC-%E5%88%B0PSP-%E5%BC%83%E7%94%A8%E4%BB%A5%E5%8F%8A%E7%8E%B0%E5%9C%A8%E7%9A%84PSA/" target="_blank">K8s Pod 安全认知：从openshift SCC 到 PSP 弃用以及现在的 PSA</a><br></span><span>  4.<a class="is-size-6" href="/2023/08/26/K8s/API%20%E5%AD%A6%E4%B9%A0/K8s%EF%BC%9A%E9%80%9A%E8%BF%87-PSA-Pod-Security-Admission-%E5%AE%9A%E4%B9%89K8s-%E9%9B%86%E7%BE%A4%E5%AE%89%E5%85%A8%E5%9F%BA%E7%BA%BF/" target="_blank">K8s：通过 PSA(Pod Security Admission) 定义K8s 集群安全基线</a><br></span><span>  5.<a class="is-size-6" href="/2023/07/02/K8s/%E7%8E%AF%E5%A2%83%E9%83%A8%E7%BD%B2&amp;&amp;%E8%BF%90%E7%BB%B4/Kubernetes%20%E8%A7%A6%E5%8F%91%20OOMKilled(%E5%86%85%E5%AD%98%E6%9D%80%E6%89%8B)%E5%A6%82%E4%BD%95%E6%8E%92%E9%99%A4%E6%95%85%E9%9A%9C/" target="_blank">Kubernetes 触发 OOMKilled(内存杀手)如何排除故障</a><br></span><span>  6.<a class="is-size-6" href="/2023/06/20/K8s/API%20%E5%AD%A6%E4%B9%A0/K8s%EF%BC%9AK8s-20%E4%B8%AA%E5%B8%B8%E7%94%A8%E5%91%BD%E4%BB%A4%E6%B1%87%E6%80%BB/" target="_blank">K8s：K8s 20个常用命令汇总</a><br></span><span>  7.<a class="is-size-6" href="/2023/06/18/K8s/%E7%8E%AF%E5%A2%83%E9%83%A8%E7%BD%B2&amp;&amp;%E8%BF%90%E7%BB%B4/K8s%EF%BC%9AK8s%E6%95%85%E9%9A%9C%E6%8E%92%E9%99%A4%E6%96%B9%E6%B3%95%E8%AE%BA/" target="_blank">K8s：Kubernetes 故障排除方法论</a><br></span><span>  8.<a class="is-size-6" href="/2023/05/06/K8s/%E7%8E%AF%E5%A2%83%E9%83%A8%E7%BD%B2&amp;&amp;%E8%BF%90%E7%BB%B4/K8s%EF%BC%9A%E9%80%9A%E8%BF%87%E4%B8%AD%E6%96%AD%E5%B9%B2%E6%89%B0%E9%A2%84%E7%AE%97-PDB-%E6%8F%90%E9%AB%98%E8%8A%82%E7%82%B9%E6%95%85%E9%9A%9C%E3%80%81%E7%BB%B4%E6%8A%A4%E6%9C%9F%E9%97%B4Pod%E9%A2%91%E7%B9%81%E8%B0%83%E5%BA%A6%E6%97%B6%E5%B7%A5%E4%BD%9C%E8%B4%9F%E8%BD%BD%E7%9A%84%E5%8F%AF%E7%94%A8%E6%80%A7/" target="_blank">K8s：通过 Pod 干扰预算(PDB)提高节点故障、维护期间 Pod 频繁调度时工作负载的可用性</a><br></span></div><div class="recommend-post"><span class="is-size-6 has-text-grey has-mr-7"># 推荐文章</span><br><span>  1.<a class="is-size-6" href="/2021/08/27/K8s/%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/%E3%80%8AKubernetes%E6%9D%83%E5%A8%81%E6%8C%87%E5%8D%97-%E4%BB%8EDocker%E5%88%B0Kubernetes%E5%AE%9E%E8%B7%B5%E5%85%A8%E6%8E%A5%E8%A7%A6%E3%80%8B%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/" target="_blank">《Kubernetes权威指南:从Docker到Kubernetes实践全接触》读书笔记</a><br></span><span>  2.<a class="is-size-6" href="/2023/06/17/AI&amp;%E4%BA%BA%E8%84%B8%E8%AF%86%E5%88%AB/AdaFace%EF%BC%9A-%E9%80%9A%E8%BF%87AdaFace%E5%AE%9E%E7%8E%B0%E4%BD%8E%E8%B4%A8%E9%87%8F%E9%9D%A2%E9%83%A8%E6%95%B0%E6%8D%AE%E9%9B%86%E7%9A%84%E7%B2%BE%E5%87%86%E4%BA%BA%E8%84%B8%E8%AF%86%E5%88%AB/" target="_blank">AdaFace(CVPR(2022))：通过AdaFace实现低质量面部数据集的人脸识别</a><br></span><span>  3.<a class="is-size-6" href="/2023/05/04/AI&amp;%E4%BA%BA%E8%84%B8%E8%AF%86%E5%88%AB/DeepFace%EF%BC%9A%E4%BA%BA%E8%84%B8%E8%AF%86%E5%88%AB%E5%BA%93%20DeepFace%20%E7%AE%80%E5%8D%95%E8%AE%A4%E7%9F%A5/" target="_blank">DeepFace：人脸识别库 DeepFace 简单认知</a><br></span><span>  4.<a class="is-size-6" href="/2023/07/24/AI&amp;%E4%BA%BA%E8%84%B8%E8%AF%86%E5%88%AB/%E4%BD%BF%E7%94%A8-OpenCV-%E8%BF%9B%E8%A1%8C%E5%9B%BE%E5%83%8F%E6%A8%A1%E7%B3%8A%E5%BA%A6%E6%A3%80%E6%B5%8B-%E6%8B%89%E6%99%AE%E6%8B%89%E6%96%AF%E6%96%B9%E5%B7%AE%E6%96%B9%E6%B3%95/" target="_blank">使用 OpenCV 进行图像模糊度检测(拉普拉斯方差方法)</a><br></span><span>  5.<a class="is-size-6" href="/2023/06/15/AI&amp;%E4%BA%BA%E8%84%B8%E8%AF%86%E5%88%AB/Nvidia%203060%20%E6%98%BE%E5%8D%A1%20CUDA%20%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA(Ubuntu22.04+Nvidia%20510+Cuda11.6+cudnn8.8)/" target="_blank">Nvidia 3060 显卡 CUDA 环境搭建(Ubuntu22.04+Nvidia 510+Cuda11.6+cudnn8.8)</a><br></span><span>  6.<a class="is-size-6" href="/2023/05/17/AI&amp;%E4%BA%BA%E8%84%B8%E8%AF%86%E5%88%AB/%E5%85%B3%E4%BA%8EOpenCv%E5%9B%BE%E5%83%8F%E5%A4%84%E7%90%86%E5%B7%A5%E5%85%B7%E5%8C%85-imutils-%E7%AE%80%E5%8D%95%E8%AE%A4%E7%9F%A5/" target="_blank">关于 OpenCV 图像处理工具包 imutils 简单认知</a><br></span></div></div><link rel="stylesheet" href="https://cdnjs.loli.net/ajax/libs/social-share.js/1.0.16/css/share.min.css"><div class="social-share"></div><script src="https://cdnjs.loli.net/ajax/libs/social-share.js/1.0.16/js/social-share.min.js"></script></article></div><div class="card"><div class="card-content"><h3 class="menu-label has-text-centered">喜欢这篇文章？打赏一下作者吧</h3><div class="buttons is-centered"><a class="button donate" data-type="alipay"><span class="icon is-small"><i class="fab fa-alipay"></i></span><span>支付宝</span><span class="qrcode"><img src="/img/alipay%EF%BF%A5.png" alt="支付宝"></span></a><a class="button donate" data-type="wechat"><span class="icon is-small"><i class="fab fa-weixin"></i></span><span>微信</span><span class="qrcode"><img src="/img/wechat%EF%BF%A5.png" alt="微信"></span></a></div></div></div><nav class="post-navigation mt-4 level is-mobile"><div class="level-start"><a class="article-nav-prev level level-item link-muted" href="/2021/11/25/K8s/API%20%E5%AD%A6%E4%B9%A0/%E5%85%B3%E4%BA%8E%20Kubernetes%E4%B8%ADPod%E7%9A%84%E4%B8%80%E4%BA%9B%E7%AC%94%E8%AE%B0/"><i class="level-item fas fa-chevron-left"></i><span class="level-item">关于 Kubernetes中Pod的一些笔记</span></a></div><div class="level-end"><a class="article-nav-next level level-item link-muted" href="/2021/11/19/K8s/etcd/%E5%85%B3%E4%BA%8E%20Kubernetes%E4%B8%ADetcd%E7%9A%84%E4%B8%80%E4%BA%9B%E7%AC%94%E8%AE%B0/"><span class="level-item">关于 Kubernetes中etcd的一些笔记</span><i class="level-item fas fa-chevron-right"></i></a></div></nav><!--!--><div class="card"><div class="card-content"><div class="title is-5">评论</div><div id="comment-container"></div><link rel="stylesheet" href="https://cdnjs.loli.net/ajax/libs/gitalk/1.6.0/gitalk.css"><script> $.getScript('/js/gitalk.min.js', function () { 
+            var gitalk = new Gitalk({
+            language:'zh-CN',
+            id: '3cc82bec32db54b818f5be924cc1728b',
+            repo: 'blog_comment',
+            owner: 'LIRUILONGS',
+            clientID: '9fdc9739266d48d5f62e',
+            clientSecret: 'c1cc33697d099a2197650ec9dadcb16bd4904655',
+            admin: ["LIRUILONGS"],
+            createIssueManually: true,
+            distractionFreeMode: true,
+            perPage: 10,
+            pagerDirection: 'last',
+            proxy: 'https://cors-anywhere.azm.workers.dev/https://github.com/login/oauth/access_token',
+            
+            enableHotKey: true,
+            isLocked: false
+        })
+        gitalk.render('comment-container')});</script></div></div></div><div class="column column-left is-4-tablet is-4-desktop is-3-widescreen  order-1 is-sticky"><div class="card widget" id="toc" data-type="toc"><div class="card-content"><div class="menu"><h3 class="menu-label">目录</h3><ul class="menu-list"><li><a class="is-flex is-mobile" href="#写在前面"><span class="mr-2">1</span><span>写在前面</span></a></li><li><a class="is-flex is-mobile" href="#一、简述"><span class="mr-2">2</span><span> 一、简述</span></a><ul class="menu-list"><li><a class="is-flex is-mobile" href="#K8s中相关资源：随版本变化"><span class="mr-2">2.1</span><span>K8s中相关资源：随版本变化</span></a></li></ul></li><li><a class="is-flex is-mobile" href="#二、Kubernetes集群的两种管理角色-Master和Node"><span class="mr-2">3</span><span>二、Kubernetes集群的两种管理角色: Master和Node</span></a><ul class="menu-list"><li><a class="is-flex is-mobile" href="#1、Master角色"><span class="mr-2">3.1</span><span>1、Master角色</span></a></li><li><a class="is-flex is-mobile" href="#2、Node角色"><span class="mr-2">3.2</span><span>2、Node角色</span></a><ul class="menu-list"><li><a class="is-flex is-mobile" href="#查看集群中的Node节点和节点的详细信息"><span class="mr-2">3.2.1</span><span>查看集群中的Node节点和节点的详细信息</span></a></li></ul></li><li><a class="is-flex is-mobile" href="#3、-Pod资源对象"><span class="mr-2">3.3</span><span>3、 Pod资源对象</span></a><ul class="menu-list"><li><a class="is-flex is-mobile" href="#Pause容器"><span class="mr-2">3.3.1</span><span>Pause容器</span></a></li><li><a class="is-flex is-mobile" href="#Pod-IP"><span class="mr-2">3.3.2</span><span>Pod IP</span></a></li><li><a class="is-flex is-mobile" href="#普通的Pod及静态Pod-Static-Pod"><span class="mr-2">3.3.3</span><span>普通的Pod及静态Pod (Static Pod)</span></a></li></ul></li><li><a class="is-flex is-mobile" href="#4-、Lable-标签"><span class="mr-2">3.4</span><span>4 、Lable 标签</span></a></li><li><a class="is-flex is-mobile" href="#5、-Replication-Controller"><span class="mr-2">3.5</span><span>5、 Replication Controller</span></a></li><li><a class="is-flex is-mobile" href="#6、-Deployment"><span class="mr-2">3.6</span><span>6、 Deployment</span></a></li><li><a class="is-flex is-mobile" href="#7、-Horizontal-Pod-Autoscaler"><span class="mr-2">3.7</span><span>7、 Horizontal Pod Autoscaler</span></a></li><li><a class="is-flex is-mobile" href="#8、-StatefulSet"><span class="mr-2">3.8</span><span>8、 StatefulSet</span></a></li><li><a class="is-flex is-mobile" href="#9、-Service-服务"><span class="mr-2">3.9</span><span>9、 Service (服务)</span></a><ul class="menu-list"><li><a class="is-flex is-mobile" href="#Kubernetes-的服务发现机制"><span class="mr-2">3.9.1</span><span>Kubernetes 的服务发现机制</span></a></li><li><a class="is-flex is-mobile" href="#外部系统访问-Service-的问题"><span class="mr-2">3.9.2</span><span>外部系统访问 Service 的问题</span></a></li></ul></li><li><a class="is-flex is-mobile" href="#10、-Volume-存储卷"><span class="mr-2">3.10</span><span>10、 Volume (存储卷)</span></a><ul class="menu-list"><li><a class="is-flex is-mobile" href="#1-emptyDir"><span class="mr-2">3.10.1</span><span>1. emptyDir</span></a></li><li><a class="is-flex is-mobile" href="#2-hostPath"><span class="mr-2">3.10.2</span><span>2. hostPath</span></a></li><li><a class="is-flex is-mobile" href="#3-gcePersistentDisk"><span class="mr-2">3.10.3</span><span>3. gcePersistentDisk</span></a></li><li><a class="is-flex is-mobile" href="#4-awsElasticBlockStore"><span class="mr-2">3.10.4</span><span>4. awsElasticBlockStore</span></a></li><li><a class="is-flex is-mobile" href="#5-NFS"><span class="mr-2">3.10.5</span><span>5. NFS</span></a></li></ul></li><li><a class="is-flex is-mobile" href="#11、-Persistent-Volume"><span class="mr-2">3.11</span><span>11、 Persistent Volume</span></a></li><li><a class="is-flex is-mobile" href="#12、-Namespace-命名空间"><span class="mr-2">3.12</span><span>12、 Namespace (命名空间)</span></a></li><li><a class="is-flex is-mobile" href="#13、-Annotation-注解"><span class="mr-2">3.13</span><span>13、 Annotation (注解)</span></a></li></ul></li></ul></div></div><style>.menu-list > li > a.is-active + .menu-list { display: block; }.menu-list > li > a + .menu-list { display: none; }</style><script src="/js/toc.js" defer></script></div><div class="card widget" data-type="profile"><div class="card-content"><nav class=""><div class="level-item has-text-centered flex-shrink-1"><div><figure class="image is-128x128 mx-auto mb-2"><img class="avatar" src="/img/%E5%BE%AE%E4%BF%A1%E5%85%AC%E4%BC%97%E5%8F%B7.jpg" alt="山河已无恙"></figure><p class="title is-size-4 is-block" style="line-height:inherit;">山河已无恙</p><p class="is-size-6 is-block">爱自己，是终生浪漫的开始</p><p class="is-size-6 is-flex justify-content-center"><i class="fas fa-map-marker-alt mr-1"></i><span>中国·呼和浩特</span></p></div></div></nav><nav class="level is-mobile"><div class="level-item has-text-centered is-marginless"><div><p class="heading">文章</p><a href="/archives"><p class="title">318</p></a></div></div><div class="level-item has-text-centered is-marginless"><div><p class="heading">分类</p><a href="/categories"><p class="title">102</p></a></div></div><div class="level-item has-text-centered is-marginless"><div><p class="heading">标签</p><a href="/tags"><p class="title">153</p></a></div></div></nav><div class="level"><a class="level-item button is-primary is-rounded" href="https://liruilong.blog.csdn.net/?t=1&amp;type=blog" target="_blank" rel="noopener">关注我</a></div><div class="level is-mobile"><a class="level-item button is-transparent is-marginless" target="_blank" rel="noopener" title="Github" href="https://github.com/LIRUILONGS"><i class="fab fa-github"></i></a><a class="level-item button is-transparent is-marginless" target="_blank" rel="noopener" title="CSDN" href="https://liruilong.blog.csdn.net/"><i class="fa fa-code"></i></a><a class="level-item button is-transparent is-marginless" target="_blank" rel="noopener" title="Email" href="mailto:1224965096@qq.com"><i class="fa fa-envelope"></i></a></div></div></div><div class="card widget" data-type="links"><div class="card-content"><div class="menu"><h3 class="menu-label">链接</h3><ul class="menu-list"><li><a class="level is-mobile" href="https://liruilong.blog.csdn.net/?t=1&amp;type=blog" target="_blank" rel="noopener"><span class="level-left"><span class="level-item">CSDN</span></span><span class="level-right"><span class="level-item tag">liruilong.blog.csdn.net</span></span></a></li><li><a class="level is-mobile" href="https://www.cnblogs.com/liruilong/" target="_blank" rel="noopener"><span class="level-left"><span class="level-item">博客园</span></span><span class="level-right"><span class="level-item tag">www.cnblogs.com</span></span></a></li><li><a class="level is-mobile" href="https://github.com/LIRUILONGS" target="_blank" rel="noopener"><span class="level-left"><span class="level-item">Githup</span></span><span class="level-right"><span class="level-item tag">github.com</span></span></a></li><li><a class="level is-mobile" href="https://gitee.com/liruilonger" target="_blank" rel="noopener"><span class="level-left"><span class="level-item">码云</span></span><span class="level-right"><span class="level-item tag">gitee.com</span></span></a></li></ul></div></div></div><div class="card widget"><div class="card-content"><h3 class="menu-label">最新评论</h3><span class="body_hot_comment">加载中，最新评论有1分钟缓存...</span></div></div><div class="card widget"><div class="card-content"><h3 class="menu-label">最新文章</h3><article class="media"><div class="media-content"><p class="date"><time dateTime="2023-11-19T19:40:00.000Z">2023-11-20</time></p><p class="title"><a href="/2023/11/20/%E5%BE%85%E5%8F%91%E5%B8%83/Golang%20VScode%20%E5%BC%80%E5%8F%91%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA/">Golang VScode 开发环境搭建</a></p><p class="categories"><a href="/categories/GO/">GO</a></p></div></article><article class="media"><div class="media-content"><p class="date"><time dateTime="2023-11-15T12:44:37.000Z">2023-11-15</time></p><p class="title"><a href="/2023/11/15/%E5%BE%85%E5%8F%91%E5%B8%83/%E5%9F%BA%E4%BA%8E%20selenium%20%E5%AE%9E%E7%8E%B0%E7%BD%91%E7%AB%99%E5%9B%BE%E7%89%87%E9%87%87%E9%9B%86/">基于 selenium 实现网站图片采集</a></p><p class="categories"><a href="/categories/selenium/">selenium</a></p></div></article><article class="media"><div class="media-content"><p class="date"><time dateTime="2023-11-13T20:29:38.000Z">2023-11-14</time></p><p class="title"><a href="/2023/11/14/%E5%BE%85%E5%8F%91%E5%B8%83/%E5%85%B3%E4%BA%8E-Kubernetes%E4%B8%ADAdmission-Controllers-%E7%9A%84%E4%B8%80%E4%BA%9B%E7%AC%94%E8%AE%B0/">关于 Kubernetes中Admission Controllers(准入控制器) 认知的一些笔记</a></p><p class="categories"><a href="/categories/Kubernetes/">Kubernetes</a></p></div></article><article class="media"><div class="media-content"><p class="date"><time dateTime="2023-11-13T19:52:18.000Z">2023-11-14</time></p><p class="title"><a href="/2023/11/14/%E5%BE%85%E5%8F%91%E5%B8%83/K8s%20Pod%20%E5%88%9B%E5%BB%BA%E5%9F%8B%E7%82%B9%E5%A4%84%E7%90%86(Mutating%20%20Admission%20Webhook)/">K8s Pod 创建埋点处理(Mutating  Admission Webhook)</a></p><p class="categories"><a href="/categories/test3/">test3</a></p></div></article><article class="media"><div class="media-content"><p class="date"><time dateTime="2023-11-09T18:55:27.000Z">2023-11-10</time></p><p class="title"><a href="/2023/11/10/%E5%BE%85%E5%8F%91%E5%B8%83/Linux-%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96%E4%B9%8B%E4%BD%BF%E7%94%A8-Tuned-%E9%85%8D%E7%BD%AE%E4%BC%98%E5%8C%96%E6%96%B9%E6%A1%88/">Linux 性能优化之使用 Tuned 配置优化方案</a></p><p class="categories"><a href="/categories/Linux/">Linux</a></p></div></article></div></div><div class="card widget"><div class="card-content"><div class="menu"><h3 class="menu-label">分类</h3><ul class="menu-list"><li><a class="level is-mobile is-marginless" href="/categories/AdaFace/"><span class="level-start"><span class="level-item">AdaFace</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/Ajax/"><span class="level-start"><span class="level-item">Ajax</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/Ansible/"><span class="level-start"><span class="level-item">Ansible</span></span><span class="level-end"><span class="level-item tag">23</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/AppCube/"><span class="level-start"><span class="level-item">AppCube</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/Bind9/"><span class="level-start"><span class="level-item">Bind9</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/CI-CD/"><span class="level-start"><span class="level-item">CI/CD</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/CSS/"><span class="level-start"><span class="level-item">CSS</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/Ceph/"><span class="level-start"><span class="level-item">Ceph</span></span><span class="level-end"><span class="level-item tag">11</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/DAD-3DHeads/"><span class="level-start"><span class="level-item">DAD-3DHeads</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/DNS/"><span class="level-start"><span class="level-item">DNS</span></span><span class="level-end"><span class="level-item tag">5</span></span></a></li><a class="level is-mobile is-marginless" href="/categories/"><span class="level-start"><span class="level-item">查看全部&gt;&gt;</span></span></a></ul></div></div></div><div class="card widget"><div class="card-content"><div class="menu"><h3 class="menu-label">归档</h3><ul class="menu-list"><li><a class="level is-mobile is-marginless" href="/archives/2023/11/"><span class="level-start"><span class="level-item">十一月 2023</span></span><span class="level-end"><span class="level-item tag">7</span></span></a></li><li><a class="level is-mobile is-marginless" href="/archives/2023/10/"><span class="level-start"><span class="level-item">十月 2023</span></span><span class="level-end"><span class="level-item tag">9</span></span></a></li><li><a class="level is-mobile is-marginless" href="/archives/2023/09/"><span class="level-start"><span class="level-item">九月 2023</span></span><span class="level-end"><span class="level-item tag">4</span></span></a></li><li><a class="level is-mobile is-marginless" href="/archives/2023/08/"><span class="level-start"><span class="level-item">八月 2023</span></span><span class="level-end"><span class="level-item tag">11</span></span></a></li><li><a class="level is-mobile is-marginless" href="/archives/2023/07/"><span class="level-start"><span class="level-item">七月 2023</span></span><span class="level-end"><span class="level-item tag">7</span></span></a></li><a class="level is-mobile is-marginless" href="/archives/"><span class="level-start"><span class="level-item">查看全部&gt;&gt;</span></span></a></ul></div></div></div><div class="card widget"><div class="card-content"><div class="menu"><h3 class="menu-label">标签</h3><div class="field is-grouped is-grouped-multiline"><div class="control"><a class="tags has-addons" href="/tags/Kubernetes/"><span class="tag">Kubernetes</span><span class="tag is-grey-lightest">91</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Linux/"><span class="tag">Linux</span><span class="tag is-grey-lightest">34</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Ansible/"><span class="tag">Ansible</span><span class="tag is-grey-lightest">25</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Python/"><span class="tag">Python</span><span class="tag is-grey-lightest">14</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Ceph/"><span class="tag">Ceph</span><span class="tag is-grey-lightest">11</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Docker/"><span class="tag">Docker</span><span class="tag is-grey-lightest">8</span></a></div><div class="control"><a class="tags has-addons" href="/tags/JAVA/"><span class="tag">JAVA</span><span class="tag is-grey-lightest">8</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Git/"><span class="tag">Git</span><span class="tag is-grey-lightest">7</span></a></div><div class="control"><a class="tags has-addons" href="/tags/OpenShift/"><span class="tag">OpenShift</span><span class="tag is-grey-lightest">6</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%E7%A8%8B%E5%BA%8F%E4%BA%BA%E7%94%9F/"><span class="tag">程序人生</span><span class="tag is-grey-lightest">6</span></a></div><div class="control"><a class="tags has-addons" href="/tags/DNS/"><span class="tag">DNS</span><span class="tag is-grey-lightest">5</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Go/"><span class="tag">Go</span><span class="tag is-grey-lightest">5</span></a></div><div class="control"><a class="tags has-addons" href="/tags/OKD/"><span class="tag">OKD</span><span class="tag is-grey-lightest">5</span></a></div><div class="control"><a class="tags has-addons" href="/tags/selenium/"><span class="tag">selenium</span><span class="tag is-grey-lightest">4</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%E5%AE%B9%E5%99%A8/"><span class="tag">容器</span><span class="tag is-grey-lightest">4</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%E7%BD%91%E7%BB%9C/"><span class="tag">网络</span><span class="tag is-grey-lightest">4</span></a></div><div class="control"><a class="tags has-addons" href="/tags/CKA/"><span class="tag">CKA</span><span class="tag is-grey-lightest">3</span></a></div><div class="control"><a class="tags has-addons" href="/tags/GO/"><span class="tag">GO</span><span class="tag is-grey-lightest">3</span></a></div><div class="control"><a class="tags has-addons" href="/tags/ISCSI/"><span class="tag">ISCSI</span><span class="tag is-grey-lightest">3</span></a></div><div class="control"><a class="tags has-addons" href="/tags/NFS/"><span class="tag">NFS</span><span class="tag is-grey-lightest">3</span></a></div></div><div class="field is-grouped is-grouped-multiline"><a class="tags has-addons" href="/tags/"><span class="tag">查看全部&gt;&gt;</span></a></div></div></div></div><div class="card widget" data-type="subscribe-email"><div class="card-content"><div class="menu"><h3 class="menu-label">订阅更新</h3><form action="https://feedburner.google.com/fb/a/mailverify" method="post" target="popupwindow" onsubmit="window.open(&#039;https://feedburner.google.com/fb/a/mailverify?uri=&#039;,&#039;popupwindow&#039;,&#039;scrollbars=yes,width=550,height=520&#039;);return true"><input type="hidden" value="" name="uri"><input type="hidden" name="loc" value="en_US"><div class="field has-addons"><div class="control has-icons-left is-expanded"><input class="input" name="email" type="email" placeholder="Email"><span class="icon is-small is-left"><i class="fas fa-envelope"></i></span></div><div class="control"><input class="button" type="submit" value="订阅"></div></div></form></div></div></div><!--!--><div class="column-right-shadow is-hidden-widescreen is-sticky"></div></div></div></div></section><footer class="footer"><div class="container"><div class="level"><div class="level-start"><a class="footer-logo is-block mb-2" href="/"><img src="/img/logo.png" alt="山河已无恙" height="28"></a><p class="size-small"><span>&copy; 2024 山河已无恙</span>  Powered by <a href="https://hexo.io/" target="_blank">Hexo</a> &amp; <a href="https://github.com/ppoffice/hexo-theme-icarus" target="_blank">Icarus</a> &amp; <a href="https://github.com/removeif/hexo-theme-amazing" target="_blank">Amazing</a> <br><span>© <a href="http://www.beian.miit.gov.cn/" target="_blank">备案号</a><br></span><span>© 版权说明：[本网站所有内容均收集于互联网或自己创作,<br />&nbsp;&nbsp;&nbsp;&nbsp;方便于网友与自己学习交流，如有侵权，请<a href="/message" target="_blank">留言</a>，立即处理]<br /></span><span><span id="statistic-times">loading...</span><script>function createTime(time) {
+            var n = new Date(time);
+            now.setTime(now.getTime() + 250),
+                days = (now - n) / 1e3 / 60 / 60 / 24,
+                dnum = Math.floor(days),
+                hours = (now - n) / 1e3 / 60 / 60 - 24 * dnum,
+                hnum = Math.floor(hours),
+            1 == String(hnum).length && (hnum = "0" + hnum),
+                minutes = (now - n) / 1e3 / 60 - 1440 * dnum - 60 * hnum,
+                mnum = Math.floor(minutes),
+            1 == String(mnum).length && (mnum = "0" + mnum),
+                seconds = (now - n) / 1e3 - 86400 * dnum - 3600 * hnum - 60 * mnum,
+                snum = Math.round(seconds),
+            1 == String(snum).length && (snum = "0" + snum),
+                document.getElementById("statistic-times").innerHTML = "❤️本站自 <strong>"+time.split(" ")[0].replace(/\//g,".")+"</strong> 已运行 <strong>" + dnum + "</strong> 天 <strong>" + hnum + "</strong> 小时 <strong>" + mnum + "</strong> 分 <strong>" + snum + "</strong> 秒！❤️";
+        }var now = new Date();setInterval("createTime('2021/6/26 21:27:00')", 250,"");</script><br></span><div class="size-small"><span>❤️感谢 <strong><span id="busuanzi_value_site_uv">99+</span></strong> 小伙伴的 <strong><span id="busuanzi_value_site_pv">99+</span></strong> 次光临！❤️</span></div></p></div><div class="level-end"><div class="field has-addons"><p class="control"><a class="button is-transparent is-large" target="_blank" rel="noopener" title="Creative Commons" href="https://creativecommons.org/"><i class="fab fa-creative-commons"></i></a></p><p class="control"><a class="button is-transparent is-large" target="_blank" rel="noopener" title="Attribution 4.0 International" href="https://creativecommons.org/licenses/by/4.0/"><i class="fab fa-creative-commons-by"></i></a></p><p class="control"><a class="button is-transparent is-large" target="_blank" rel="noopener" title="Download on GitHub" href="https://github.com/removeif/hexo-theme-amazing"><i class="fab fa-github"></i></a></p></div><div class="sideMusic"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/aplayer/dist/APlayer.min.css"><script src="/js/APlayer.min.js"></script><script src="https://cdn.jsdelivr.net/npm/meting@2/dist/Meting.min.js"></script><meting-js style="width: auto;height: 2000px;" server="netease" type="playlist" id="2364053447" theme="#2980b9" loop="all" autoplay="false" order="list" storageName="aplayer-setting" lrctype="0" list-max-height="400px" fixed="true"></meting-js></div></div></div></div></footer><script src="https://cdnjs.loli.net/ajax/libs/moment.js/2.22.2/moment-with-locales.min.js"></script><script src="https://cdnjs.loli.net/ajax/libs/clipboard.js/2.0.4/clipboard.min.js" async></script><script>moment.locale("zh-CN");</script><script>var IcarusThemeSettings = {
+            article: {
+                highlight: {
+                    clipboard: true,
+                    fold: 'unfolded'
+                }
+            }
+        };</script><script src="/js/column.js"></script><!--!--><script src="/js/animation.js"></script><a id="back-to-top" title="回到顶端" href="javascript:;"><i class="fas fa-chevron-up"></i></a><script src="/js/back_to_top.js" defer></script><!--!--><script src="https://cdnjs.loli.net/ajax/libs/lightgallery/1.6.8/js/lightgallery.min.js" defer></script><script src="https://cdnjs.loli.net/ajax/libs/justifiedGallery/3.7.0/js/jquery.justifiedGallery.min.js" defer></script><script>window.addEventListener("load", () => {
+            if (typeof $.fn.lightGallery === 'function') {
+                $('.article').lightGallery({ selector: '.gallery-item' });
+            }
+            if (typeof $.fn.justifiedGallery === 'function') {
+                if ($('.justified-gallery > p > .gallery-item').length) {
+                    $('.justified-gallery > p > .gallery-item').unwrap();
+                }
+                $('.justified-gallery').justifiedGallery();
+            }
+        });</script><!--!--><!--!--><link rel="stylesheet" href="https://cdnjs.loli.net/ajax/libs/KaTeX/0.11.1/katex.min.css"><script src="https://cdnjs.loli.net/ajax/libs/KaTeX/0.11.1/katex.min.js" defer></script><script src="https://cdnjs.loli.net/ajax/libs/KaTeX/0.11.1/contrib/auto-render.min.js" defer></script><script src="https://cdnjs.loli.net/ajax/libs/KaTeX/0.11.1/contrib/mhchem.js" defer></script><script>window.addEventListener("load", function() {
+            document.querySelectorAll('[role="article"] > .content').forEach(function(element) {
+                renderMathInElement(element);
+            });
+        });</script><script type="text/x-mathjax-config">MathJax.Hub.Config({
+            'HTML-CSS': {
+                matchFontHeight: false
+            },
+            SVG: {
+                matchFontHeight: false
+            },
+            CommonHTML: {
+                matchFontHeight: false
+            },
+            tex2jax: {
+                inlineMath: [
+                    ['$','$'],
+                    ['\\(','\\)']
+                ]
+            }
+        });</script><script src="https://cdnjs.loli.net/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-MML-AM_CHTML" defer></script><div id="outdated"><h6>Your browser is out-of-date!</h6><p>Update your browser to view this website correctly.&amp;npsb;<a id="btnUpdateBrowser" target="_blank" rel="noopener" href="http://outdatedbrowser.com/">Update my browser now </a></p><p class="last"><a href="#" id="btnCloseUpdateBrowser" title="Close">×</a></p></div><script src="https://cdnjs.loli.net/ajax/libs/outdated-browser/1.1.5/outdatedbrowser.min.js" defer></script><script>window.addEventListener("load", function () {
+            outdatedBrowser({
+                bgColor: '#f25648',
+                color: '#ffffff',
+                lowerThan: 'object-fit' // display on IE11 or below
+            });
+        });</script><!--!--><script src="/js/main.js" defer></script><script>$.getScript('/js/comment-issue-data.js',function(){loadIssueData('9fdc9739266d48d5f62e','c1cc33697d099a2197650ec9dadcb16bd4904655','LIRUILONGS','blog_comment',false);})</script><div class="searchbox"><div class="searchbox-container"><div class="searchbox-header"><div class="searchbox-input-container"><input class="searchbox-input" type="text" placeholder="想要查找什么..."></div><a class="searchbox-close" href="javascript:;">×</a></div><div class="searchbox-body"></div></div></div><script src="/js/insight.js" defer></script><script>document.addEventListener('DOMContentLoaded', function () {
+            loadInsight({"contentUrl":"/content.json"}, {"hint":"想要查找什么...","untitled":"(无标题)","posts":"文章","pages":"页面","categories":"分类","tags":"标签"});
+        });</script><script src="https://cdn.jsdelivr.net/npm/pjax@0.2.8/pjax.js"></script><script type="text/javascript">var pjax = new Pjax({
+            elements: "a",//代表点击链接就更新
+            selectors: [  //代表要更新的节点
+                ".section",
+                "title"
+            ],
+            cache: true,
+            cacheBust:false
+        })
+
+        function loadBusuanzi(){
+        $.getScript("//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js", function () {});
+        }
+
+        function loadMathJax() { //加载mathjax
+            $.getScript("//cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.4/MathJax.js?config=TeX-MML-AM_CHTML", function () {
+                MathJax.Hub.Config({ tex2jax: { inlineMath: [['$', '$'], ['\(', '\)']] } });
+                var math = document.getElementsByClassName("entry-content")[0];
+                MathJax.Hub.Queue(["Typeset", MathJax.Hub, math]);
+            });
+        };
+
+        // 开始 PJAX 执行的函数
+        document.addEventListener('pjax:send', function () {
+        });
+        
+        // PJAX 完成之后执行的函数，可以和上面的重载放在一起
+        document.addEventListener('pjax:complete', function () {
+            $(".section").css({opacity:1});
+            if(true){
+                $.getScript('/js/comment-issue-data.js',function(){loadIssueData('9fdc9739266d48d5f62e','c1cc33697d099a2197650ec9dadcb16bd4904655','LIRUILONGS','blog_comment',false);});
+            }
+            if(false){
+                loadMathJax();
+            }
+            loadMainJs(jQuery, window.moment, window.ClipboardJS, window.IcarusThemeSettings);
+            loadBackTop();
+            loadBusuanzi();
+            if(typeof loadBanner == 'function'){
+                loadBanner();
+            }
+        });</script></body></html>

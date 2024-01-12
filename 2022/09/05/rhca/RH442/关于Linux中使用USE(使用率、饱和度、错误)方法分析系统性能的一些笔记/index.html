@@ -1,0 +1,673 @@
+<!doctype html>
+<html lang="zh"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"><meta><title>关于Linux中使用USE(使用率/饱和度/错误)方法分析系统性能的一些笔记 - 山河已无恙</title><link rel="manifest" href="/manifest.json"><meta name="application-name" content="山河已无恙"><meta name="msapplication-TileImage" content="https://cdn.jsdelivr.net/gh/removeif/removeif-demo@latest/img/favicon.png"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="山河已无恙"><meta name="apple-mobile-web-app-status-bar-style" content="default"><meta description="傍晚时分，你坐在屋檐下，看着天慢慢地黑下去，心里寂寞而凄凉，感到自己的生命被剥夺了。当时我是个年轻人，但我害怕这样生活下去，衰老下去。在我看来，这是比死亡更可怕的事。——–王小波"><meta property="og:type" content="blog"><meta property="og:title" content="山河已无恙"><meta property="og:url" content="https://liruilong.blog.csdn.net/?t=1&amp;type=blog"><meta property="og:site_name" content="山河已无恙"><meta property="og:description" content="傍晚时分，你坐在屋檐下，看着天慢慢地黑下去，心里寂寞而凄凉，感到自己的生命被剥夺了。当时我是个年轻人，但我害怕这样生活下去，衰老下去。在我看来，这是比死亡更可怕的事。——–王小波"><meta property="og:locale" content="zh_CN"><meta property="og:image" content="https://liruilong.blog.csdn.net/img/头像.jpg"><meta property="article:published_time" content="2022-09-05T14:55:59.000Z"><meta property="article:modified_time" content="2023-06-21T11:25:59.150Z"><meta property="article:author" content="LIRUILONGS"><meta property="article:tag" content="Linux"><meta property="twitter:card" content="summary"><meta property="twitter:image" content="/img/头像.jpg"><script type="application/ld+json">{"@context":"https://schema.org","@type":"BlogPosting","mainEntityOfPage":{"@type":"WebPage","@id":"https://liruilongs.github.io/2022/09/05/rhca/RH442/%E5%85%B3%E4%BA%8ELinux%E4%B8%AD%E4%BD%BF%E7%94%A8USE(%E4%BD%BF%E7%94%A8%E7%8E%87%E3%80%81%E9%A5%B1%E5%92%8C%E5%BA%A6%E3%80%81%E9%94%99%E8%AF%AF)%E6%96%B9%E6%B3%95%E5%88%86%E6%9E%90%E7%B3%BB%E7%BB%9F%E6%80%A7%E8%83%BD%E7%9A%84%E4%B8%80%E4%BA%9B%E7%AC%94%E8%AE%B0/"},"headline":"山河已无恙","image":["https://img-blog.csdnimg.cn/68ba5d4bc6bd429999642f8429328411.png","https://img-blog.csdnimg.cn/63b8b16411e4414aa0fb245e68081169.png","https://img-blog.csdnimg.cn/257a3bcacd7b486cb41d93372e1ff08b.png","https://img-blog.csdnimg.cn/7959a647f013423b825a4b97cee5a3f6.png","https://img-blog.csdnimg.cn/37eba930218c4361b9d8593be09f2897.png","https://img-blog.csdnimg.cn/e5bccecdc29c40f59a172ff9953ae9bf.png","https://img-blog.csdnimg.cn/8bb6ea4b025b468b98adaebca9fbf5bb.png","https://img-blog.csdnimg.cn/be9cc55f7d854c4883c2da06c4b0ca06.png","https://img-blog.csdnimg.cn/820385dccff547a3ac8a64ecfc824706.png"],"datePublished":"2022-09-05T14:55:59.000Z","dateModified":"2023-06-21T11:25:59.150Z","author":{"@type":"Person","name":"山河已无恙"},"description":"傍晚时分，你坐在屋檐下，看着天慢慢地黑下去，心里寂寞而凄凉，感到自己的生命被剥夺了。当时我是个年轻人，但我害怕这样生活下去，衰老下去。在我看来，这是比死亡更可怕的事。——–王小波"}</script><link rel="canonical" href="https://liruilongs.github.io/2022/09/05/rhca/RH442/%E5%85%B3%E4%BA%8ELinux%E4%B8%AD%E4%BD%BF%E7%94%A8USE(%E4%BD%BF%E7%94%A8%E7%8E%87%E3%80%81%E9%A5%B1%E5%92%8C%E5%BA%A6%E3%80%81%E9%94%99%E8%AF%AF)%E6%96%B9%E6%B3%95%E5%88%86%E6%9E%90%E7%B3%BB%E7%BB%9F%E6%80%A7%E8%83%BD%E7%9A%84%E4%B8%80%E4%BA%9B%E7%AC%94%E8%AE%B0/"><link rel="alternate" href="/path/to/atom.xml" title="山河已无恙" type="application/atom+xml"><link rel="icon" href="https://cdn.jsdelivr.net/gh/removeif/removeif-demo@latest/img/favicon.png"><meta name="referrer" content="no-referrer-when-downgrade"><link rel="stylesheet" href="https://cdnjs.loli.net/ajax/libs/font-awesome/5.12.0/css/all.min.css"><link rel="stylesheet" href="https://cdnjs.loli.net/ajax/libs/highlight.js/9.12.0/styles/dracula.min.css"><link rel="stylesheet" href="https://fonts.loli.net/css2?family=Ubuntu:wght@400;600&amp;family=Source+Code+Pro"><link rel="stylesheet" href="/css/default.css"><link rel="stylesheet" href="https://cdnjs.loli.net/ajax/libs/font-awesome/5.12.0/css/all.min.css"><link rel="stylesheet" href="https://fonts.loli.net/css?family=Ubuntu:400,600|Source+Code+Pro|Monda:300,300italic,400,400italic,700,700italic|Roboto Slab:300,300italic,400,400italic,700,700italic|Microsoft YaHei:300,300italic,400,400italic,700,700italic|PT Mono:300,300italic,400,400italic,700,700italic&amp;amp;subset=latin,latin-ext|Inconsolata|Itim|Lobster.css"><script src="https://cdnjs.loli.net/ajax/libs/jquery/3.3.1/jquery.min.js"></script><script src="/js/globalUtils.js"></script><script src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js" defer></script><style>body>.footer,body>.navbar,body>.section{opacity:0}</style><!--!--><script>var _hmt = _hmt || [];
+        (function() {
+            var hm = document.createElement("script");
+            hm.src = "//hm.baidu.com/hm.js?3f06f2b732a5b1034c989f74e28d0eea";
+            var s = document.getElementsByTagName("script")[0];
+            s.parentNode.insertBefore(hm, s);
+        })();</script><link rel="stylesheet" href="https://cdnjs.loli.net/ajax/libs/lightgallery/1.6.8/css/lightgallery.min.css"><link rel="stylesheet" href="https://cdnjs.loli.net/ajax/libs/justifiedGallery/3.7.0/css/justifiedGallery.min.css"><!--!--><!--!--><!--!--><!--!--><link rel="stylesheet" href="https://cdnjs.loli.net/ajax/libs/outdated-browser/1.1.5/outdatedbrowser.min.css"><script src="https://cdnjs.loli.net/ajax/libs/pace/1.0.2/pace.min.js"></script><meta name="generator" content="Hexo 5.4.2"></head><body class="is-3-column has-navbar-fixed-top"><nav class="navbar navbar-main is-fixed-top"><div class="container"><div class="navbar-brand justify-content-center"><a class="navbar-item navbar-logo" href="/"><img src="/img/logo.png" alt="山河已无恙" height="28"></a></div><div class="navbar-menu"><div class="navbar-start"><a class="navbar-item" href="/">首页</a><a class="navbar-item" href="/archives">归档</a><a class="navbar-item" href="/categories">分类</a><a class="navbar-item" href="/tags">标签</a><a class="navbar-item" href="/media">影音</a><a class="navbar-item" href="/album">相册</a><a class="navbar-item" href="/friend">友链</a><a class="navbar-item" href="/self-talking">生活小记</a><a class="navbar-item" href="/message">留言墙</a><a class="navbar-item" href="/about">关于</a></div><div class="navbar-end"><a class="navbar-item" target="_blank" rel="noopener" title="Gitee" href="https://gitee.com/liruilonger"><i class="fab fa-git-square fa-1x"></i></a><a class="navbar-item" target="_blank" rel="noopener" title="GitHub" href="https://github.com/LIRUILONGS"><i class="fab fa-github fa-1x"></i></a><a class="navbar-item is-hidden-tablet catalogue" title="目录" href="javascript:;"><i class="fas fa-list-ul fa-1x"></i></a><a class="navbar-item search" title="搜索" href="javascript:;"><i class="fas fa-search fa-1x"></i></a><a class="navbar-item" id="night-nav" title="Night Mode" href="javascript:;"><i class="fas fa-moon fa-1x" id="night-icon"></i></a></div></div></div></nav><script type="text/javascript" src="/js/theme-setting.js"></script><section class="section"><div class="container"><div class="columns"><div class="column order-2 column-main is-8-tablet is-8-desktop is-9-widescreen"><!--!--><div class="card"><article class="card-content article" role="article"><div class="article-meta size-small is-uppercase level is-mobile"><div class="level-left"><i class="far fa-calendar-plus"> </i>2022-09-05  <a class="commentCountImg" href="/2022/09/05/rhca/RH442/%E5%85%B3%E4%BA%8ELinux%E4%B8%AD%E4%BD%BF%E7%94%A8USE(%E4%BD%BF%E7%94%A8%E7%8E%87%E3%80%81%E9%A5%B1%E5%92%8C%E5%BA%A6%E3%80%81%E9%94%99%E8%AF%AF)%E6%96%B9%E6%B3%95%E5%88%86%E6%9E%90%E7%B3%BB%E7%BB%9F%E6%80%A7%E8%83%BD%E7%9A%84%E4%B8%80%E4%BA%9B%E7%AC%94%E8%AE%B0/#comment-container"><span class="display-none-class">8392c6ce37efe570e0886ca20fab8aab</span><i class="far fa-comment-dots"></i> <span class="commentCount" id="8392c6ce37efe570e0886ca20fab8aab">99+</span>  </a><span class="level-item"><i class="far fa-clock"> </i>1 小时  <i class="fas fa-pencil-alt"> </i>10.6 k</span><span class="level-item" id="busuanzi_container_page_pv"><span id="busuanzi_value_page_pv">0</span>次访问</span></div></div><h1 class="title is-3 is-size-4-mobile">关于Linux中使用USE(使用率/饱和度/错误)方法分析系统性能的一些笔记</h1><div class="content"><p><strong><font color="009688"> 傍晚时分，你坐在屋檐下，看着天慢慢地黑下去，心里寂寞而凄凉，感到自己的生命被剥夺了。当时我是个年轻人，但我害怕这样生活下去，衰老下去。在我看来，这是比死亡更可怕的事。——–王小波</strong></font></p>
+<span id="more"></span>
+<h2 id="写在前面"><a href="#写在前面" class="headerlink" title="写在前面"></a>写在前面</h2><hr>
+<ul>
+<li>今天和小伙伴们分享通过<code>USE</code>方法对系统进行性能分析和性能调整</li>
+<li>博文内容涉及：<ul>
+<li>什么是USE方法，以及USE的使用建议</li>
+<li>具体的USE指标采集分析</li>
+</ul>
+</li>
+<li>食用方式: 需要Linux基础知识  </li>
+<li>理解不足小伙伴帮忙指正</li>
+</ul>
+<p><strong><font color="009688"> 傍晚时分，你坐在屋檐下，看着天慢慢地黑下去，心里寂寞而凄凉，感到自己的生命被剥夺了。当时我是个年轻人，但我害怕这样生活下去，衰老下去。在我看来，这是比死亡更可怕的事。——–王小波</strong></font></p>
+<hr>
+<p>如果说希望通过<code>USE</code>做一些调优的工作，我觉得需要一定的能力，但是可以通过<code>USE</code>来定位机器的性能瓶颈，做一些排故工作。比如机器上的应用发生某些已知的未知故障，比如客户感知卡顿，工单流转，服务编排，调度任务等特别慢的情况，希望确认是机器性能问题，还是应用程序问题，这个时候，使用<code>USE</code>方法是一个很好的策略。</p>
+<h3 id="USE方法"><a href="#USE方法" class="headerlink" title="USE方法"></a>USE方法</h3><p><code>USE方法(utilization、saturation、errors)</code>可以用于性能研究，用来识别系统瓶颈,同时有感知故障，可以定位问题。</p>
+<p><code>关于什么是USE？</code>即围绕服务器<code>物理元器件</code>(CPU、内存等资源)，某些软件资源也能算在内，通过<code>使用率、饱和度和错误</code>三个指标的采集分析，对系统进行性能研究，在故障发生前发现系统瓶颈。</p>
+<ul>
+<li><p><strong>使用率</strong> ：在规定的时间间隔内，<code>资源用于服务工作的时间百分比</code>。虽然资源繁忙，但是资源<code>还有能力接受更多的工作</code>，不能接受更多工作的程度被视为<code>饱和度</code>。</p>
+</li>
+<li><p><strong>饱和度</strong> ：资源不能再服务更多额外工作的程度，通常有<code>等待队列</code>。</p>
+</li>
+<li><p><strong>错误</strong> ：错误事件的个数。</p>
+</li>
+</ul>
+<p>这里需要注意的是：某些资源类型，比如内存，磁盘<code>使用率指的是资源所用的容量</code>。这与基于时间的定义是不同的，比如CUP等,一旦资源的<code>容量达到100%的使用率</code>，就无法接受更多的工作，<code>资源或者会把工作进行排队(饱和)</code>，或者会<code>返回错误</code>，用<code>USE方法</code>也可以予以鉴别。<code>错误需要调查，因为它们会</code>损害性能&#96;，如果故障模式是可恢复的，有对应的容灾策略，错误可能难以立即察觉。这包括操作失败重试，还有冗余设备池中的设备故障。</p>
+<p><img src="https://img-blog.csdnimg.cn/68ba5d4bc6bd429999642f8429328411.png" alt="在这里插入图片描述"></p>
+<p>通过上面的方法辨别出的很可能是系统瓶颈问题。不过，一个系统可能不只面临一个性能问题，可能一开始就能找到问题，但所找到的问题并非你关心的那个。在根据需要返回USE方法遍历其他资源之前，每个发现可以用更多的方法进行调查,z需要查阅相关的资料。</p>
+<p>当然有那种很明显的情况。由客户感知或者指标监控发现 ,通过全局的观测工具可以很快定位问题的那种，往往不需要通过USE流程方法：</p>
+<p><img src="https://img-blog.csdnimg.cn/63b8b16411e4414aa0fb245e68081169.png" alt="在这里插入图片描述"></p>
+<p>如上面的这个图片。我们可以看到明显的问题，top 命令中，mysql进程CUP相关指标明显异常，从三个地方可以看到：</p>
+<ul>
+<li>系统平均负载：最上面的CUP负载，<code>load average：27.28，,26.88,27.19 </code> 为CPU最近1&#x2F;5&#x2F;15分钟的平均负载，负载平均数超过了CPU数量通常代表CPU饱和。<code>当前核数为16核</code>，即CPU不足以服务线程.</li>
+</ul>
+<blockquote>
+<p>平均负载表示了对CPU资源的需求，一个有64颗CPU的系统的平均负载为128。这意味着平均每个CPU上有一个线程在运行，还有一个线程在等待。而同样的系统，如果平均负载为10，则代表还有很大的余量，在所有CPU跑满前还可以运行54个CPU消耗型线程。但是<code>Linux平均负载</code>除了CPU还把不可中断状态执行磁盘I&#x2F;O的任务也计入平均负载。</p>
+</blockquote>
+<ul>
+<li>单个CPU饱和：top命令+1 展示每个cup的负载情况，<code>us项为用户进程消耗CUP使用率，sy为系统进程消耗，id为当前CPU的空闲，从us和id项可以看出，当前多个CUP饱和，空闲率为0</code></li>
+<li>进程CPU利用率近饱和：top的进程列表可以看到，当前 mysqld 的进程，主内存(%MEM)占比为9.6，<code>CPU占比(%CPU)为1576(16c为1600m),占比近100%，成饱和状态</code>，而且TIME值也不太正常，进程虚拟内存使用总量(VIRT)为45.274g(包括了应用程序分配到但未使用的全部内存)，共享内存(SHR)为2.012g，应用程序实际使用的物理内存总量(RES)为0.012t(12.288g)。总内存为126g，所以应该不是内存方面的问题，不存在泄露之类的情况</li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">$ free -h</span><br><span class="line">              total        used        free      shared  buff/cache   available</span><br><span class="line">Mem:           126G         44G         25G        2.5G         57G         79G</span><br><span class="line">Swap:          6.0G        851M        5.2G</span><br><span class="line">$ </span><br></pre></td></tr></table></figure>
+
+<p>通过上面的简单指标查看，可以推断mysqld进程异常，多个CPU呈现饱和状态，可能存在着类似死循环的操作，不断的创建线程，导致CUP饱和。进而我们可以排查mysqld服务的进程信息<code> show processlist;</code>。后排查发现确实存在。kill掉对应的外挂，mysqld恢复正常,然后排查外挂的问题。</p>
+<p><img src="https://img-blog.csdnimg.cn/257a3bcacd7b486cb41d93372e1ff08b.png" alt="在这里插入图片描述"></p>
+<h4 id="指标表述"><a href="#指标表述" class="headerlink" title="指标表述"></a>指标表述</h4><p>USE方法的指标通常如下。</p>
+<ul>
+<li><code>使用率</code>：一定时间间隔内的百分比值(例如，“单个CPU运行在90%的使用率上”)。</li>
+<li><code>饱和度</code>：等待队列的长度(例如，“CPU的平均运行队列长度是4”)。</li>
+<li><code>错误</code>：报告出的错误数目(例如，“这个网络接口发生了50次滞后冲突”)。</li>
+</ul>
+<p><code>即便整体的使用率在很长一段时间都处于较低水平，一次高使用率的瞬时冲击还是能导致饱和与性能问题的</code>。某些监控工具汇报的<code>使用率</code>是超过5分钟的均值。所以指标监控要</p>
+<p>举个例子，每秒的CPU使用率可以变动得非常剧烈，因此5分钟时长的均值可能会掩盖短时间内100%的使用率，甚至是饱和的情况。</p>
+<blockquote>
+<p>想象一下高速公路的收费站。使用率就相当于有多少收费站在忙于收费。使用率100%意味着你找不到一个空的收费站，必须排在别人的后面(饱和的情况)。如果我说一整天收费站的使用率是40%，你能判断当天是否有车在某一时间排过队吗？很可能在高峰时候确实排过队，那时的使用率是100%，但是这在一天的均值上是看不出的。</p>
+</blockquote>
+<h4 id="资源列表"><a href="#资源列表" class="headerlink" title="资源列表"></a>资源列表</h4><p>USE方法的第一步是要建一张资源列表，要尽可能完整。下面是一张服务器通常的资源列表，配有相应的例子。</p>
+<ul>
+<li>CPU：插槽、核、硬件线程(虚拟CPU)</li>
+<li>内存：DRAM</li>
+<li>网络接口：以太网端口</li>
+<li>存储设备：磁盘<br>……</li>
+</ul>
+<p><code>每个组件通常作为一类资源类型</code>。例如，内存是一种容量资源，网络接口是一类I&#x2F;O资源(IOPS或吞吐量)。有些组件体现出多种资源类型：例如，存储设备既是I&#x2F;O资源也是容量资源。这时需要考虑到所有的类型都能够造成性能瓶颈，同时，也要知道I&#x2F;O资源可以进一步被当作排队系统来研究，将请求排队并被服务。</p>
+<p>某些物理资源，诸如硬件缓存(如CPU缓存)，可能不在清单中。<code>USE方法是处理在高使用率或饱和状态下性能下降的资源最有效的方法</code>，当然还有其他的检测方法。如果你不确定清单是否该包括一项资源，那就包括它，看看在实际指标中是什么样的情况。</p>
+<h4 id="指标"><a href="#指标" class="headerlink" title="指标"></a>指标</h4><p>一旦你掌握了资源的列表，就可以考虑这三类指标：<code>使用率、饱和度，以及错误</code>。表2.5列举了一些资源和指标类型，以及一些可能的指标(针对一般性的OS)。这些指标要么是一定时间间隔的均值，要么是累计数目。</p>
+<table>
+<thead>
+<tr>
+<th>资源</th>
+<th>类型</th>
+<th>指标</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>CPU</td>
+<td>使用率</td>
+<td>CPU使用率(单CPU使用率或系统级均值)</td>
+</tr>
+<tr>
+<td>CPU</td>
+<td>饱和度</td>
+<td>分配队列长度(又名运行队列长度)</td>
+</tr>
+<tr>
+<td>内存</td>
+<td>使用率</td>
+<td>可用空闲内存(系统级)</td>
+</tr>
+<tr>
+<td>内存</td>
+<td>饱和度</td>
+<td>匿名换页或线程换出(页面扫描是另一个指标)，或者OOM事件</td>
+</tr>
+<tr>
+<td>网络接口</td>
+<td>使用率</td>
+<td>接收吞吐量&#x2F;最大带宽，传输吞吐量&#x2F;最大带宽存储设备&#x2F;O使用率设备繁忙百分比存储设备&#x2F;O饱和度等待队列长度</td>
+</tr>
+<tr>
+<td>存储设备&#x2F;O</td>
+<td>错误</td>
+<td>设备错误(“硬错误”、“软错误”)</td>
+</tr>
+</tbody></table>
+<p>重复所有的组合，包括获取每个指标的步骤，记录下当前无法获得的指标，那些是已知的未知。最终你得到一个大约30项的指标清单，有些指标难以测量，有些根本测不了。所幸的是，常见的问题用较简单的指标就能发现(例如，CPU饱和度、内存容量饱和度、网络接口使用率、磁盘使用率)，所以这些指标要首先测量。</p>
+<p>一些较难的组合示例可见下表</p>
+<table>
+<thead>
+<tr>
+<th>资源</th>
+<th>类型</th>
+<th>指标</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>CPU</td>
+<td>错误</td>
+<td>例如，可修正的CPU缓存ECC事件，或者可修正的CPU故障(如果操作系统加上硬件支持)</td>
+</tr>
+<tr>
+<td>内存</td>
+<td>错误</td>
+<td>例如，失败的malloc()(虽然这通常是由于虚拟内存耗尽，并非物理内存)</td>
+</tr>
+<tr>
+<td>网络</td>
+<td>饱和度</td>
+<td>与饱和度相关的网络接口或操作系统错误，例如，Linux的overrun和Solaris的nocanput</td>
+</tr>
+<tr>
+<td>存储控制器</td>
+<td>使用率</td>
+<td>取决于控制器，针对当前活动可能有最大IOPS或吞吐量可供检查</td>
+</tr>
+<tr>
+<td>CPU互联</td>
+<td>使用率</td>
+<td>每个端口的吞吐量&#x2F;最大带宽(CPU性能计数器)</td>
+</tr>
+<tr>
+<td>内存互联</td>
+<td>饱和度</td>
+<td>内存停滞周期数，偏高的平均指令周期数(CPU性能计数器)</td>
+</tr>
+<tr>
+<td>I&#x2F;O互联</td>
+<td>使用率</td>
+<td>总线吞吐量&#x2F;最大带宽(可能你的硬件上有性能计数器，例如，Intel的“非核心”事件)</td>
+</tr>
+</tbody></table>
+<p>上述的某些指标可能用操作系统的标准工具是无法获得的，可能需要使用动态跟踪或者用到CPU性能计数工具。</p>
+<h4 id="使用建议"><a href="#使用建议" class="headerlink" title="使用建议"></a>使用建议</h4><p>对于使用上述这些指标类型，这里有一些总体的建议。</p>
+<ul>
+<li><strong>使用率</strong> ：<code>100%的使用率通常是瓶颈的信号</code>(检查饱和度并确认其影响)。<code>使用率超过60%可能会是问题</code>，基于以下理由：<ul>
+<li><code>时间间隔的均值，可能掩盖了100%使用率的短期爆发</code></li>
+<li>一些资源，诸如硬盘(不是CPU)，通常在操作期间是不能被中断的，即使做的是优先级较高的工作。随着使用率的上升，排队延时会变得更频繁和明显。</li>
+</ul>
+</li>
+</ul>
+<p><code>关于为什么是60%使用率，基于排队理论，随着使用率的增加，资源的响应时间成本增加，类似于幂函数 y=x^2 </code></p>
+<p><img src="https://img-blog.csdnimg.cn/7959a647f013423b825a4b97cee5a3f6.png" alt="在这里插入图片描述"></p>
+<p><code>使用率超过60%，平均响应时间会变成两倍。在80%时，平均响应时间变成了三倍。</code> 磁盘I&#x2F;0延时通常是应用程序的资源限制，两倍或更多的平均延时增加会给应用程序带来显著的负面影响。</p>
+<p>排队系统内的请求是不能被打断的(通常而言)，必须等到轮到自己，这就是磁盘使用率在达到100%之前就会变成的问题的原因。CPU资源与之不同，更高优先级的任务是可以抢占CPU的。</p>
+<ul>
+<li><p><strong>饱和度</strong> ：<code>任何程度的饱和都是问题(非零)</code>。饱和程度可以用<code>排队长度</code>或者<code>排队所花的时间</code>来度量。</p>
+</li>
+<li><p><strong>错误</strong> ：错误都是值得研究的，尤其是随着错误增加性能会变差的那些错误。</p>
+</li>
+</ul>
+<p><code>低使用率、无饱和、无错误</code>：这样的反例研究起来容易。这点要比看起来还有用一—缩小研究的范围能帮你快速地将精力集中在出问题的地方，判断其不是某一个资源的问题，这是一个排除法的过程。</p>
+<p>下面为上面提到的资源和对应指标查看工具Demo，只是涉及部分</p>
+<h2 id="CPU-使用率"><a href="#CPU-使用率" class="headerlink" title="CPU 使用率"></a>CPU 使用率</h2><p>CPU使用率通过测量一段时间内CPU实例忙于执行工作的时间比例获得，以百分比表示。也可以通过测量CPU未运行内核空闲线程的时间得出，这段时间内CPU可能在运行一些用户态应用程序线程，或者其他的内核线程，或者在处理中断。<code>高CPU使用率并不一定代表着问题，仅仅表示系统正在工作</code>。</p>
+<p>CPU在高使用率的情况下，性能并不会出现显著下降，因为内核支持了优先级、抢占和分时共享。这些概念加起来让内核决定了什么线程的优先级更高，并保证它优先运行。</p>
+<p>CPU使用率通常被分成<code>内核时间(%sys)</code>和<code>用户时间(%usr)</code>两个指标。</p>
+<ul>
+<li>计算密集型的CPU用户&#x2F;内核时间比可达到99&#x2F;1,</li>
+<li>I&#x2F;O密集型的CPU用户&#x2F;内核时间比可达到70&#x2F;30,</li>
+</ul>
+<h3 id="每个CPU"><a href="#每个CPU" class="headerlink" title="每个CPU"></a>每个CPU</h3><p>实时统计： <code>mpstat -P ALL</code>查看每个CPU的使用率，<code>%idle</code>指CPU的空闲率,通过检查单个热点(繁忙)CPU，挑出一个可能的线程扩展性问题。(不太懂，先记下来)</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">┌──[root@liruilongs.github.io]-[~]</span><br><span class="line">└─$ mpstat -P ALL</span><br><span class="line">Linux 3.10.0-1160.71.1.el7.x86_64 (liruilongs.github.io)        2022年09月05日  _x86_64_        (6 CPU)</span><br><span class="line"></span><br><span class="line">22时59分30秒  CPU    %usr   %nice    %sys %iowait    %irq   %soft  %steal  %guest  %gnice   %idle</span><br><span class="line">22时59分30秒  all    5.44    0.00    7.91    0.51    0.00    0.30    0.00    0.00    0.00   85.85</span><br><span class="line">22时59分30秒    0    5.65    0.00    7.43    0.60    0.00    0.29    0.00    0.00    0.00   86.02</span><br><span class="line">22时59分30秒    1    5.34    0.00    9.01    0.47    0.00    0.33    0.00    0.00    0.00   84.85</span><br><span class="line">22时59分30秒    2    5.80    0.00    7.12    0.40    0.00    0.36    0.00    0.00    0.00   86.32</span><br><span class="line">22时59分30秒    3    5.68    0.00    7.74    0.50    0.00    0.30    0.00    0.00    0.00   85.77</span><br><span class="line">22时59分30秒    4    3.84    0.00    6.08    0.23    0.00    0.23    0.00    0.00    0.00   89.62</span><br><span class="line">22时59分30秒    5    6.30    0.00   10.04    0.86    0.00    0.27    0.00    0.00    0.00   82.54</span><br><span class="line">┌──[root@liruilongs.github.io]-[~]</span><br><span class="line">└─$</span><br></pre></td></tr></table></figure>
+<p>历史统计：也可用通过 <code>sar -P ALL</code>的命令来查看，sar可以获取<code>平均数据</code>，<code>%idle</code>指CPU的空闲率,反过来即为使用率</p>
+<p>空闲率很高</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line">┌──[root@liruilongs.github.io]-[~]</span><br><span class="line">└─$ sar -P ALL</span><br><span class="line">Linux 3.10.0-1160.71.1.el7.x86_64 (liruilongs.github.io)        2022年09月05日  _x86_64_        (6 CPU)</span><br><span class="line"></span><br><span class="line">22时56分20秒       LINUX RESTART</span><br><span class="line"></span><br><span class="line">23时00分01秒     CPU     %user     %nice   %system   %iowait    %steal     %idle</span><br><span class="line">23时10分01秒     all      0.21      0.00      0.39      0.01      0.00     99.39</span><br><span class="line">23时10分01秒       0      0.20      0.00      0.42      0.01      0.00     99.36</span><br><span class="line">23时10分01秒       1      0.33      0.00      0.60      0.01      0.00     99.06</span><br><span class="line">23时10分01秒       2      0.30      0.00      0.45      0.01      0.00     99.24</span><br><span class="line">23时10分01秒       3      0.14      0.00      0.25      0.01      0.00     99.61</span><br><span class="line">23时10分01秒       4      0.19      0.00      0.33      0.01      0.00     99.48</span><br><span class="line">23时10分01秒       5      0.12      0.00      0.27      0.02      0.00     99.60</span><br><span class="line"></span><br><span class="line">平均时间:     CPU     %user     %nice   %system   %iowait    %steal     %idle</span><br><span class="line">平均时间:     all      0.21      0.00      0.39      0.01      0.00     99.39</span><br><span class="line">平均时间:       0      0.20      0.00      0.42      0.01      0.00     99.36</span><br><span class="line">平均时间:       1      0.33      0.00      0.60      0.01      0.00     99.06</span><br><span class="line">平均时间:       2      0.30      0.00      0.45      0.01      0.00     99.24</span><br><span class="line">平均时间:       3      0.14      0.00      0.25      0.01      0.00     99.61</span><br><span class="line">平均时间:       4      0.19      0.00      0.33      0.01      0.00     99.48</span><br><span class="line">平均时间:       5      0.12      0.00      0.27      0.02      0.00     99.60</span><br><span class="line">┌──[root@liruilongs.github.io]-[~]</span><br></pre></td></tr></table></figure>
+<p>使用率较高的情况</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br></pre></td><td class="code"><pre><span class="line">16时20分01秒     CPU     %user     %nice   %system   %iowait    %steal     %idle</span><br><span class="line">16时30分01秒     all     50.09      0.00     11.43      0.00      0.03     38.45</span><br><span class="line">16时30分01秒       0     46.19      0.00      9.75      0.01      0.03     44.02</span><br><span class="line">16时30分01秒       1     45.55      0.01      9.78      0.00      0.03     44.63</span><br><span class="line">16时30分01秒       2     46.38      0.00      9.55      0.00      0.04     44.03</span><br><span class="line">16时30分01秒       3     45.22      0.00      9.54      0.00      0.03     45.20</span><br><span class="line">16时30分01秒       4     46.23      0.00      9.44      0.00      0.03     44.29</span><br><span class="line">16时30分01秒       5     45.03      0.00      9.68      0.00      0.04     45.24</span><br><span class="line">16时30分01秒       6     62.71      0.00     24.75      0.00      0.02     12.52</span><br><span class="line">16时30分01秒       7     63.19      0.00      8.78      0.00      0.02     28.01</span><br><span class="line"></span><br><span class="line">16时30分01秒     CPU     %user     %nice   %system   %iowait    %steal     %idle</span><br><span class="line">16时40分01秒     all     50.92      0.00     10.69      0.00      0.02     38.36</span><br><span class="line">16时40分01秒       0     47.77      0.00      8.83      0.01      0.02     43.37</span><br><span class="line">16时40分01秒       1     46.33      0.00      9.13      0.00      0.02     44.51</span><br><span class="line">16时40分01秒       2     47.46      0.00      8.87      0.00      0.03     43.64</span><br><span class="line">16时40分01秒       3     46.84      0.00      8.92      0.00      0.02     44.21</span><br><span class="line">16时40分01秒       4     47.43      0.00      8.79      0.00      0.02     43.76</span><br><span class="line">16时40分01秒       5     46.78      0.00      9.05      0.00      0.02     44.14</span><br><span class="line">16时40分01秒       6     61.35      0.00     23.71      0.00      0.02     14.92</span><br><span class="line">16时40分01秒       7     63.32      0.00      8.11      0.00      0.02     28.55</span><br><span class="line"></span><br><span class="line">16时40分01秒     CPU     %user     %nice   %system   %iowait    %steal     %idle</span><br><span class="line">16时50分01秒     all     48.46      0.00     10.25      0.00      0.03     41.27</span><br><span class="line">16时50分01秒       0     44.40      0.00      8.64      0.01      0.03     46.93</span><br><span class="line">16时50分01秒       1     43.57      0.00      8.72      0.01      0.03     47.67</span><br><span class="line">16时50分01秒       2     45.38      0.00      8.37      0.00      0.03     46.22</span><br><span class="line">16时50分01秒       3     44.58      0.00      8.57      0.01      0.03     46.81</span><br><span class="line">16时50分01秒       4     44.98      0.00      8.29      0.00      0.03     46.70</span><br><span class="line">16时50分01秒       5     44.10      0.01      8.65      0.00      0.03     47.22</span><br><span class="line">16时50分01秒       6     60.15      0.00     22.63      0.00      0.02     17.20</span><br><span class="line">16时50分01秒       7     60.41      0.00      8.01      0.00      0.02     31.56</span><br><span class="line"></span><br><span class="line">16时50分01秒     CPU     %user     %nice   %system   %iowait    %steal     %idle</span><br><span class="line">17时00分01秒     all     47.27      0.00     10.39      0.00      0.03     42.32</span><br><span class="line">17时00分01秒       0     42.93      0.00      8.86      0.01      0.03     48.17</span><br><span class="line">17时00分01秒       1     42.06      0.00      8.83      0.00      0.03     49.08</span><br><span class="line">17时00分01秒       2     43.01      0.00      8.51      0.00      0.03     48.45</span><br><span class="line">17时00分01秒       3     42.05      0.00      8.68      0.01      0.03     49.23</span><br><span class="line">17时00分01秒       4     43.59      0.00      8.47      0.00      0.03     47.92</span><br><span class="line">17时00分01秒       5     42.28      0.00      8.66      0.00      0.03     49.02</span><br><span class="line">17时00分01秒       6     61.59      0.00     23.01      0.00      0.02     15.38</span><br><span class="line">17时00分01秒       7     60.50      0.00      7.94      0.00      0.02     31.54</span><br></pre></td></tr></table></figure>
+
+
+<h3 id="系统范围"><a href="#系统范围" class="headerlink" title="系统范围"></a>系统范围</h3><p><code> vmstat 1 1</code> 查看所有的CPU使用率，<code>id列</code>为系统空闲消耗的总CPU时间的百分比,当等于0的时候，即没有空闲</p>
+<p>可以每秒运行vmstat，然后检查空闲列，看看还有多少余量。<code>少于10%可能相关进程存在问题</code></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">┌──[root@liruilongs.github.io]-[~]</span><br><span class="line">└─$ vmstat 1 1</span><br><span class="line">procs -----------memory---------- ---swap-- -----io---- -system-- ------cpu-----</span><br><span class="line"> r  b   swpd   free   buff  cache   si   so    bi    bo   <span class="keyword">in</span>   cs us sy id wa st</span><br><span class="line"> 2  0      0 23268840   3104 849968    0    0   168    26  239  296  2  3 96  0  0</span><br></pre></td></tr></table></figure>
+
+<p><code>sar -u</code>的方式，<code>%idle</code>指CPU的空闲率，获取启动以来的<code>平均数据</code></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">┌──[root@liruilongs.github.io]-[~]</span><br><span class="line">└─$ sar -u</span><br><span class="line">Linux 3.10.0-1160.71.1.el7.x86_64 (liruilongs.github.io)        2022年09月05日  _x86_64_        (6 CPU)</span><br><span class="line"></span><br><span class="line">22时56分20秒       LINUX RESTART</span><br><span class="line"></span><br><span class="line">23时00分01秒     CPU     %user     %nice   %system   %iowait    %steal     %idle</span><br><span class="line">23时10分01秒     all      0.21      0.00      0.39      0.01      0.00     99.39</span><br><span class="line">平均时间:     all      0.21      0.00      0.39      0.01      0.00     99.39</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">09时20分01秒     CPU     %user     %nice   %system   %iowait    %steal     %idle</span><br><span class="line">09时30分02秒     all     37.08      0.00      8.35      0.00      0.02     54.54</span><br><span class="line">09时40分01秒     all     40.96      0.00      9.17      0.00      0.02     49.85</span><br><span class="line">09时50分01秒     all     42.17      0.00      9.58      0.00      0.03     48.22</span><br><span class="line">10时00分01秒     all     42.92      0.00      9.83      0.00      0.03     47.22</span><br><span class="line">10时10分01秒     all     43.08      0.00      9.53      0.00      0.02     47.36</span><br><span class="line">10时20分01秒     all     43.74      0.00      9.93      0.00      0.02     46.31</span><br><span class="line">10时30分02秒     all     45.14      0.00     10.22      0.00      0.02     44.62</span><br><span class="line">10时40分01秒     all     44.81      0.00     10.24      0.00      0.02     44.93</span><br><span class="line">10时50分02秒     all     45.24      0.00     10.33      0.00      0.02     44.41</span><br><span class="line">11时00分01秒     all     44.66      0.00     10.30      0.00      0.02     45.01</span><br><span class="line">11时10分01秒     all     44.35      0.00     10.24      0.00      0.02     45.39</span><br><span class="line">11时20分01秒     all     43.37      0.00     10.08      0.00      0.02     46.53</span><br><span class="line">11时30分02秒     all     41.68      0.00      9.83      0.00      0.03     48.45</span><br><span class="line">11时40分01秒     all     42.68      0.00      9.92      0.00      0.02     47.37</span><br><span class="line">11时50分01秒     all     40.55      0.00      9.63      0.00      0.03     49.79</span><br></pre></td></tr></table></figure>
+<p><code>dstat</code> 工具，需要单独装包，<code>idl</code>:指CPU的空闲率</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">┌──[root@liruilongs.github.io]-[~]</span><br><span class="line">└─$ dstat -c 1 2</span><br><span class="line">----total-cpu-usage----</span><br><span class="line">usr sys idl wai hiq siq</span><br><span class="line">  1   2  97   0   0   0</span><br><span class="line">  0   0  99   0   0   0</span><br><span class="line">  0   0 100   0   0   0</span><br><span class="line">┌──[root@liruilongs.github.io]-[~]</span><br><span class="line">└─$</span><br></pre></td></tr></table></figure>
+<h3 id="每个进程"><a href="#每个进程" class="headerlink" title="每个进程"></a>每个进程</h3><p><code>top</code>命令，%CPU：CPU消耗, 默认会按照CPU用量排序</p>
+<ul>
+<li>最上面会显示当前系统平均负载，以及CUP相关的平局值<code>%Cpu(s):  0.2 us,  0.2 sy,  0.0 ni, 99.6 id,  0.0 wa,  0.0 hi,  0.0 si,  0.0 st</code> </li>
+<li>每个进程的CPU用量通过<code>TIME+和%CPU列</code>表示，TIME列显示了进程自从创建开始消耗的CPU总时间<code>(用户态+系统态)</code>，格式为“小时：分钟：秒”。</li>
+<li>Linux上，<code>CPU列显示了在前一秒内所有CPU上的CPU用量之和</code>。一个<code>单线程</code>的CPU型进程会报告100%。而一个双线程的CPU型进程则会报告200%。</li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">top - 23:15:42 up 19 min,  1 user,  load average: 0.01, 0.05, 0.10</span><br><span class="line">Tasks: 279 total,   1 running, 278 sleeping,   0 stopped,   0 zombie</span><br><span class="line">%Cpu(s):  0.2 us,  0.2 sy,  0.0 ni, 99.6 id,  0.0 wa,  0.0 hi,  0.0 si,  0.0 st</span><br><span class="line">KiB Mem : 32927488 total, 22911768 free,  8894024 used,  1121696 buff/cache</span><br><span class="line">KiB Swap: 11534328 total, 11534328 free,        0 used. 23608488 avail Mem</span><br><span class="line"></span><br><span class="line">   PID USER      PR  NI    VIRT    RES    SHR S  %CPU %MEM     TIME+ COMMAND</span><br><span class="line">   935 etcd      20   0   10.7g  26756  11124 S   1.3  0.1   0:15.74 etcd</span><br><span class="line">  8108 chrony    20   0  863480 578404   9964 S   1.3  1.8   0:30.36 bundle</span><br><span class="line">  8112 992       20   0  541256  93800  12008 S   1.3  0.3   0:08.27 prometheus</span><br><span class="line">   955 root      20   0 1256580  50788  19868 S   0.3  0.2   0:02.40 containerd</span><br><span class="line">  4686 tom       20   0   12.6g   2.9g  26428 S   0.3  9.4   0:49.63 java</span><br><span class="line">  8113 chrony    20   0  583592  24052   6168 S   0.3  0.1   0:01.47 gitaly</span><br><span class="line">  8121 nginx     20   0   41636  12160   1600 S   0.3  0.0   0:05.71 redis-server</span><br><span class="line">  8214 chrony    20   0 2756524  65824   8124 S   0.3  0.2   0:04.84 ruby</span><br><span class="line">  。。。。。。。。。。。。。。。。</span><br></pre></td></tr></table></figure>
+
+<p>也可以使用 <code>htop</code>工具</p>
+<p><img src="https://img-blog.csdnimg.cn/37eba930218c4361b9d8593be09f2897.png" alt="在这里插入图片描述"></p>
+<p>或者 <code>ps ：%CPU</code></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">┌──[root@liruilongs.github.io]-[~]</span><br><span class="line">└─$ ps -o pcpu,cmd</span><br><span class="line">%CPU CMD</span><br><span class="line"> 0.0 /bin/bash /assets/wrapper</span><br><span class="line"> 0.0 runsvdir -P /opt/gitlab/service <span class="built_in">log</span>: ................................................................</span><br><span class="line"> 0.0 /bin/bash /opt/gitlab/bin/gitlab-ctl tail</span><br><span class="line"> 0.0 /opt/gitlab/embedded/bin/ruby /opt/gitlab/embedded/bin/omnibus-ctl gitlab /opt/gitlab/embedded/servic</span><br><span class="line"> 0.0 sh -c find /var/<span class="built_in">log</span>/gitlab -<span class="built_in">type</span> f -not -path */sasl/* | grep -E -v <span class="string">&#x27;(config|lock|@|gzip|tgz|gz)&#x27;</span> | x</span><br><span class="line"> 0.0 xargs tail --follow=name --retry</span><br><span class="line"> 0.0 tail --follow=name --retry /var/<span class="built_in">log</span>/gitlab/sshd/current /var/<span class="built_in">log</span>/gitlab/gitlab-shell/gitlab-shell.log</span><br><span class="line"> 0.0 -bash</span><br><span class="line"> 0.0 ps -o pcpu,cmd</span><br></pre></td></tr></table></figure>
+<p><code>pidstat 1 1</code>命令会按照进程打印CPU的用量，包括用户态和系统态时间的分解，</p>
+<ul>
+<li>%CPU：进程占用cpu的百分比</li>
+<li>CPU：处理进程的cpu编号</li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">┌──[root@liruilongs.github.io]-[~]</span><br><span class="line">└─$ pidstat 1 1</span><br><span class="line">Linux 3.10.0-1160.71.1.el7.x86_64 (liruilongs.github.io)        2022年09月05日  _x86_64_        (6 CPU)</span><br><span class="line"></span><br><span class="line">23时20分54秒   UID       PID    %usr %system  %guest    %CPU   CPU  Command</span><br><span class="line">23时20分55秒   996       935    0.00    0.99    0.00    0.99     0  etcd</span><br><span class="line">23时20分55秒   998      8108    0.00    0.99    0.00    0.99     2  bundle</span><br><span class="line">23时20分55秒   998      8211    0.99    0.00    0.00    0.99     4  ruby</span><br><span class="line">23时20分55秒     0     11670    0.00    0.99    0.00    0.99     2  pidstat</span><br><span class="line"></span><br><span class="line">平均时间:   UID       PID    %usr %system  %guest    %CPU   CPU  Command</span><br><span class="line">平均时间:   996       935    0.00    0.99    0.00    0.99     -  etcd</span><br><span class="line">平均时间:   998      8108    0.00    0.99    0.00    0.99     -  bundle</span><br><span class="line">平均时间:   998      8211    0.99    0.00    0.00    0.99     -  ruby</span><br><span class="line">平均时间:     0     11670    0.00    0.99    0.00    0.99     -  pidstat</span><br><span class="line">┌──[root@liruilongs.github.io]-[~]</span><br><span class="line">└─$</span><br></pre></td></tr></table></figure>
+
+
+<h2 id="CUP-饱和度"><a href="#CUP-饱和度" class="headerlink" title="CUP 饱和度"></a>CUP 饱和度</h2><p><code>一个100%使用率的CPU被称为是饱和的</code>，线程在这种情况下会碰上调度器延时，因为它们需要等待才能在CPU上运行，降低了总体性能。这个延时是线程花在等待CPU运行队列或者其他管理线程的数据结构上的时间。</p>
+<p>另一个CPU饱和度的形式则和<code>CPU资源控制有关</code>，这个控制会在云计算环境下发生。尽管CPU并没有100%地被使用，但已经达到了控制的上限，因此可运行的线程就必须等待轮到它们的机会。这个过程对用户的可见度取决于使用的虚拟化技术，</p>
+<p><code>一个饱和运行的CPU不像其他类型资源那样问题重重，因为更高优先级的工作可以抢占当前线程。但往往持续的饱和是存在问题的</code></p>
+<h3 id="系统范围-1"><a href="#系统范围-1" class="headerlink" title="系统范围"></a>系统范围</h3><p><code>vmstat 1 2</code> 虚拟内存统计命令，最后的几列会打印全局范围的CUP平均负载，  当 <code>r &gt; CUP数量</code>即为<code>饱和状态</code>，列r报告了那些正在等待以及正在CPU上运行的线程。</p>
+<ul>
+<li>r：当前可运行的进程数(运行队列的长度)。这些进程没有等待I&#x2F;0，而是已经准备好运行。理想状态下，<code>可运行进程数应与可用CPU的数量相等</code></li>
+<li>b：等待1&#x2F;0完成的被阻塞进程数</li>
+<li>us：用户态时间。</li>
+<li>sy：系统态时间(内核)。</li>
+<li>id：空闲。</li>
+<li>wa：等待I&#x2F;O，即线程被阻塞等待磁盘I&#x2F;O时的CPU空闲时间。</li>
+<li>st：偷取(未在输出里显示)，CPU在虚拟化的环境下在其他租户上的开销。</li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">┌──[root@liruilongs.github.io]-[~]</span><br><span class="line">└─$ vmstat  1 2</span><br><span class="line">procs -----------memory---------- ---swap-- -----io---- -system-- ------cpu-----</span><br><span class="line"> r  b   swpd   free   buff  cache   si   so    bi    bo   <span class="keyword">in</span>   cs us sy id wa st</span><br><span class="line"> 1  0      0 22877932   3104 1122588    0    0    74    35  173  246  1  1 98  0  0</span><br><span class="line"> 0  0      0 22878064   3104 1122592    0    0     0    25  663 1094  0  0 100  0  0</span><br></pre></td></tr></table></figure>
+<p><code>sar -q</code> 系统活动报告器，<code>-q </code>参数展示包括<code>运行队列长度</code>列<code>runq-sz</code>(等待数加上运行数，<code>与vmstat的r列相同</code>)和平均负载<code>ldavg-1   ldavg-5  ldavg-15 </code>。当 <code>runq-sz  &gt; CUP数量</code>时CPU饱和</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">┌──[root@liruilongs.github.io]-[~]</span><br><span class="line">└─$ sar -q</span><br><span class="line">Linux 3.10.0-1160.71.1.el7.x86_64 (liruilongs.github.io)        2022年09月05日  _x86_64_        (6 CPU)</span><br><span class="line"></span><br><span class="line">22时56分20秒       LINUX RESTART</span><br><span class="line"></span><br><span class="line">23时00分01秒   runq-sz  plist-sz   ldavg-1   ldavg-5  ldavg-15   blocked</span><br><span class="line">23时10分01秒         1       665      0.11      0.09      0.12         0</span><br><span class="line">23时20分01秒         0       667      0.00      0.03      0.08         0</span><br><span class="line">平均时间:         0       666      0.06      0.06      0.10         0</span><br></pre></td></tr></table></figure>
+
+<p><code>dstat -p 1 2</code>命令，当<code>run  &gt; CPU 数量</code>时，CPU饱和 </p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">┌──[root@liruilongs.github.io]-[~]</span><br><span class="line">└─$ dstat -p 1 2</span><br><span class="line">---procs---</span><br><span class="line">run blk new</span><br><span class="line">  0   0 7.0</span><br><span class="line">  0   0 1.0</span><br><span class="line">  0   0 4.0</span><br></pre></td></tr></table></figure>
+
+
+<h2 id="内存容量使用率"><a href="#内存容量使用率" class="headerlink" title="内存容量使用率"></a>内存容量使用率</h2><p><code>主内存的使用率可由已占用的内存除以总内存得出</code>。<code>文件系统缓存</code>占用的内存可当作未使用，因为它可以被应用程序重用,也可以通过修改内核参数来调整缓存和缓冲区。通过cgroup可以对内存资源进行限制。</p>
+<p>关于内存使用率，前面的建议可得，<code>100%的使用率通常是瓶颈的信号</code>(检查饱和度并确认其影响)。<code>使用率超过60%可能会是问题</code>，所以对于内存平均使用率尽量保持到70%以内，超过70%,考虑扩容。</p>
+<p>一般情况下，处于性能考虑，生产环境往往会禁用交换分区，或者通过修改内核参数调整交换频率，交换分区的意义是为了应付内存不足的情况。</p>
+<p>所以如果设置了交换分区，往往内存不足的一个信号即系统开始使用交换分区，如果内存使用率低，是不会使用交换分区的。Linux系统的内存使用率高并不一定是坏事，Linux会尽可能的对使用内存，提高系统IO的处理效率，一个运行了很久机器，你会发现的buff&#x2F;cache会占据内存很大的一部分。</p>
+<p>Linux永远不会存在因为内存不够而挂调的情况，除非你修改了<code>OOM Killer</code>相关的内核参数，默认情况下，系统的会在内存不够的时候，自动的根据打分杀掉有可能存在内存泄露的进程，具体的日志可以通过 <code>/var/log/message</code> 日志查看。</p>
+<p>通过对系统内存使用率的查看，可以在系统资源瓶颈时提早扩容，通过系统内存推断是否存在异常进程</p>
+<h4 id="系统范围-2"><a href="#系统范围-2" class="headerlink" title="系统范围"></a>系统范围</h4><p>free 命令不多讲</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">┌──[root@liruilongs.github.io]-[~]</span><br><span class="line">└─$ free -m</span><br><span class="line">              total        used        free      shared  buff/cache   available</span><br><span class="line">Mem:          32155        9465       21113          21        1576       22275</span><br><span class="line">Swap:         11263           0       11263</span><br></pre></td></tr></table></figure>
+<p>vmstat 命令</p>
+<ul>
+<li>swpd：交换出的内存量。</li>
+<li>free：空闲的可用内存。</li>
+<li>buff：用于缓冲缓存的内存。</li>
+<li>cache：用于页缓存的内存。</li>
+<li>si：换入的内存(换页)。</li>
+<li>so：换出的内存(换页)。<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">┌──[root@liruilongs.github.io]-[~]</span><br><span class="line">└─$ vmstat 1 2</span><br><span class="line">procs -----------memory---------- ---swap-- -----io---- -system-- ------cpu-----</span><br><span class="line"> r  b   swpd   free   buff  cache   si   so    bi    bo   <span class="keyword">in</span>   cs us sy id wa st</span><br><span class="line"> 1  0      0 21617868   3104 1611636    0    0     1    10    7    5  0  0 99  0  0</span><br><span class="line"> 0  0      0 21617704   3104 1611636    0    0     0     0  718 1068  0  2 98  0  0</span><br></pre></td></tr></table></figure>
+如果<code>si和so列一直非0</code>，那么系统正存在内存压力并换页到交换设备或文件</li>
+</ul>
+<p>通过<code>sar -r </code>可以查看系统范围的内存使用率</p>
+<ul>
+<li>-B：换页统计信息</li>
+<li>-H：大页面统计信息</li>
+<li><code>-r：内存使用率</code></li>
+<li>-R：内存统计信息</li>
+<li>-s：交换空间统计信息</li>
+<li>-W：交换统计信息</li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">┌──[root@liruilongs.github.io]-[~]</span><br><span class="line">└─$ sar -r | head -5</span><br><span class="line">Linux 3.10.0-1160.71.1.el7.x86_64 (liruilongs.github.io)        2022年09月07日  _x86_64_        (6 CPU)</span><br><span class="line"></span><br><span class="line">00时00分01秒 kbmemfree kbmemused  %memused kbbuffers  kbcached  kbcommit   %commit  kbactive   kbinact   kbdirty</span><br><span class="line">00时10分01秒  21838132  11089356     33.68      3104   1301088   7212724     16.22   9695476    573536       116</span><br><span class="line">00时20分01秒  22002248  10925240     33.18      3104   1251500   7208136     16.21   9575496    531188        60</span><br><span class="line">┌──[root@liruilongs.github.io]-[~]</span><br><span class="line">└─$</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>kbmemfree 空闲存储器&#x2F;千字节</li>
+<li>kbmemused 占用存储器(不包括内核)&#x2F;千字节</li>
+<li>kbbuffers 缓冲高速缓存尺寸&#x2F;千字节</li>
+<li>kbcached 页面高速缓存尺寸&#x2F;千字节</li>
+<li>kbcommit 提交的主存储器：服务当前工作负载需要量的估计&#x2F;千字节：保证当前系统所需要的内存,即为了确保不溢出而需要的内存(RAM+swap).</li>
+<li>%commit 为当前工作负载提交的主存储器，估计值&#x2F;百分比</li>
+<li>kbactive 活动列表存储器尺寸&#x2F;千字节</li>
+<li>kbinact 非活动列表存储器尺寸&#x2F;千字节</li>
+</ul>
+<p>也可以通过<code>dstat</code> 命令来查看，更直观一点</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">┌──[root@liruilongs.github.io]-[~]</span><br><span class="line">└─$ dstat -m 1 2</span><br><span class="line">------memory-usage-----</span><br><span class="line"> used  buff  cach  free</span><br><span class="line">9707M 3104k 1338M 20.6G</span><br><span class="line">9707M 3104k 1338M 20.6G</span><br><span class="line">9707M 3104k 1338M 20.6G</span><br><span class="line">┌──[root@liruilongs.github.io]-[~]</span><br><span class="line">└─$</span><br></pre></td></tr></table></figure>
+<p>检查内核进程相关的内存信息 kmem slab使用情况,一般用不到，我现在也看不懂</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">┌──[root@liruilongs.github.io]-[~]</span><br><span class="line">└─$ slabtop  -s c</span><br></pre></td></tr></table></figure>
+<p><img src="https://img-blog.csdnimg.cn/e5bccecdc29c40f59a172ff9953ae9bf.png" alt="在这里插入图片描述"></p>
+<h4 id="每个进程-1"><a href="#每个进程-1" class="headerlink" title="每个进程"></a>每个进程</h4><p>top 命令可以直观的看到每个进程的内存使用，也可以使用静态的 ps 命令不多讲</p>
+<ul>
+<li>%MEM：主存使用(物理内存、RSS)占总内存的百分比。</li>
+<li>RES：常驻集合大小(KB)。当前使用的内存大小</li>
+<li>VIRT：虚拟内存大小(KB)：申请的内存，包括使用了和没有使用的</li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">┌──[root@liruilongs.github.io]-[~]</span><br><span class="line">└─$ top</span><br></pre></td></tr></table></figure>
+<p>可以看到，第一个进程为etcd，当前申请的虚机内存为10.9g，已经使用28384KB的内存，共享内存为11220KB </p>
+<p><img src="https://img-blog.csdnimg.cn/8bb6ea4b025b468b98adaebca9fbf5bb.png" alt="在这里插入图片描述"></p>
+<p>也可以通过htop工具来查看，htop命令会直观的显示启动命令，使用top的需要进去键入c键</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">┌──[root@liruilongs.github.io]-[~]</span><br><span class="line">└─$ htop</span><br></pre></td></tr></table></figure>
+<p><img src="https://img-blog.csdnimg.cn/be9cc55f7d854c4883c2da06c4b0ca06.png" alt="在这里插入图片描述"></p>
+<h2 id="内存容量饱和度"><a href="#内存容量饱和度" class="headerlink" title="内存容量饱和度"></a>内存容量饱和度</h2><p><code>对内存的需求超过了主存的情况被称作主存饱和</code>。这时操作系统会使用<code>换页、交换</code>或者在Linux中用<code>O0M终结者</code>来释放内存。以上任一操作都标志着主存饱和。</p>
+<h4 id="系统范围-3"><a href="#系统范围-3" class="headerlink" title="系统范围"></a>系统范围</h4><p><code>si   so</code> 列出现数值时，以为系统进行交换，内存达到饱和 </p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">┌──[root@liruilongs.github.io]-[~]</span><br><span class="line">└─$ vmstat 1 3</span><br><span class="line">procs -----------memory---------- ---swap-- -----io---- -system-- ------cpu-----</span><br><span class="line"> r  b   swpd   free   buff  cache   si   so    bi    bo   <span class="keyword">in</span>   cs us sy id wa st</span><br><span class="line"> 1  0      0 21614748   3104 1612480    0    0     1    10    8    6  0  0 99  0  0</span><br><span class="line"> 0  0      0 21614424   3104 1612484    0    0     0     9  930 1522  0  0 100  0  0</span><br><span class="line"> 1  0      0 21613436   3104 1612484    0    0     0     0  999 1517  0  1 99  0  0</span><br><span class="line">┌──[root@liruilongs.github.io]-[~]</span><br><span class="line">└─$</span><br></pre></td></tr></table></figure>
+<p><code>sar -B </code>报告的信息为内核与磁盘之间交换的块数。此外，对v2.5之后的内核版本，该项报告的信息为缺页数量: 这里没找到对应的资料。</p>
+<ul>
+<li>pgscank&#x2F;s:每秒被kswapd扫描的页个数</li>
+<li>pgscand&#x2F;s:每秒直接被扫描的页个数</li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">┌──[root@liruilongs.github.io]-[~]</span><br><span class="line">└─$ sar -B  |head  -5</span><br><span class="line">Linux 3.10.0-1160.71.1.el7.x86_64 (liruilongs.github.io)        2022年09月07日  _x86_64_        (6 CPU)</span><br><span class="line"></span><br><span class="line">00时00分01秒  pgpgin/s pgpgout/s   fault/s  majflt/s  pgfree/s pgscank/s pgscand/s pgsteal/s    %vmeff</span><br><span class="line">00时10分01秒      0.00     50.77    620.39      0.00    381.90      0.00      0.00      0.00      0.00</span><br><span class="line">00时20分01秒      0.00     68.26   5369.35      0.00   2179.92      0.00      0.00      0.00      0.00</span><br><span class="line">┌──[root@liruilongs.github.io]-[~]</span><br><span class="line">└─$</span><br></pre></td></tr></table></figure>
+<p><code>sar -W</code>报告系统交换的页数:当有数值时意味系统使用了交换分区</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">┌──[root@liruilongs.github.io]-[~]</span><br><span class="line">└─$ sar -W | head -5</span><br><span class="line">Linux 3.10.0-1160.71.1.el7.x86_64 (liruilongs.github.io)        2022年09月07日  _x86_64_        (6 CPU)</span><br><span class="line"></span><br><span class="line">00时00分01秒  pswpin/s pswpout/s</span><br><span class="line">00时10分01秒      0.00      0.00</span><br><span class="line">00时20分01秒      0.00      0.00</span><br><span class="line">┌──[root@liruilongs.github.io]-[~]</span><br><span class="line">└─$</span><br></pre></td></tr></table></figure>
+
+<h4 id="每个进程-2"><a href="#每个进程-2" class="headerlink" title="每个进程"></a>每个进程</h4><p>如果当前进程存在内内存饱和，影响到系统，会触发内存杀手<code> OOM Killer</code>。可以通过下面的命令查看日志</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">┌──[root@liruilongs.github.io]-[~]</span><br><span class="line">└─$ dmesg | grep killed</span><br></pre></td></tr></table></figure>
+
+<p>&#x2F;proc&#x2F;PID&#x2F;stat中第10项(min_flt)7533，可以得次要缺页中断的次数，即无需从磁盘加载内存页. 比如COW和匿名页(这个不懂,先记录)</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">┌──[root@liruilongs.github.io]-[~]</span><br><span class="line">└─$ cat /proc/956/<span class="built_in">stat</span></span><br><span class="line">956 (etcd) S 1 956 956 0 -1 1077944576 7533 421 90 1 776 68808 0 0 20 0 21 0 881 11699159040 6577 18446744073709551615 94319632281600 94319648442868 140733854974784 140733854974152 94319638032483 0 1006254592 0 2143420159 18446744073709551615 0 0 17 5 0 0 6 0 0 94319650541736 94319659761249 94319676428288 140733854977417 140733854977553 140733854977553 140733854978026 0</span><br></pre></td></tr></table></figure>
+<ul>
+<li>pid： 进程ID.</li>
+<li>comm: task_struct结构体的进程名</li>
+<li>state: 进程状态, 此处为S</li>
+<li>ppid: 父进程ID (父进程是指通过fork方式，通过clone并非父进程)</li>
+<li>pgrp：进程组ID</li>
+<li>session：进程会话组ID</li>
+<li>tty_nr：当前进程的tty终点设备号</li>
+<li>tpgid：控制进程终端的前台进程号</li>
+<li>flags：进程标识位，定义在include&#x2F;linux&#x2F;sched.h中的PF_*, </li>
+<li><code>minflt： 次要缺页中断的次数，即无需从磁盘加载内存页. 比如COW和匿名页</code></li>
+<li>cminflt：当前进程等待子进程的minflt</li>
+<li>majflt：主要缺页中断的次数，需要从磁盘加载内存页. 比如map文件</li>
+<li>majflt：当前进程等待子进程的majflt</li>
+<li>utime: 该进程处于用户态的时间，单位jiffies，</li>
+<li>stime: 该进程处于内核态的时间，单位jiffies，</li>
+<li>cutime：当前进程等待子进程的utime</li>
+<li>cstime: 当前进程等待子进程的utime</li>
+<li>priority: 进程优先级, .</li>
+<li>nice: nice值，取值范围[19, -20]，</li>
+<li>num_threads: 线程个数, </li>
+<li>itrealvalue: 该字段已废弃，恒等于0</li>
+<li>starttime：自系统启动后的进程创建时间，单位jiffies，</li>
+<li>vsize：进程的虚拟内存大小，单位为bytes</li>
+<li>rss: 进程独占内存+共享库，单位pages，</li>
+<li>rsslim: rss大小上限</li>
+</ul>
+<h4 id="内存容量错误"><a href="#内存容量错误" class="headerlink" title="内存容量错误"></a>内存容量错误</h4><p>OOM killer 也可以直接看日志</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">┌──[root@liruilongs.github.io]-[~]</span><br><span class="line">└─$ tail -n 5 /var/<span class="built_in">log</span>/messages</span><br><span class="line">Sep  9 12:18:14 liruilongs kernel: e1000: ens32 NIC Link is Down</span><br><span class="line">Sep  9 12:18:20 liruilongs kernel: e1000: ens32 NIC Link is Up 1000 Mbps Full Duplex, Flow Control: None</span><br><span class="line">Sep  9 12:18:22 liruilongs kernel: e1000: ens32 NIC Link is Down</span><br><span class="line">Sep  9 12:18:26 liruilongs kernel: e1000: ens32 NIC Link is Up 1000 Mbps Full Duplex, Flow Control: None</span><br><span class="line">Sep  9 12:20:01 liruilongs systemd: Started Session 8 of user root.</span><br><span class="line">┌──[root@liruilongs.github.io]-[~]</span><br><span class="line">└─$ dmesg | tail -n 5</span><br><span class="line">[   45.978294] hrtimer: interrupt took 3043780 ns</span><br><span class="line">[ 3399.493638] e1000: ens32 NIC Link is Down</span><br><span class="line">[ 3405.505696] e1000: ens32 NIC Link is Up 1000 Mbps Full Duplex, Flow Control: None</span><br><span class="line">[ 3407.509927] e1000: ens32 NIC Link is Down</span><br><span class="line">[ 3411.522461] e1000: ens32 NIC Link is Up 1000 Mbps Full Duplex, Flow Control: None</span><br><span class="line">┌──[root@liruilongs.github.io]-[~]</span><br><span class="line">└─$</span><br></pre></td></tr></table></figure>
+
+
+<h2 id="网络接口利用率"><a href="#网络接口利用率" class="headerlink" title="网络接口利用率"></a>网络接口利用率</h2><p><code> ip -s link</code>: 利用率计算为：RX&#x2F;TX: 吞吐量除以最大带宽，RX代表接收，TX代表发送。查看最大带宽的方式:带宽为<code> Speed: 1000Mb/s 千兆</code></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line">┌──[root@vms81.liruilongs.github.io]-[~/ansible]</span><br><span class="line">└─<span class="variable">$ethtool</span>  ens32</span><br><span class="line">Settings <span class="keyword">for</span> ens32:</span><br><span class="line">        Supported ports: [ TP ]</span><br><span class="line">        Supported link modes:   10baseT/Half 10baseT/Full</span><br><span class="line">                                100baseT/Half 100baseT/Full</span><br><span class="line">                                1000baseT/Full</span><br><span class="line">        Supported pause frame use: No</span><br><span class="line">        Supports auto-negotiation: Yes</span><br><span class="line">        Advertised link modes:  10baseT/Half 10baseT/Full</span><br><span class="line">                                100baseT/Half 100baseT/Full</span><br><span class="line">                                1000baseT/Full</span><br><span class="line">        Advertised pause frame use: No</span><br><span class="line">        Advertised auto-negotiation: Yes</span><br><span class="line">        Speed: 1000Mb/s</span><br><span class="line">        Duplex: Full</span><br><span class="line">        Port: Twisted Pair</span><br><span class="line">        PHYAD: 0</span><br><span class="line">        Transceiver: internal</span><br><span class="line">        Auto-negotiation: on</span><br><span class="line">        MDI-X: off (auto)</span><br><span class="line">        Supports Wake-on: d</span><br><span class="line">        Wake-on: d</span><br><span class="line">        Current message level: 0x00000007 (7)</span><br><span class="line">                               drv probe link</span><br><span class="line">        Link detected: yes</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p><code> ip -s link</code>部分字段说明</p>
+<table>
+<thead>
+<tr>
+<th>列</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>bytes</td>
+<td>发送或接收的字节数</td>
+</tr>
+<tr>
+<td>packets</td>
+<td>发送或接收的数据包数</td>
+</tr>
+<tr>
+<td>errors</td>
+<td>发送或接收时发生的错误数</td>
+</tr>
+<tr>
+<td>dropped</td>
+<td>由于网卡缺少资源，导致未发送或接收的数据包数</td>
+</tr>
+<tr>
+<td>overruns</td>
+<td>网络没有足够的缓冲区空间来发送或接收更多数据包的次数</td>
+</tr>
+<tr>
+<td>mcast</td>
+<td>已接收的多播数据包的数量</td>
+</tr>
+<tr>
+<td>carrier</td>
+<td>由于链路介质故障(如故障电缆)而丢弃的数据包数量</td>
+</tr>
+<tr>
+<td>collsns</td>
+<td>传送时设备发生的冲突次数。当多个设备试图同时使用网络时就会发生冲突</td>
+</tr>
+</tbody></table>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">┌──[root@liruilongs.github.io]-[/proc]</span><br><span class="line">└─$ ip -s link</span><br><span class="line">1: lo: &lt;LOOPBACK,UP,LOWER_UP&gt; mtu 65536 qdisc noqueue state UNKNOWN mode DEFAULT group default qlen 1000</span><br><span class="line">    link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00</span><br><span class="line">    RX: bytes  packets  errors  dropped overrun mcast</span><br><span class="line">    763056     14652    0       0       0       0</span><br><span class="line">    TX: bytes  packets  errors  dropped carrier collsns</span><br><span class="line">    763056     14652    0       0       0       0</span><br><span class="line">2: ens32: &lt;BROADCAST,MULTICAST,UP,LOWER_UP&gt; mtu 1500 qdisc pfifo_fast state UP mode DEFAULT group default qlen 1000</span><br><span class="line">    link/ether 00:0c:29:9f:48:81 brd ff:ff:ff:ff:ff:ff</span><br><span class="line">    RX: bytes  packets  errors  dropped overrun mcast</span><br><span class="line">    3734602    6125     0       0       0       0</span><br><span class="line">    TX: bytes  packets  errors  dropped carrier collsns</span><br><span class="line">    2793821    2982     0       0       0       0</span><br><span class="line">。。。。。。。。。。。。</span><br></pre></td></tr></table></figure>
+<p>也可以使用<code>sar</code>命令查看，利用率为： <code>rx/tx kB/s </code>除以最大带宽</p>
+<table>
+<thead>
+<tr>
+<th>列</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>rxpck&#x2F;s</td>
+<td>数据包接收速率</td>
+</tr>
+<tr>
+<td>txpck&#x2F;s</td>
+<td>数据包发送速率</td>
+</tr>
+<tr>
+<td>rxkB&#x2F;s</td>
+<td>kb接收速率</td>
+</tr>
+<tr>
+<td>txkB&#x2F;s</td>
+<td>kb发送速率</td>
+</tr>
+<tr>
+<td>rxcmp&#x2F;s</td>
+<td>压缩包接收速率</td>
+</tr>
+<tr>
+<td>txcmp&#x2F;s</td>
+<td>压缩包发送速率</td>
+</tr>
+<tr>
+<td>rxmcst&#x2F;s</td>
+<td>多播包接收速率</td>
+</tr>
+</tbody></table>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line">┌──[root@liruilongs.github.io]-[/proc]</span><br><span class="line">└─$ sar -n DEV</span><br><span class="line">Linux 3.10.0-1160.71.1.el7.x86_64 (liruilongs.github.io)        2022年09月13日  _x86_64_        (6 CPU)</span><br><span class="line"></span><br><span class="line">22时20分01秒     IFACE   rxpck/s   txpck/s    rxkB/s    txkB/s   rxcmp/s   txcmp/s  rxmcst/s</span><br><span class="line">22时30分01秒 vethe257c0b      0.01      0.01      0.00      0.00      0.00      0.00      0.00</span><br><span class="line">22时30分01秒 br-4b3da203747c      0.00      0.00      0.00      0.00      0.00      0.00      0.00</span><br><span class="line">22时30分01秒     ens32      0.02      0.02      0.00      0.00      0.00      0.00      0.00</span><br><span class="line">。。。。。。。</span><br><span class="line"></span><br><span class="line">平均时间:     IFACE   rxpck/s   txpck/s    rxkB/s    txkB/s   rxcmp/s   txcmp/s  rxmcst/s</span><br><span class="line">平均时间: vethe257c0b      0.01      0.01      0.00      0.00      0.00      0.00      0.00</span><br><span class="line">平均时间: br-4b3da203747c      0.00      0.00      0.00      0.00      0.00      0.00      0.00</span><br><span class="line">平均时间:     ens32      0.55      0.73      0.04      1.00      0.00      0.00      0.00</span><br><span class="line">平均时间: br-0e0cdf9c70b0      0.00      0.00      0.00      0.00      0.00      0.00      0.00</span><br><span class="line">平均时间: vethcb79321      0.00      0.00      0.00      0.00      0.00      0.00      0.00</span><br><span class="line">平均时间:        lo      0.13      0.13      0.01      0.01      0.00      0.00      0.00</span><br><span class="line">平均时间:   docker0      0.01      0.01      0.00      0.00      0.00      0.00      0.00</span><br><span class="line">┌──[root@liruilongs.github.io]-[/proc]</span><br><span class="line">└─$</span><br></pre></td></tr></table></figure>
+
+<p>查看内核问题的方式，<code>/proc/net/dev</code>，<code>Receive/Transmit </code>吞吐量字节数除以最大值,不知道这里的最大值什么?</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">┌──[root@liruilongs.github.io]-[/proc]</span><br><span class="line">└─$ cat /proc/net/dev | head -n 5</span><br><span class="line">Inter-|   Receive                                                |  Transmit</span><br><span class="line"> face |bytes    packets errs drop fifo frame compressed multicast|bytes    packets errs drop fifo colls carrier compressed</span><br><span class="line">vethe257c0b:   74504    1362    0    0    0     0          0         0  3321668    1387    0    0    0     0       0          0</span><br><span class="line">br-4b3da203747c:       0       0    0    0    0     0          0         0        0       0    0    0    0     0       0          0</span><br><span class="line"> ens32: 3749200    6320    0    0    0     0          0         0  2823625    3102    0    0    0     0       0          0</span><br><span class="line">┌──[root@liruilongs.github.io]-[/proc]</span><br><span class="line">└─$</span><br></pre></td></tr></table></figure>
+<h2 id="网络接口饱和度"><a href="#网络接口饱和度" class="headerlink" title="网络接口饱和度"></a>网络接口饱和度</h2><p>网络接口饱和度通过下面两项排查，当有值时，说明存在网络接口饱和</p>
+<ul>
+<li><code>overruns </code>网络没有足够的缓冲区空间来发送或接收更多数据包的次数</li>
+<li><code>dropped</code>发送或接收时丢弃的数据包数</li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">┌──[root@liruilongs.github.io]-[/proc]</span><br><span class="line">└─$ ifconfig  ens32</span><br><span class="line">ens32: flags=4163&lt;UP,BROADCAST,RUNNING,MULTICAST&gt;  mtu 1500</span><br><span class="line">        inet 192.168.26.55  netmask 255.255.255.0  broadcast 192.168.26.255</span><br><span class="line">        inet6 fe80::20c:29ff:fe9f:4881  prefixlen 64  scopeid 0x20&lt;link&gt;</span><br><span class="line">        ether 00:0c:29:9f:48:81  txqueuelen 1000  (Ethernet)</span><br><span class="line">        RX packets 6414  bytes 3756184 (3.5 MiB)</span><br><span class="line">        RX errors 0  dropped 0  overruns 0  frame 0</span><br><span class="line">        TX packets 3157  bytes 2834195 (2.7 MiB)</span><br><span class="line">        TX errors 0  dropped 0 overruns 0  carrier 0  collisions 0</span><br></pre></td></tr></table></figure>
+<p>或者通过<code>netstat -s</code>的方式查询，这个对应指标值不太清楚</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">┌──[root@liruilongs.github.io]-[/proc]</span><br><span class="line">└─$ netstat  -s</span><br><span class="line">Ip:</span><br><span class="line">    19334 total packets received</span><br><span class="line">    545 forwarded</span><br><span class="line">    0 incoming packets discarded</span><br><span class="line">    18786 incoming packets delivered</span><br><span class="line">    17742 requests sent out</span><br><span class="line">    4 dropped because of missing route</span><br><span class="line">。。。。。</span><br></pre></td></tr></table></figure>
+
+
+
+<h2 id="网络接口错误"><a href="#网络接口错误" class="headerlink" title="网络接口错误"></a>网络接口错误</h2><p><code>ifconfig ens32</code> : errors项，dropped项查看错包和丢包的情况</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">┌──[root@liruilongs.github.io]-[/proc]</span><br><span class="line">└─$ ifconfig ens32</span><br><span class="line">ens32: flags=4163&lt;UP,BROADCAST,RUNNING,MULTICAST&gt;  mtu 1500</span><br><span class="line">        inet 192.168.26.55  netmask 255.255.255.0  broadcast 192.168.26.255</span><br><span class="line">        inet6 fe80::20c:29ff:fe9f:4881  prefixlen 64  scopeid 0x20&lt;link&gt;</span><br><span class="line">        ether 00:0c:29:9f:48:81  txqueuelen 1000  (Ethernet)</span><br><span class="line">        RX packets 6709  bytes 3778697 (3.6 MiB)</span><br><span class="line">        RX errors 0  dropped 0  overruns 0  frame 0</span><br><span class="line">        TX packets 3327  bytes 2860201 (2.7 MiB)</span><br><span class="line">        TX errors 0  dropped 0 overruns 0  carrier 0  collisions 0</span><br></pre></td></tr></table></figure>
+<p><code>RX-ERR/TX-ERR</code></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">┌──[root@liruilongs.github.io]-[/proc]</span><br><span class="line">└─$ netstat -i</span><br><span class="line">Kernel Interface table</span><br><span class="line">Iface             MTU    RX-OK RX-ERR RX-DRP RX-OVR    TX-OK TX-ERR TX-DRP TX-OVR Flg</span><br><span class="line">br-0e0cdf9c70b0  1500     6728      0      0 0          3339      0      0      0 BMU</span><br><span class="line">br-4b3da203747c  1500     1368      0      0 0          1393      0      0      0 BMU</span><br><span class="line">docker0          1500     1368      0      0 0          1388      0      0      0 BMRU</span><br><span class="line">ens32            1500     6728      0      0 0          3339      0      0      0 BMRU</span><br><span class="line">lo              65536    14760      0      0 0         14760      0      0      0 LRU</span><br><span class="line">vethcb79321      1500        0      0      0 0            11      0      0      0 BMRU</span><br><span class="line">vethe257c0b      1500     1368      0      0 0          1393      0      0      0 BMRU</span><br></pre></td></tr></table></figure>
+<p><code>errors  dropped</code></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">┌──[root@liruilongs.github.io]-[/proc]</span><br><span class="line">└─$ ip -s link</span><br><span class="line">1: lo: &lt;LOOPBACK,UP,LOWER_UP&gt; mtu 65536 qdisc noqueue state UNKNOWN mode DEFAULT group default qlen 1000</span><br><span class="line">    link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00</span><br><span class="line">    RX: bytes  packets  errors  dropped overrun mcast</span><br><span class="line">    768880     14764    0       0       0       0</span><br><span class="line">    TX: bytes  packets  errors  dropped carrier collsns</span><br><span class="line">    768880     14764    0       0       0       0</span><br><span class="line">2: ens32: &lt;BROADCAST,MULTICAST,UP,LOWER_UP&gt; mtu 1500 qdisc pfifo_fast state UP mode DEFAULT group default qlen 1000</span><br><span class="line">    link/ether 00:0c:29:9f:48:81 brd ff:ff:ff:ff:ff:ff</span><br><span class="line">    RX: bytes  packets  errors  dropped overrun mcast</span><br><span class="line">    3787251    6822     0       0       0       0</span><br><span class="line">    TX: bytes  packets  errors  dropped carrier collsns</span><br><span class="line">    2868359    3393     0       0       0       0</span><br><span class="line">    ..............</span><br></pre></td></tr></table></figure>
+
+<p><code>sar -n EDEV </code> :显示每个网卡的发送和接收错误信息</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">┌──[root@liruilongs.github.io]-[/proc]</span><br><span class="line">└─$ sar -n EDEV | head -n 5</span><br><span class="line">Linux 3.10.0-1160.71.1.el7.x86_64 (liruilongs.github.io)        2022年09月13日  _x86_64_        (6 CPU)</span><br><span class="line"></span><br><span class="line">22时20分01秒     IFACE   rxerr/s   txerr/s    coll/s  rxdrop/s  txdrop/s  txcarr/s  rxfram/s  rxfifo/s  txfifo/s</span><br><span class="line">22时30分01秒 vethe257c0b      0.00      0.00      0.00      0.00      0.00      0.00      0.00      0.00      0.00</span><br><span class="line">22时30分01秒 br-4b3da203747c      0.00      0.00      0.00      0.00      0.00      0.00      0.00      0.00      0.00</span><br></pre></td></tr></table></figure>
+<p>通过内核文件<code>/proc/net/dev</code>中的<code>errs，drop</code>项可以查看错误的和丢弃的包</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">┌──[root@liruilongs.github.io]-[/proc]</span><br><span class="line">└─$ cat /proc/net/dev</span><br><span class="line">Inter-|   Receive                                                |  Transmit</span><br><span class="line"> face |bytes    packets errs drop fifo frame compressed multicast|bytes    packets errs drop fifo colls carrier compressed</span><br><span class="line">vethe257c0b:   74662    1365    0    0    0     0          0         0  3321806    1390    0    0    0     0       0          0</span><br><span class="line">br-4b3da203747c:       0       0    0    0    0     0          0         0        0       0    0    0    0     0       0          0</span><br><span class="line"> ens32: 3773382    6641    0    0    0     0          0         0  2850239    3284    0    0    0     0       0          0</span><br><span class="line">br-0e0cdf9c70b0:       0       0    0    0    0     0          0         0        0       0    0    0    0     0       0          0</span><br><span class="line">vethcb79321:       0       0    0    0    0     0          0         0      878      11    0    0    0     0       0          0</span><br><span class="line">    lo:  767008   14728    0    0    0     0          0         0   767008   14728    0    0    0     0       0          0</span><br><span class="line">docker0:   55552    1365    0    0    0     0          0         0  3321416    1385    0    0    0     0       0          0</span><br></pre></td></tr></table></figure>
+
+<h2 id="磁盘IO利用率"><a href="#磁盘IO利用率" class="headerlink" title="磁盘IO利用率"></a>磁盘IO利用率</h2><h3 id="系统范围-4"><a href="#系统范围-4" class="headerlink" title="系统范围"></a>系统范围</h3><p>通过 iostat的查看磁盘统计信息</p>
+<p>一般%util 利用率 大于70%,I&#x2F;O压力就比较大，读取速度有较多的wait。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">┌──[root@liruilongs.github.io]-[/proc]</span><br><span class="line">└─$ iostat  -xz 1 1</span><br><span class="line">Linux 3.10.0-1160.71.1.el7.x86_64 (liruilongs.github.io)        2022年09月13日  _x86_64_        (6 CPU)</span><br><span class="line"></span><br><span class="line">avg-cpu:  %user   %nice %system %iowait  %steal   %idle</span><br><span class="line">           0.18    0.00    0.39    0.01    0.00   99.41</span><br><span class="line"></span><br><span class="line">Device:         rrqm/s   wrqm/s     r/s     w/s    rkB/s    wkB/s avgrq-sz avgqu-sz   await r_await w_await  svctm  %util</span><br><span class="line">sda               0.00     0.17    0.49    2.01     7.53    57.35    51.85     0.00    1.68    5.02    0.86   0.54   0.13</span><br><span class="line"></span><br><span class="line">┌──[root@liruilongs.github.io]-[/proc]</span><br><span class="line">└─$</span><br></pre></td></tr></table></figure>
+<table>
+<thead>
+<tr>
+<th>统计数据</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>rrqm&#x2F;s</td>
+<td>在提交给磁盘前，被合并的读请求的数量</td>
+</tr>
+<tr>
+<td>wrqm&#x2F;s</td>
+<td>在提交给磁盘前，被合并的写请求的数量</td>
+</tr>
+<tr>
+<td>r&#x2F;s</td>
+<td>每秒提交给磁盘的读请求数量</td>
+</tr>
+<tr>
+<td>w&#x2F;s</td>
+<td>每秒提交给磁盘的写请求数量</td>
+</tr>
+<tr>
+<td>rsec&#x2F;s</td>
+<td>每秒读取的磁盘扇区数</td>
+</tr>
+<tr>
+<td>wsec&#x2F;s</td>
+<td>每秒写入的磁盘扇区数</td>
+</tr>
+<tr>
+<td>rkB&#x2F;s</td>
+<td>每秒从磁盘读取了多少KB的数据</td>
+</tr>
+<tr>
+<td>wkB&#x2F;s</td>
+<td>每秒向磁盘写入了多少KB的数据</td>
+</tr>
+<tr>
+<td>avgrq-sz</td>
+<td>磁盘请求的平均大小(按扇区计)</td>
+</tr>
+<tr>
+<td><code>avgqu-sz</code></td>
+<td>磁盘请求队列的平均大小。</td>
+</tr>
+<tr>
+<td><code>await</code></td>
+<td>完成对一个请求的服务所需的平均时间(按毫秒计),该平均时间为请求在磁盘队列中等待的时间加上磁盘对其服务所需的时间</td>
+</tr>
+<tr>
+<td><code>svctm</code></td>
+<td>提交到磁盘的请求的平均服务时间(按毫秒计)。该项表明磁盘完成一个请求所花费的平均时间。与await不同，该项不包含在队列中等待的时间</td>
+</tr>
+<tr>
+<td>%util</td>
+<td>利用率</td>
+</tr>
+</tbody></table>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">┌──[root@liruilongs.github.io]-[/proc]</span><br><span class="line">└─$ sar -d</span><br><span class="line">Linux 3.10.0-1160.71.1.el7.x86_64 (liruilongs.github.io)        2022年09月13日  _x86_64_        (6 CPU)</span><br><span class="line"></span><br><span class="line">22时20分01秒       DEV       tps  rd_sec/s  wr_sec/s  avgrq-sz  avgqu-sz     await     svctm     %util</span><br><span class="line">22时30分01秒    dev8-0      2.34      0.03    149.81     64.13      0.00      1.56      0.54      0.13</span><br><span class="line">22时40分01秒    dev8-0      2.44      5.65    146.44     62.38      0.00      1.60      0.56      0.14</span><br><span class="line">22时50分01秒    dev8-0      2.39      0.00    152.13     63.70      0.00      0.86      0.45      0.11</span><br><span class="line">23时00分01秒    dev8-0      2.36      2.28    141.90     61.01      0.00      0.91      0.49      0.12</span><br><span class="line">23时10分01秒    dev8-0      2.31      2.89    135.45     59.94      0.00      1.39      0.57      0.13</span><br><span class="line">平均时间:    dev8-0      2.37      2.17    145.15     62.24      0.00      1.27      0.52      0.12</span><br><span class="line">┌──[root@liruilongs.github.io]-[/proc]</span><br><span class="line">└─$</span><br></pre></td></tr></table></figure>
+<h3 id="每个进程-3"><a href="#每个进程-3" class="headerlink" title="每个进程"></a>每个进程</h3><p>查看每个进程的磁盘利用率可以通过<code>iotop</code>命令来查看</p>
+<p>前两行READ和WRITE为读写速率总计</p>
+<p><img src="https://img-blog.csdnimg.cn/820385dccff547a3ac8a64ecfc824706.png" alt="在这里插入图片描述"></p>
+<p>进程列表的含义：</p>
+<ul>
+<li>tid：线程id，按p可转换进程pid</li>
+<li>PRIO：优先级</li>
+<li>DISK READ：磁盘读取速率</li>
+<li>DISK WRITE：磁盘写取速率</li>
+<li>SWAPIN：用了多少交换分区</li>
+<li><code>IO&gt;</code>：IO等待所占用百分比(<code>该进程占磁盘利用率的百分比</code>)</li>
+<li>COMMAND：线程&#x2F;进程详细信息(TID对应的进程名称)</li>
+</ul>
+<p>也可以查看运行生成内核参数<code>/proc/956/sched</code>,但是这里并没有找到书里讲的内核参数值，可能是版本的问题</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line">┌──[root@liruilongs.github.io]-[/proc]</span><br><span class="line">└─$ cat /proc/956/<span class="built_in">sched</span></span><br><span class="line">etcd (956, <span class="comment">#threads: 22)</span></span><br><span class="line">-------------------------------------------------------------------</span><br><span class="line">se.exec_start                                :         13685.700041</span><br><span class="line">se.vruntime                                  :            43.362799</span><br><span class="line">se.sum_exec_runtime                          :           258.986765</span><br><span class="line">se.nr_migrations                             :                   65</span><br><span class="line">nr_switches                                  :                  368</span><br><span class="line">nr_voluntary_switches                        :                  227</span><br><span class="line">nr_involuntary_switches                      :                  141</span><br><span class="line">se.load.weight                               :                 1024</span><br><span class="line">policy                                       :                    0</span><br><span class="line">prio                                         :                  120</span><br><span class="line">clock-delta                                  :                  116</span><br><span class="line">mm-&gt;numa_scan_seq                            :                    0</span><br><span class="line">numa_migrations, 0</span><br><span class="line">numa_faults_memory, 0, 0, 1, 0, -1</span><br><span class="line">numa_faults_memory, 1, 0, 0, 0, -1</span><br><span class="line">┌──[root@liruilongs.github.io]-[/proc]</span><br><span class="line">└─$</span><br></pre></td></tr></table></figure>
+
+<h2 id="磁盘IO饱和度"><a href="#磁盘IO饱和度" class="headerlink" title="磁盘IO饱和度"></a>磁盘IO饱和度</h2><p><code>当avgqu-sz的值特别大的时候，且请求等待时间await远远高于请求服务svctm所花费时间，且利用率%util为100%的时候，表明该磁盘处于饱和状态。产生的I/O请求太多,I/O系统已经满负载,I/O队列太长</code></p>
+<p><code>iostat</code>可以显示每个盘的指标值</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">┌──[root@liruilongs.github.io]-[/proc]</span><br><span class="line">└─$ iostat -xNz 1 1</span><br><span class="line">Linux 3.10.0-1160.71.1.el7.x86_64 (liruilongs.github.io)        2022年09月13日  _x86_64_        (6 CPU)</span><br><span class="line"></span><br><span class="line">avg-cpu:  %user   %nice %system %iowait  %steal   %idle</span><br><span class="line">           0.18    0.00    0.39    0.01    0.00   99.41</span><br><span class="line"></span><br><span class="line">Device:         rrqm/s   wrqm/s     r/s     w/s    rkB/s    wkB/s avgrq-sz avgqu-sz   await r_await w_await  svctm  %util</span><br><span class="line">sda               0.00     0.17    0.54    2.01     8.58    57.83    52.07     0.00    1.65    4.61    0.86   0.53   0.14</span><br></pre></td></tr></table></figure>
+<p><code>sar -d</code>的方式显示当前系统所有盘的数据汇总</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">┌──[root@liruilongs.github.io]-[/proc]</span><br><span class="line">└─$ sar -d</span><br><span class="line">Linux 3.10.0-1160.71.1.el7.x86_64 (liruilongs.github.io)        2022年09月13日  _x86_64_        (6 CPU)</span><br><span class="line"></span><br><span class="line">22时20分01秒       DEV       tps  rd_sec/s  wr_sec/s  avgrq-sz  avgqu-sz     await     svctm     %util</span><br><span class="line">22时30分01秒    dev8-0      2.34      0.03    149.81     64.13      0.00      1.56      0.54      0.13</span><br><span class="line">22时40分01秒    dev8-0      2.44      5.65    146.44     62.38      0.00      1.60      0.56      0.14</span><br><span class="line">22时50分01秒    dev8-0      2.39      0.00    152.13     63.70      0.00      0.86      0.45      0.11</span><br><span class="line">23时00分01秒    dev8-0      2.36      2.28    141.90     61.01      0.00      0.91      0.49      0.12</span><br><span class="line">23时10分01秒    dev8-0      2.31      2.89    135.45     59.94      0.00      1.39      0.57      0.13</span><br><span class="line">23时20分01秒    dev8-0      2.09      0.24    130.58     62.59      0.00      0.89      0.53      0.11</span><br><span class="line">23时30分01秒    dev8-0     11.65    410.73    281.56     59.40      0.01      0.70      0.33      0.38</span><br><span class="line">平均时间:    dev8-0      3.65     60.26    162.55     60.98      0.00      0.98      0.43      0.16</span><br><span class="line">┌──[root@liruilongs.github.io]-[/proc]</span><br><span class="line">└─$</span><br></pre></td></tr></table></figure>
+
+<p>关于 Linux 性能查看，USE方法就和小伙伴们分享到这，这里只展示了部分可以查到指标查找方式，大部分指标没有展示。</p>
+<h2 id="博文内容参考"><a href="#博文内容参考" class="headerlink" title="博文内容参考"></a>博文内容参考</h2><hr>
+<p><code>《Linux性能优化》</code> (美)菲利普G.伊佐特  著；贺莲 龚奕利 译</p>
+<p><code>《性能之巅：洞悉系统、企业与云计算》</code>(美)格雷格(Gregg，B.)著；徐章宁，吴寒思，陈磊 译</p>
+<p><a target="_blank" rel="noopener" href="https://blog.csdn.net/houzhizhen/article/details/119948608">Linux常用监控命令:https://www.cnblogs.com/chuyiwang/p/7111522.html</a></p>
+<p><a target="_blank" rel="noopener" href="https://blog.csdn.net/houzhizhen/article/details/119948608">&#x2F;proc&#x2F;stat解析:https://blog.csdn.net/houzhizhen/article/details/119948608</a></p>
+<p><a target="_blank" rel="noopener" href="https://linux.cn/article-10815-1.html">在 Linux 中如何使用 iotop 和 iostat 监控磁盘 I&#x2F;O 活动？:https://linux.cn/article-10815-1.html</a></p>
+</div><div class="article-licensing box"><div class="licensing-title"><p>关于Linux中使用USE(使用率/饱和度/错误)方法分析系统性能的一些笔记</p><p><a href="https://liruilongs.github.io/2022/09/05/rhca/RH442/关于Linux中使用USE(使用率、饱和度、错误)方法分析系统性能的一些笔记/">https://liruilongs.github.io/2022/09/05/rhca/RH442/关于Linux中使用USE(使用率、饱和度、错误)方法分析系统性能的一些笔记/</a></p></div><div class="licensing-meta level is-mobile"><div class="level-left"><div class="level-item is-narrow"><div><h6>作者</h6><a href="https://liruilongs.github.io"><p>山河已无恙</p></a></div></div><div class="level-item is-narrow"><div><h6>发布于</h6><p>2022-09-05</p></div></div><div class="level-item is-narrow"><div><h6>更新于</h6><p>2023-06-21</p></div></div><div class="level-item is-narrow"><div><h6>许可协议</h6><p><a class="icon" rel="noopener" target="_blank" title="Creative Commons" href="https://creativecommons.org/"><i class="fab fa-creative-commons"></i></a><a class="icon" rel="noopener" target="_blank" title="Attribution" href="https://creativecommons.org/licenses/by/4.0/"><i class="fab fa-creative-commons-by"></i></a><a class="icon" rel="noopener" target="_blank" title="Noncommercial" href="https://creativecommons.org/licenses/by-nc/4.0/"><i class="fab fa-creative-commons-nc"></i></a></p></div></div></div></div></div><div class="recommend-area"><div class="recommend-post"><span class="is-size-6 has-text-grey has-mr-7"># 相关文章</span><br><span>  1.<a class="is-size-6" href="/2023/11/10/%E5%BE%85%E5%8F%91%E5%B8%83/Linux-%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96%E4%B9%8B%E4%BD%BF%E7%94%A8-Tuned-%E9%85%8D%E7%BD%AE%E4%BC%98%E5%8C%96%E6%96%B9%E6%A1%88/" target="_blank">Linux 性能优化之使用 Tuned 配置优化方案</a><br></span><span>  2.<a class="is-size-6" href="/2023/11/09/%E5%BE%85%E5%8F%91%E5%B8%83/Linux-%E6%80%A7%E8%83%BD%E8%B0%83%E4%BC%98%E4%B9%8B%E5%86%85%E6%A0%B8%E5%8F%AF%E8%B0%83%E5%8F%82%E6%95%B0/" target="_blank">Linux 性能调优之内核可调参数优化</a><br></span><span>  3.<a class="is-size-6" href="/2023/10/17/%E5%BE%85%E5%8F%91%E5%B8%83/Linux-%E6%80%A7%E8%83%BD%E8%B0%83%E4%BC%98%E4%B9%8B%E8%B5%84%E6%BA%90%E9%99%90%E5%88%B6/" target="_blank">Linux 性能调优之资源限制</a><br></span><span>  4.<a class="is-size-6" href="/2023/10/07/rhca/RH442/Linux%20%E6%80%A7%E8%83%BD%E8%B0%83%E4%BC%98%E4%B9%8B%E7%BD%91%E7%BB%9C%E5%86%85%E6%A0%B8%E5%8F%82%E6%95%B0%E4%BC%98%E5%8C%96/" target="_blank">Linux 性能调优之网络内核参数优化</a><br></span><span>  5.<a class="is-size-6" href="/2023/10/07/%E5%BE%85%E5%8F%91%E5%B8%83/Linux%20%E6%80%A7%E8%83%BD%E8%B0%83%E4%BC%98%E4%B9%8B%E7%A1%AC%E4%BB%B6%E8%B5%84%E6%BA%90%E7%9B%91%E6%8E%A7/" target="_blank">Linux 性能调优之硬件资源监控</a><br></span><span>  6.<a class="is-size-6" href="/2022/12/06/Linux/What-is-the-difference-between-the-iptables-command-and-iptables-service/" target="_blank">iptables 命令和 iptables.service 服务的区别是上面 ?</a><br></span><span>  7.<a class="is-size-6" href="/2022/12/03/Linux/%E5%85%B3%E4%BA%8E%20Linux%20%E4%B8%AD%20firewalld%20%E7%9A%84%E4%B8%80%E4%BA%9B%E7%AC%94%E8%AE%B0%E6%95%B4%E7%90%86/" target="_blank">关于 Linux 中 firewalld 的一些笔记整理</a><br></span><span>  8.<a class="is-size-6" href="/2022/10/03/%E5%BE%85%E5%8F%91%E5%B8%83/%E3%80%8ALinux-Basics-for-Hackers-Getting-Started-with-Networking-Scripting-and-Security-in-Kali-%E3%80%8B%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/" target="_blank">《Linux Basics for Hackers：Getting Started with Networking, Scripting, and Security in Kali 》读书笔记</a><br></span></div><div class="recommend-post"><span class="is-size-6 has-text-grey has-mr-7"># 推荐文章</span><br><span>  1.<a class="is-size-6" href="/2021/08/27/K8s/%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/%E3%80%8AKubernetes%E6%9D%83%E5%A8%81%E6%8C%87%E5%8D%97-%E4%BB%8EDocker%E5%88%B0Kubernetes%E5%AE%9E%E8%B7%B5%E5%85%A8%E6%8E%A5%E8%A7%A6%E3%80%8B%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/" target="_blank">《Kubernetes权威指南:从Docker到Kubernetes实践全接触》读书笔记</a><br></span><span>  2.<a class="is-size-6" href="/2023/06/17/AI&amp;%E4%BA%BA%E8%84%B8%E8%AF%86%E5%88%AB/AdaFace%EF%BC%9A-%E9%80%9A%E8%BF%87AdaFace%E5%AE%9E%E7%8E%B0%E4%BD%8E%E8%B4%A8%E9%87%8F%E9%9D%A2%E9%83%A8%E6%95%B0%E6%8D%AE%E9%9B%86%E7%9A%84%E7%B2%BE%E5%87%86%E4%BA%BA%E8%84%B8%E8%AF%86%E5%88%AB/" target="_blank">AdaFace(CVPR(2022))：通过AdaFace实现低质量面部数据集的人脸识别</a><br></span><span>  3.<a class="is-size-6" href="/2023/05/04/AI&amp;%E4%BA%BA%E8%84%B8%E8%AF%86%E5%88%AB/DeepFace%EF%BC%9A%E4%BA%BA%E8%84%B8%E8%AF%86%E5%88%AB%E5%BA%93%20DeepFace%20%E7%AE%80%E5%8D%95%E8%AE%A4%E7%9F%A5/" target="_blank">DeepFace：人脸识别库 DeepFace 简单认知</a><br></span><span>  4.<a class="is-size-6" href="/2023/07/24/AI&amp;%E4%BA%BA%E8%84%B8%E8%AF%86%E5%88%AB/%E4%BD%BF%E7%94%A8-OpenCV-%E8%BF%9B%E8%A1%8C%E5%9B%BE%E5%83%8F%E6%A8%A1%E7%B3%8A%E5%BA%A6%E6%A3%80%E6%B5%8B-%E6%8B%89%E6%99%AE%E6%8B%89%E6%96%AF%E6%96%B9%E5%B7%AE%E6%96%B9%E6%B3%95/" target="_blank">使用 OpenCV 进行图像模糊度检测(拉普拉斯方差方法)</a><br></span><span>  5.<a class="is-size-6" href="/2023/06/15/AI&amp;%E4%BA%BA%E8%84%B8%E8%AF%86%E5%88%AB/Nvidia%203060%20%E6%98%BE%E5%8D%A1%20CUDA%20%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA(Ubuntu22.04+Nvidia%20510+Cuda11.6+cudnn8.8)/" target="_blank">Nvidia 3060 显卡 CUDA 环境搭建(Ubuntu22.04+Nvidia 510+Cuda11.6+cudnn8.8)</a><br></span><span>  6.<a class="is-size-6" href="/2023/05/17/AI&amp;%E4%BA%BA%E8%84%B8%E8%AF%86%E5%88%AB/%E5%85%B3%E4%BA%8EOpenCv%E5%9B%BE%E5%83%8F%E5%A4%84%E7%90%86%E5%B7%A5%E5%85%B7%E5%8C%85-imutils-%E7%AE%80%E5%8D%95%E8%AE%A4%E7%9F%A5/" target="_blank">关于 OpenCV 图像处理工具包 imutils 简单认知</a><br></span></div></div><link rel="stylesheet" href="https://cdnjs.loli.net/ajax/libs/social-share.js/1.0.16/css/share.min.css"><div class="social-share"></div><script src="https://cdnjs.loli.net/ajax/libs/social-share.js/1.0.16/js/social-share.min.js"></script></article></div><div class="card"><div class="card-content"><h3 class="menu-label has-text-centered">喜欢这篇文章？打赏一下作者吧</h3><div class="buttons is-centered"><a class="button donate" data-type="alipay"><span class="icon is-small"><i class="fab fa-alipay"></i></span><span>支付宝</span><span class="qrcode"><img src="/img/alipay%EF%BF%A5.png" alt="支付宝"></span></a><a class="button donate" data-type="wechat"><span class="icon is-small"><i class="fab fa-weixin"></i></span><span>微信</span><span class="qrcode"><img src="/img/wechat%EF%BF%A5.png" alt="微信"></span></a></div></div></div><nav class="post-navigation mt-4 level is-mobile"><div class="level-start"><a class="article-nav-prev level level-item link-muted" href="/2022/09/08/rhca/DO447/Ansible%E6%9C%80%E4%BD%B3%E5%AE%9E%E8%B7%B5%E4%B9%8B%20AWX%20%E5%90%AF%E7%94%A8facts%E7%BC%93%E5%AD%98%E5%92%8C%E6%A8%A1%E6%9D%BF%E9%97%AE%E5%8D%B7%E8%B0%83%E6%9F%A5/"><i class="level-item fas fa-chevron-left"></i><span class="level-item">Ansible最佳实践之 AWX 启用facts缓存和模板问卷调查</span></a></div><div class="level-end"><a class="article-nav-next level level-item link-muted" href="/2022/09/03/%E6%9E%B6%E6%9E%84/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/%E7%99%BD%E8%AF%9D%E8%AE%B2%E8%A7%A3%E5%88%9B%E5%BB%BA%E5%9E%8B%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F%EF%BC%9A%E5%8D%95%E4%BE%8B%E3%80%81%E5%8E%9F%E5%9E%8B%EF%BC%8C%E6%9E%84%E5%BB%BA/"><span class="level-item">白话讲解创建型设计模式：单例、原型，构建</span><i class="level-item fas fa-chevron-right"></i></a></div></nav><!--!--><div class="card"><div class="card-content"><div class="title is-5">评论</div><div id="comment-container"></div><link rel="stylesheet" href="https://cdnjs.loli.net/ajax/libs/gitalk/1.6.0/gitalk.css"><script> $.getScript('/js/gitalk.min.js', function () { 
+            var gitalk = new Gitalk({
+            language:'zh-CN',
+            id: '8392c6ce37efe570e0886ca20fab8aab',
+            repo: 'blog_comment',
+            owner: 'LIRUILONGS',
+            clientID: '9fdc9739266d48d5f62e',
+            clientSecret: 'c1cc33697d099a2197650ec9dadcb16bd4904655',
+            admin: ["LIRUILONGS"],
+            createIssueManually: true,
+            distractionFreeMode: true,
+            perPage: 10,
+            pagerDirection: 'last',
+            proxy: 'https://cors-anywhere.azm.workers.dev/https://github.com/login/oauth/access_token',
+            
+            enableHotKey: true,
+            isLocked: false
+        })
+        gitalk.render('comment-container')});</script></div></div></div><div class="column column-left is-4-tablet is-4-desktop is-3-widescreen  order-1 is-sticky"><div class="card widget" id="toc" data-type="toc"><div class="card-content"><div class="menu"><h3 class="menu-label">目录</h3><ul class="menu-list"><li><a class="is-flex is-mobile" href="#写在前面"><span class="mr-2">1</span><span>写在前面</span></a><ul class="menu-list"><li><a class="is-flex is-mobile" href="#USE方法"><span class="mr-2">1.1</span><span>USE方法</span></a><ul class="menu-list"><li><a class="is-flex is-mobile" href="#指标表述"><span class="mr-2">1.1.1</span><span>指标表述</span></a></li><li><a class="is-flex is-mobile" href="#资源列表"><span class="mr-2">1.1.2</span><span>资源列表</span></a></li><li><a class="is-flex is-mobile" href="#指标"><span class="mr-2">1.1.3</span><span>指标</span></a></li><li><a class="is-flex is-mobile" href="#使用建议"><span class="mr-2">1.1.4</span><span>使用建议</span></a></li></ul></li></ul></li><li><a class="is-flex is-mobile" href="#CPU-使用率"><span class="mr-2">2</span><span>CPU 使用率</span></a><ul class="menu-list"><li><a class="is-flex is-mobile" href="#每个CPU"><span class="mr-2">2.1</span><span>每个CPU</span></a></li><li><a class="is-flex is-mobile" href="#系统范围"><span class="mr-2">2.2</span><span>系统范围</span></a></li><li><a class="is-flex is-mobile" href="#每个进程"><span class="mr-2">2.3</span><span>每个进程</span></a></li></ul></li><li><a class="is-flex is-mobile" href="#CUP-饱和度"><span class="mr-2">3</span><span>CUP 饱和度</span></a><ul class="menu-list"><li><a class="is-flex is-mobile" href="#系统范围-1"><span class="mr-2">3.1</span><span>系统范围</span></a></li></ul></li><li><a class="is-flex is-mobile" href="#内存容量使用率"><span class="mr-2">4</span><span>内存容量使用率</span></a><ul class="menu-list"><ul class="menu-list"><li><a class="is-flex is-mobile" href="#系统范围-2"><span class="mr-2">4.1.1</span><span>系统范围</span></a></li><li><a class="is-flex is-mobile" href="#每个进程-1"><span class="mr-2">4.1.2</span><span>每个进程</span></a></li></ul></ul></li><li><a class="is-flex is-mobile" href="#内存容量饱和度"><span class="mr-2">5</span><span>内存容量饱和度</span></a><ul class="menu-list"><ul class="menu-list"><li><a class="is-flex is-mobile" href="#系统范围-3"><span class="mr-2">5.1.1</span><span>系统范围</span></a></li><li><a class="is-flex is-mobile" href="#每个进程-2"><span class="mr-2">5.1.2</span><span>每个进程</span></a></li><li><a class="is-flex is-mobile" href="#内存容量错误"><span class="mr-2">5.1.3</span><span>内存容量错误</span></a></li></ul></ul></li><li><a class="is-flex is-mobile" href="#网络接口利用率"><span class="mr-2">6</span><span>网络接口利用率</span></a></li><li><a class="is-flex is-mobile" href="#网络接口饱和度"><span class="mr-2">7</span><span>网络接口饱和度</span></a></li><li><a class="is-flex is-mobile" href="#网络接口错误"><span class="mr-2">8</span><span>网络接口错误</span></a></li><li><a class="is-flex is-mobile" href="#磁盘IO利用率"><span class="mr-2">9</span><span>磁盘IO利用率</span></a><ul class="menu-list"><li><a class="is-flex is-mobile" href="#系统范围-4"><span class="mr-2">9.1</span><span>系统范围</span></a></li><li><a class="is-flex is-mobile" href="#每个进程-3"><span class="mr-2">9.2</span><span>每个进程</span></a></li></ul></li><li><a class="is-flex is-mobile" href="#磁盘IO饱和度"><span class="mr-2">10</span><span>磁盘IO饱和度</span></a></li><li><a class="is-flex is-mobile" href="#博文内容参考"><span class="mr-2">11</span><span>博文内容参考</span></a></li></ul></div></div><style>.menu-list > li > a.is-active + .menu-list { display: block; }.menu-list > li > a + .menu-list { display: none; }</style><script src="/js/toc.js" defer></script></div><div class="card widget" data-type="profile"><div class="card-content"><nav class=""><div class="level-item has-text-centered flex-shrink-1"><div><figure class="image is-128x128 mx-auto mb-2"><img class="avatar" src="/img/%E5%BE%AE%E4%BF%A1%E5%85%AC%E4%BC%97%E5%8F%B7.jpg" alt="山河已无恙"></figure><p class="title is-size-4 is-block" style="line-height:inherit;">山河已无恙</p><p class="is-size-6 is-block">爱自己，是终生浪漫的开始</p><p class="is-size-6 is-flex justify-content-center"><i class="fas fa-map-marker-alt mr-1"></i><span>中国·呼和浩特</span></p></div></div></nav><nav class="level is-mobile"><div class="level-item has-text-centered is-marginless"><div><p class="heading">文章</p><a href="/archives"><p class="title">318</p></a></div></div><div class="level-item has-text-centered is-marginless"><div><p class="heading">分类</p><a href="/categories"><p class="title">102</p></a></div></div><div class="level-item has-text-centered is-marginless"><div><p class="heading">标签</p><a href="/tags"><p class="title">153</p></a></div></div></nav><div class="level"><a class="level-item button is-primary is-rounded" href="https://liruilong.blog.csdn.net/?t=1&amp;type=blog" target="_blank" rel="noopener">关注我</a></div><div class="level is-mobile"><a class="level-item button is-transparent is-marginless" target="_blank" rel="noopener" title="Github" href="https://github.com/LIRUILONGS"><i class="fab fa-github"></i></a><a class="level-item button is-transparent is-marginless" target="_blank" rel="noopener" title="CSDN" href="https://liruilong.blog.csdn.net/"><i class="fa fa-code"></i></a><a class="level-item button is-transparent is-marginless" target="_blank" rel="noopener" title="Email" href="mailto:1224965096@qq.com"><i class="fa fa-envelope"></i></a></div></div></div><div class="card widget" data-type="links"><div class="card-content"><div class="menu"><h3 class="menu-label">链接</h3><ul class="menu-list"><li><a class="level is-mobile" href="https://liruilong.blog.csdn.net/?t=1&amp;type=blog" target="_blank" rel="noopener"><span class="level-left"><span class="level-item">CSDN</span></span><span class="level-right"><span class="level-item tag">liruilong.blog.csdn.net</span></span></a></li><li><a class="level is-mobile" href="https://www.cnblogs.com/liruilong/" target="_blank" rel="noopener"><span class="level-left"><span class="level-item">博客园</span></span><span class="level-right"><span class="level-item tag">www.cnblogs.com</span></span></a></li><li><a class="level is-mobile" href="https://github.com/LIRUILONGS" target="_blank" rel="noopener"><span class="level-left"><span class="level-item">Githup</span></span><span class="level-right"><span class="level-item tag">github.com</span></span></a></li><li><a class="level is-mobile" href="https://gitee.com/liruilonger" target="_blank" rel="noopener"><span class="level-left"><span class="level-item">码云</span></span><span class="level-right"><span class="level-item tag">gitee.com</span></span></a></li></ul></div></div></div><div class="card widget"><div class="card-content"><h3 class="menu-label">最新评论</h3><span class="body_hot_comment">加载中，最新评论有1分钟缓存...</span></div></div><div class="card widget"><div class="card-content"><h3 class="menu-label">最新文章</h3><article class="media"><div class="media-content"><p class="date"><time dateTime="2023-11-19T19:40:00.000Z">2023-11-20</time></p><p class="title"><a href="/2023/11/20/%E5%BE%85%E5%8F%91%E5%B8%83/Golang%20VScode%20%E5%BC%80%E5%8F%91%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA/">Golang VScode 开发环境搭建</a></p><p class="categories"><a href="/categories/GO/">GO</a></p></div></article><article class="media"><div class="media-content"><p class="date"><time dateTime="2023-11-15T12:44:37.000Z">2023-11-15</time></p><p class="title"><a href="/2023/11/15/%E5%BE%85%E5%8F%91%E5%B8%83/%E5%9F%BA%E4%BA%8E%20selenium%20%E5%AE%9E%E7%8E%B0%E7%BD%91%E7%AB%99%E5%9B%BE%E7%89%87%E9%87%87%E9%9B%86/">基于 selenium 实现网站图片采集</a></p><p class="categories"><a href="/categories/selenium/">selenium</a></p></div></article><article class="media"><div class="media-content"><p class="date"><time dateTime="2023-11-13T20:29:38.000Z">2023-11-14</time></p><p class="title"><a href="/2023/11/14/%E5%BE%85%E5%8F%91%E5%B8%83/%E5%85%B3%E4%BA%8E-Kubernetes%E4%B8%ADAdmission-Controllers-%E7%9A%84%E4%B8%80%E4%BA%9B%E7%AC%94%E8%AE%B0/">关于 Kubernetes中Admission Controllers(准入控制器) 认知的一些笔记</a></p><p class="categories"><a href="/categories/Kubernetes/">Kubernetes</a></p></div></article><article class="media"><div class="media-content"><p class="date"><time dateTime="2023-11-13T19:52:18.000Z">2023-11-14</time></p><p class="title"><a href="/2023/11/14/%E5%BE%85%E5%8F%91%E5%B8%83/K8s%20Pod%20%E5%88%9B%E5%BB%BA%E5%9F%8B%E7%82%B9%E5%A4%84%E7%90%86(Mutating%20%20Admission%20Webhook)/">K8s Pod 创建埋点处理(Mutating  Admission Webhook)</a></p><p class="categories"><a href="/categories/test3/">test3</a></p></div></article><article class="media"><div class="media-content"><p class="date"><time dateTime="2023-11-09T18:55:27.000Z">2023-11-10</time></p><p class="title"><a href="/2023/11/10/%E5%BE%85%E5%8F%91%E5%B8%83/Linux-%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96%E4%B9%8B%E4%BD%BF%E7%94%A8-Tuned-%E9%85%8D%E7%BD%AE%E4%BC%98%E5%8C%96%E6%96%B9%E6%A1%88/">Linux 性能优化之使用 Tuned 配置优化方案</a></p><p class="categories"><a href="/categories/Linux/">Linux</a></p></div></article></div></div><div class="card widget"><div class="card-content"><div class="menu"><h3 class="menu-label">分类</h3><ul class="menu-list"><li><a class="level is-mobile is-marginless" href="/categories/AdaFace/"><span class="level-start"><span class="level-item">AdaFace</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/Ajax/"><span class="level-start"><span class="level-item">Ajax</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/Ansible/"><span class="level-start"><span class="level-item">Ansible</span></span><span class="level-end"><span class="level-item tag">23</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/AppCube/"><span class="level-start"><span class="level-item">AppCube</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/Bind9/"><span class="level-start"><span class="level-item">Bind9</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/CI-CD/"><span class="level-start"><span class="level-item">CI/CD</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/CSS/"><span class="level-start"><span class="level-item">CSS</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/Ceph/"><span class="level-start"><span class="level-item">Ceph</span></span><span class="level-end"><span class="level-item tag">11</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/DAD-3DHeads/"><span class="level-start"><span class="level-item">DAD-3DHeads</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/DNS/"><span class="level-start"><span class="level-item">DNS</span></span><span class="level-end"><span class="level-item tag">5</span></span></a></li><a class="level is-mobile is-marginless" href="/categories/"><span class="level-start"><span class="level-item">查看全部&gt;&gt;</span></span></a></ul></div></div></div><div class="card widget"><div class="card-content"><div class="menu"><h3 class="menu-label">归档</h3><ul class="menu-list"><li><a class="level is-mobile is-marginless" href="/archives/2023/11/"><span class="level-start"><span class="level-item">十一月 2023</span></span><span class="level-end"><span class="level-item tag">7</span></span></a></li><li><a class="level is-mobile is-marginless" href="/archives/2023/10/"><span class="level-start"><span class="level-item">十月 2023</span></span><span class="level-end"><span class="level-item tag">9</span></span></a></li><li><a class="level is-mobile is-marginless" href="/archives/2023/09/"><span class="level-start"><span class="level-item">九月 2023</span></span><span class="level-end"><span class="level-item tag">4</span></span></a></li><li><a class="level is-mobile is-marginless" href="/archives/2023/08/"><span class="level-start"><span class="level-item">八月 2023</span></span><span class="level-end"><span class="level-item tag">11</span></span></a></li><li><a class="level is-mobile is-marginless" href="/archives/2023/07/"><span class="level-start"><span class="level-item">七月 2023</span></span><span class="level-end"><span class="level-item tag">7</span></span></a></li><a class="level is-mobile is-marginless" href="/archives/"><span class="level-start"><span class="level-item">查看全部&gt;&gt;</span></span></a></ul></div></div></div><div class="card widget"><div class="card-content"><div class="menu"><h3 class="menu-label">标签</h3><div class="field is-grouped is-grouped-multiline"><div class="control"><a class="tags has-addons" href="/tags/Kubernetes/"><span class="tag">Kubernetes</span><span class="tag is-grey-lightest">91</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Linux/"><span class="tag">Linux</span><span class="tag is-grey-lightest">34</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Ansible/"><span class="tag">Ansible</span><span class="tag is-grey-lightest">25</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Python/"><span class="tag">Python</span><span class="tag is-grey-lightest">14</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Ceph/"><span class="tag">Ceph</span><span class="tag is-grey-lightest">11</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Docker/"><span class="tag">Docker</span><span class="tag is-grey-lightest">8</span></a></div><div class="control"><a class="tags has-addons" href="/tags/JAVA/"><span class="tag">JAVA</span><span class="tag is-grey-lightest">8</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Git/"><span class="tag">Git</span><span class="tag is-grey-lightest">7</span></a></div><div class="control"><a class="tags has-addons" href="/tags/OpenShift/"><span class="tag">OpenShift</span><span class="tag is-grey-lightest">6</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%E7%A8%8B%E5%BA%8F%E4%BA%BA%E7%94%9F/"><span class="tag">程序人生</span><span class="tag is-grey-lightest">6</span></a></div><div class="control"><a class="tags has-addons" href="/tags/DNS/"><span class="tag">DNS</span><span class="tag is-grey-lightest">5</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Go/"><span class="tag">Go</span><span class="tag is-grey-lightest">5</span></a></div><div class="control"><a class="tags has-addons" href="/tags/OKD/"><span class="tag">OKD</span><span class="tag is-grey-lightest">5</span></a></div><div class="control"><a class="tags has-addons" href="/tags/selenium/"><span class="tag">selenium</span><span class="tag is-grey-lightest">4</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%E5%AE%B9%E5%99%A8/"><span class="tag">容器</span><span class="tag is-grey-lightest">4</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%E7%BD%91%E7%BB%9C/"><span class="tag">网络</span><span class="tag is-grey-lightest">4</span></a></div><div class="control"><a class="tags has-addons" href="/tags/CKA/"><span class="tag">CKA</span><span class="tag is-grey-lightest">3</span></a></div><div class="control"><a class="tags has-addons" href="/tags/GO/"><span class="tag">GO</span><span class="tag is-grey-lightest">3</span></a></div><div class="control"><a class="tags has-addons" href="/tags/ISCSI/"><span class="tag">ISCSI</span><span class="tag is-grey-lightest">3</span></a></div><div class="control"><a class="tags has-addons" href="/tags/NFS/"><span class="tag">NFS</span><span class="tag is-grey-lightest">3</span></a></div></div><div class="field is-grouped is-grouped-multiline"><a class="tags has-addons" href="/tags/"><span class="tag">查看全部&gt;&gt;</span></a></div></div></div></div><div class="card widget" data-type="subscribe-email"><div class="card-content"><div class="menu"><h3 class="menu-label">订阅更新</h3><form action="https://feedburner.google.com/fb/a/mailverify" method="post" target="popupwindow" onsubmit="window.open(&#039;https://feedburner.google.com/fb/a/mailverify?uri=&#039;,&#039;popupwindow&#039;,&#039;scrollbars=yes,width=550,height=520&#039;);return true"><input type="hidden" value="" name="uri"><input type="hidden" name="loc" value="en_US"><div class="field has-addons"><div class="control has-icons-left is-expanded"><input class="input" name="email" type="email" placeholder="Email"><span class="icon is-small is-left"><i class="fas fa-envelope"></i></span></div><div class="control"><input class="button" type="submit" value="订阅"></div></div></form></div></div></div><!--!--><div class="column-right-shadow is-hidden-widescreen is-sticky"></div></div></div></div></section><footer class="footer"><div class="container"><div class="level"><div class="level-start"><a class="footer-logo is-block mb-2" href="/"><img src="/img/logo.png" alt="山河已无恙" height="28"></a><p class="size-small"><span>&copy; 2024 山河已无恙</span>  Powered by <a href="https://hexo.io/" target="_blank">Hexo</a> &amp; <a href="https://github.com/ppoffice/hexo-theme-icarus" target="_blank">Icarus</a> &amp; <a href="https://github.com/removeif/hexo-theme-amazing" target="_blank">Amazing</a> <br><span>© <a href="http://www.beian.miit.gov.cn/" target="_blank">备案号</a><br></span><span>© 版权说明：[本网站所有内容均收集于互联网或自己创作,<br />&nbsp;&nbsp;&nbsp;&nbsp;方便于网友与自己学习交流，如有侵权，请<a href="/message" target="_blank">留言</a>，立即处理]<br /></span><span><span id="statistic-times">loading...</span><script>function createTime(time) {
+            var n = new Date(time);
+            now.setTime(now.getTime() + 250),
+                days = (now - n) / 1e3 / 60 / 60 / 24,
+                dnum = Math.floor(days),
+                hours = (now - n) / 1e3 / 60 / 60 - 24 * dnum,
+                hnum = Math.floor(hours),
+            1 == String(hnum).length && (hnum = "0" + hnum),
+                minutes = (now - n) / 1e3 / 60 - 1440 * dnum - 60 * hnum,
+                mnum = Math.floor(minutes),
+            1 == String(mnum).length && (mnum = "0" + mnum),
+                seconds = (now - n) / 1e3 - 86400 * dnum - 3600 * hnum - 60 * mnum,
+                snum = Math.round(seconds),
+            1 == String(snum).length && (snum = "0" + snum),
+                document.getElementById("statistic-times").innerHTML = "❤️本站自 <strong>"+time.split(" ")[0].replace(/\//g,".")+"</strong> 已运行 <strong>" + dnum + "</strong> 天 <strong>" + hnum + "</strong> 小时 <strong>" + mnum + "</strong> 分 <strong>" + snum + "</strong> 秒！❤️";
+        }var now = new Date();setInterval("createTime('2021/6/26 21:27:00')", 250,"");</script><br></span><div class="size-small"><span>❤️感谢 <strong><span id="busuanzi_value_site_uv">99+</span></strong> 小伙伴的 <strong><span id="busuanzi_value_site_pv">99+</span></strong> 次光临！❤️</span></div></p></div><div class="level-end"><div class="field has-addons"><p class="control"><a class="button is-transparent is-large" target="_blank" rel="noopener" title="Creative Commons" href="https://creativecommons.org/"><i class="fab fa-creative-commons"></i></a></p><p class="control"><a class="button is-transparent is-large" target="_blank" rel="noopener" title="Attribution 4.0 International" href="https://creativecommons.org/licenses/by/4.0/"><i class="fab fa-creative-commons-by"></i></a></p><p class="control"><a class="button is-transparent is-large" target="_blank" rel="noopener" title="Download on GitHub" href="https://github.com/removeif/hexo-theme-amazing"><i class="fab fa-github"></i></a></p></div><div class="sideMusic"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/aplayer/dist/APlayer.min.css"><script src="/js/APlayer.min.js"></script><script src="https://cdn.jsdelivr.net/npm/meting@2/dist/Meting.min.js"></script><meting-js style="width: auto;height: 2000px;" server="netease" type="playlist" id="2364053447" theme="#2980b9" loop="all" autoplay="false" order="list" storageName="aplayer-setting" lrctype="0" list-max-height="400px" fixed="true"></meting-js></div></div></div></div></footer><script src="https://cdnjs.loli.net/ajax/libs/moment.js/2.22.2/moment-with-locales.min.js"></script><script src="https://cdnjs.loli.net/ajax/libs/clipboard.js/2.0.4/clipboard.min.js" async></script><script>moment.locale("zh-CN");</script><script>var IcarusThemeSettings = {
+            article: {
+                highlight: {
+                    clipboard: true,
+                    fold: 'unfolded'
+                }
+            }
+        };</script><script src="/js/column.js"></script><!--!--><script src="/js/animation.js"></script><a id="back-to-top" title="回到顶端" href="javascript:;"><i class="fas fa-chevron-up"></i></a><script src="/js/back_to_top.js" defer></script><!--!--><script src="https://cdnjs.loli.net/ajax/libs/lightgallery/1.6.8/js/lightgallery.min.js" defer></script><script src="https://cdnjs.loli.net/ajax/libs/justifiedGallery/3.7.0/js/jquery.justifiedGallery.min.js" defer></script><script>window.addEventListener("load", () => {
+            if (typeof $.fn.lightGallery === 'function') {
+                $('.article').lightGallery({ selector: '.gallery-item' });
+            }
+            if (typeof $.fn.justifiedGallery === 'function') {
+                if ($('.justified-gallery > p > .gallery-item').length) {
+                    $('.justified-gallery > p > .gallery-item').unwrap();
+                }
+                $('.justified-gallery').justifiedGallery();
+            }
+        });</script><!--!--><!--!--><link rel="stylesheet" href="https://cdnjs.loli.net/ajax/libs/KaTeX/0.11.1/katex.min.css"><script src="https://cdnjs.loli.net/ajax/libs/KaTeX/0.11.1/katex.min.js" defer></script><script src="https://cdnjs.loli.net/ajax/libs/KaTeX/0.11.1/contrib/auto-render.min.js" defer></script><script src="https://cdnjs.loli.net/ajax/libs/KaTeX/0.11.1/contrib/mhchem.js" defer></script><script>window.addEventListener("load", function() {
+            document.querySelectorAll('[role="article"] > .content').forEach(function(element) {
+                renderMathInElement(element);
+            });
+        });</script><script type="text/x-mathjax-config">MathJax.Hub.Config({
+            'HTML-CSS': {
+                matchFontHeight: false
+            },
+            SVG: {
+                matchFontHeight: false
+            },
+            CommonHTML: {
+                matchFontHeight: false
+            },
+            tex2jax: {
+                inlineMath: [
+                    ['$','$'],
+                    ['\\(','\\)']
+                ]
+            }
+        });</script><script src="https://cdnjs.loli.net/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-MML-AM_CHTML" defer></script><div id="outdated"><h6>Your browser is out-of-date!</h6><p>Update your browser to view this website correctly.&amp;npsb;<a id="btnUpdateBrowser" target="_blank" rel="noopener" href="http://outdatedbrowser.com/">Update my browser now </a></p><p class="last"><a href="#" id="btnCloseUpdateBrowser" title="Close">×</a></p></div><script src="https://cdnjs.loli.net/ajax/libs/outdated-browser/1.1.5/outdatedbrowser.min.js" defer></script><script>window.addEventListener("load", function () {
+            outdatedBrowser({
+                bgColor: '#f25648',
+                color: '#ffffff',
+                lowerThan: 'object-fit' // display on IE11 or below
+            });
+        });</script><!--!--><script src="/js/main.js" defer></script><script>$.getScript('/js/comment-issue-data.js',function(){loadIssueData('9fdc9739266d48d5f62e','c1cc33697d099a2197650ec9dadcb16bd4904655','LIRUILONGS','blog_comment',false);})</script><div class="searchbox"><div class="searchbox-container"><div class="searchbox-header"><div class="searchbox-input-container"><input class="searchbox-input" type="text" placeholder="想要查找什么..."></div><a class="searchbox-close" href="javascript:;">×</a></div><div class="searchbox-body"></div></div></div><script src="/js/insight.js" defer></script><script>document.addEventListener('DOMContentLoaded', function () {
+            loadInsight({"contentUrl":"/content.json"}, {"hint":"想要查找什么...","untitled":"(无标题)","posts":"文章","pages":"页面","categories":"分类","tags":"标签"});
+        });</script><script src="https://cdn.jsdelivr.net/npm/pjax@0.2.8/pjax.js"></script><script type="text/javascript">var pjax = new Pjax({
+            elements: "a",//代表点击链接就更新
+            selectors: [  //代表要更新的节点
+                ".section",
+                "title"
+            ],
+            cache: true,
+            cacheBust:false
+        })
+
+        function loadBusuanzi(){
+        $.getScript("//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js", function () {});
+        }
+
+        function loadMathJax() { //加载mathjax
+            $.getScript("//cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.4/MathJax.js?config=TeX-MML-AM_CHTML", function () {
+                MathJax.Hub.Config({ tex2jax: { inlineMath: [['$', '$'], ['\(', '\)']] } });
+                var math = document.getElementsByClassName("entry-content")[0];
+                MathJax.Hub.Queue(["Typeset", MathJax.Hub, math]);
+            });
+        };
+
+        // 开始 PJAX 执行的函数
+        document.addEventListener('pjax:send', function () {
+        });
+        
+        // PJAX 完成之后执行的函数，可以和上面的重载放在一起
+        document.addEventListener('pjax:complete', function () {
+            $(".section").css({opacity:1});
+            if(true){
+                $.getScript('/js/comment-issue-data.js',function(){loadIssueData('9fdc9739266d48d5f62e','c1cc33697d099a2197650ec9dadcb16bd4904655','LIRUILONGS','blog_comment',false);});
+            }
+            if(false){
+                loadMathJax();
+            }
+            loadMainJs(jQuery, window.moment, window.ClipboardJS, window.IcarusThemeSettings);
+            loadBackTop();
+            loadBusuanzi();
+            if(typeof loadBanner == 'function'){
+                loadBanner();
+            }
+        });</script></body></html>
