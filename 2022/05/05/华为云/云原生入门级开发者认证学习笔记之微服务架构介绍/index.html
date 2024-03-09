@@ -1,0 +1,333 @@
+<!doctype html>
+<html lang="zh"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"><meta><title>云原生入门级开发者认证学习笔记之微服务架构介绍 - 山河已无恙</title><link rel="manifest" href="/manifest.json"><meta name="application-name" content="山河已无恙"><meta name="msapplication-TileImage" content="https://cdn.jsdelivr.net/gh/removeif/removeif-demo@latest/img/favicon.png"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="山河已无恙"><meta name="apple-mobile-web-app-status-bar-style" content="default"><meta description="傍晚时分，你坐在屋檐下，看着天慢慢地黑下去，心里寂寞而凄凉，感到自己的生命被剥夺了。当时我是个年轻人，但我害怕这样生活下去，衰老下去。在我看来，这是比死亡更可怕的事。——–王小波"><meta property="og:type" content="blog"><meta property="og:title" content="山河已无恙"><meta property="og:url" content="https://mp.weixin.qq.com/s?__biz=MzkyNjIxNTYwMw==&amp;mid=2247496480&amp;idx=1&amp;sn=a9971fed3962ef2a1aeda1f0bda65f86&amp;chksm=c2380ffcf54f86eaba8daac6caca72a70f38e61a8d25dc2a66d3a17b87c02530e326dcaea14b#rd"><meta property="og:site_name" content="山河已无恙"><meta property="og:description" content="傍晚时分，你坐在屋檐下，看着天慢慢地黑下去，心里寂寞而凄凉，感到自己的生命被剥夺了。当时我是个年轻人，但我害怕这样生活下去，衰老下去。在我看来，这是比死亡更可怕的事。——–王小波"><meta property="og:locale" content="zh_CN"><meta property="og:image" content="https://mp.weixin.qq.com/img/头像.jpg"><meta property="article:published_time" content="2022-05-04T17:56:41.000Z"><meta property="article:modified_time" content="2024-02-15T01:26:28.554Z"><meta property="article:author" content="LIRUILONGS"><meta property="article:tag" content="微服务"><meta property="twitter:card" content="summary"><meta property="twitter:image" content="/img/头像.jpg"><script type="application/ld+json">{"@context":"https://schema.org","@type":"BlogPosting","mainEntityOfPage":{"@type":"WebPage","@id":"https://liruilongs.github.io/2022/05/05/%E5%8D%8E%E4%B8%BA%E4%BA%91/%E4%BA%91%E5%8E%9F%E7%94%9F%E5%85%A5%E9%97%A8%E7%BA%A7%E5%BC%80%E5%8F%91%E8%80%85%E8%AE%A4%E8%AF%81%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0%E4%B9%8B%E5%BE%AE%E6%9C%8D%E5%8A%A1%E6%9E%B6%E6%9E%84%E4%BB%8B%E7%BB%8D/"},"headline":"山河已无恙","image":["https://img-blog.csdnimg.cn/69ad1d7aa57d44d4b3a52ec713bd53a8.png","https://img-blog.csdnimg.cn/9e7f8963bc5b40d790e0a393d37d31b5.png","https://img-blog.csdnimg.cn/5b7456a68971410d8f94f5e2c2e193cc.png","https://img-blog.csdnimg.cn/be6a0a157cba494f86f1e9d491728772.png","https://img-blog.csdnimg.cn/6bc1cc44b11b4be9b13ffdd579c56a7b.png","https://img-blog.csdnimg.cn/869d5e66c612444786724475eb1da54a.png","https://img-blog.csdnimg.cn/d245578ccf36404bba646a05f8433592.png","https://img-blog.csdnimg.cn/dbbbb4653eab45948791f767a004943e.png","https://img-blog.csdnimg.cn/a747d8d4a90740089b4c8682011b5820.png","https://img-blog.csdnimg.cn/023e56027265410b9c560a6bf8109d61.png","https://img-blog.csdnimg.cn/6732bdc1cc8a4043bdc9958e58997c41.png","https://img-blog.csdnimg.cn/99345c58d7f144049385d4e76d526665.png","https://img-blog.csdnimg.cn/2b088bab02ad467d895ee2d7e0101308.png","https://img-blog.csdnimg.cn/7e057844aec841468403b48e53d612c9.png","https://img-blog.csdnimg.cn/f8df02acc48e425ea7b69e4d8ad2fa33.png","https://img-blog.csdnimg.cn/9c45a4c248dc4ab7afe755eb82ed2cf5.png","https://img-blog.csdnimg.cn/654bb97130754bfa94ebbb3918d16e7a.png","https://img-blog.csdnimg.cn/26ff63d8d734440e845f501273d50969.png","https://img-blog.csdnimg.cn/9bf3d0edf8b54080b0e2a6fdbf534ea4.png","https://img-blog.csdnimg.cn/61729f0a04114b7ab49ad0d3cdb558aa.png","https://img-blog.csdnimg.cn/b32ab62eed444ab8970c0c78393c2821.png","https://img-blog.csdnimg.cn/fb70e7a727f9454f91e77fee05ca0181.png","https://img-blog.csdnimg.cn/a54c6aa6652948dfa9249fa280166f2b.png","https://img-blog.csdnimg.cn/aacea3dd16ab4be7a9d4104f5bf8e402.png","https://img-blog.csdnimg.cn/99236121d66242f4be541465f5d9395f.png","https://img-blog.csdnimg.cn/09fda15ccb0a42209ca5823d84973704.png","https://img-blog.csdnimg.cn/a340fee251ae43fbbcf0eb7c1a593076.png","https://img-blog.csdnimg.cn/afa9e674025f4f0f89dc996caeac5923.png","https://img-blog.csdnimg.cn/ba8cebae82b74de18d6e77a14442c03d.png"],"datePublished":"2022-05-04T17:56:41.000Z","dateModified":"2024-02-15T01:26:28.554Z","author":{"@type":"Person","name":"山河已无恙"},"description":"傍晚时分，你坐在屋檐下，看着天慢慢地黑下去，心里寂寞而凄凉，感到自己的生命被剥夺了。当时我是个年轻人，但我害怕这样生活下去，衰老下去。在我看来，这是比死亡更可怕的事。——–王小波"}</script><link rel="canonical" href="https://liruilongs.github.io/2022/05/05/%E5%8D%8E%E4%B8%BA%E4%BA%91/%E4%BA%91%E5%8E%9F%E7%94%9F%E5%85%A5%E9%97%A8%E7%BA%A7%E5%BC%80%E5%8F%91%E8%80%85%E8%AE%A4%E8%AF%81%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0%E4%B9%8B%E5%BE%AE%E6%9C%8D%E5%8A%A1%E6%9E%B6%E6%9E%84%E4%BB%8B%E7%BB%8D/"><link rel="alternate" href="/path/to/atom.xml" title="山河已无恙" type="application/atom+xml"><link rel="icon" href="https://cdn.jsdelivr.net/gh/removeif/removeif-demo@latest/img/favicon.png"><meta name="referrer" content="no-referrer-when-downgrade"><link rel="stylesheet" href="https://cdnjs.loli.net/ajax/libs/font-awesome/5.12.0/css/all.min.css"><link rel="stylesheet" href="https://cdnjs.loli.net/ajax/libs/highlight.js/9.12.0/styles/dracula.min.css"><link rel="stylesheet" href="https://fonts.loli.net/css2?family=Ubuntu:wght@400;600&amp;family=Source+Code+Pro"><link rel="stylesheet" href="/css/default.css"><link rel="stylesheet" href="https://cdnjs.loli.net/ajax/libs/font-awesome/5.12.0/css/all.min.css"><link rel="stylesheet" href="https://fonts.loli.net/css?family=Ubuntu:400,600|Source+Code+Pro|Monda:300,300italic,400,400italic,700,700italic|Roboto Slab:300,300italic,400,400italic,700,700italic|Microsoft YaHei:300,300italic,400,400italic,700,700italic|PT Mono:300,300italic,400,400italic,700,700italic&amp;amp;subset=latin,latin-ext|Inconsolata|Itim|Lobster.css"><script src="https://cdnjs.loli.net/ajax/libs/jquery/3.3.1/jquery.min.js"></script><script src="/js/globalUtils.js"></script><script src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js" defer></script><style>body>.footer,body>.navbar,body>.section{opacity:0}</style><!--!--><script>var _hmt = _hmt || [];
+        (function() {
+            var hm = document.createElement("script");
+            hm.src = "//hm.baidu.com/hm.js?3f06f2b732a5b1034c989f74e28d0eea";
+            var s = document.getElementsByTagName("script")[0];
+            s.parentNode.insertBefore(hm, s);
+        })();</script><link rel="stylesheet" href="https://cdnjs.loli.net/ajax/libs/lightgallery/1.6.8/css/lightgallery.min.css"><link rel="stylesheet" href="https://cdnjs.loli.net/ajax/libs/justifiedGallery/3.7.0/css/justifiedGallery.min.css"><!--!--><!--!--><!--!--><!--!--><link rel="stylesheet" href="https://cdnjs.loli.net/ajax/libs/outdated-browser/1.1.5/outdatedbrowser.min.css"><script src="https://cdnjs.loli.net/ajax/libs/pace/1.0.2/pace.min.js"></script><link rel="stylesheet" href="/live2d/waifu.css"><script type="text/javascript" async src="/live2d/autoload.js"></script><meta name="generator" content="Hexo 5.4.2"></head><body class="is-3-column has-navbar-fixed-top"><nav class="navbar navbar-main is-fixed-top"><div class="container"><div class="navbar-brand justify-content-center"><a class="navbar-item navbar-logo" href="/"><img src="/img/logo.png" alt="山河已无恙" height="28"></a></div><div class="navbar-menu"><div class="navbar-start"><a class="navbar-item" href="/">首页</a><a class="navbar-item" href="/archives">归档</a><a class="navbar-item" href="/categories">分类</a><a class="navbar-item" href="/tags">标签</a><a class="navbar-item" href="/media">影音</a><a class="navbar-item" href="/album">相册</a><a class="navbar-item" href="/friend">友链</a><a class="navbar-item" href="/self-talking">生活小记</a><a class="navbar-item" href="/message">留言墙</a><a class="navbar-item" href="/about">关于</a></div><div class="navbar-end"><a class="navbar-item" target="_blank" rel="noopener" title="Gitee" href="https://gitee.com/liruilonger"><i class="fab fa-git-square fa-1x"></i></a><a class="navbar-item" target="_blank" rel="noopener" title="GitHub" href="https://github.com/LIRUILONGS"><i class="fab fa-github fa-1x"></i></a><a class="navbar-item is-hidden-tablet catalogue" title="目录" href="javascript:;"><i class="fas fa-list-ul fa-1x"></i></a><a class="navbar-item search" title="搜索" href="javascript:;"><i class="fas fa-search fa-1x"></i></a><a class="navbar-item" id="night-nav" title="Night Mode" href="javascript:;"><i class="fas fa-moon fa-1x" id="night-icon"></i></a></div></div></div></nav><script type="text/javascript" src="/js/theme-setting.js"></script><section class="section"><div class="container"><div class="columns"><div class="column order-2 column-main is-8-tablet is-8-desktop is-9-widescreen"><!--!--><div class="card"><article class="card-content article" role="article"><div class="article-meta size-small is-uppercase level is-mobile"><div class="level-left"><i class="far fa-calendar-plus"> </i>2022-05-05  <a class="commentCountImg" href="/2022/05/05/%E5%8D%8E%E4%B8%BA%E4%BA%91/%E4%BA%91%E5%8E%9F%E7%94%9F%E5%85%A5%E9%97%A8%E7%BA%A7%E5%BC%80%E5%8F%91%E8%80%85%E8%AE%A4%E8%AF%81%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0%E4%B9%8B%E5%BE%AE%E6%9C%8D%E5%8A%A1%E6%9E%B6%E6%9E%84%E4%BB%8B%E7%BB%8D/#comment-container"><span class="display-none-class">a25ac70c96d79443ad24d24e40f88dd5</span><i class="far fa-comment-dots"></i> <span class="commentCount" id="a25ac70c96d79443ad24d24e40f88dd5">99+</span>  </a><span class="level-item"><i class="far fa-clock"> </i>1 小时  <i class="fas fa-pencil-alt"> </i>7.9 k</span><span class="level-item" id="busuanzi_container_page_pv"><span id="busuanzi_value_page_pv">0</span>次访问</span></div></div><h1 class="title is-3 is-size-4-mobile">云原生入门级开发者认证学习笔记之微服务架构介绍</h1><div class="content"><p><strong><font color="009688"> 傍晚时分，你坐在屋檐下，看着天慢慢地黑下去，心里寂寞而凄凉，感到自己的生命被剥夺了。当时我是个年轻人，但我害怕这样生活下去，衰老下去。在我看来，这是比死亡更可怕的事。——–王小波</strong></font></p>
+<span id="more"></span>
+<h2 id="写在前面"><a href="#写在前面" class="headerlink" title="写在前面"></a>写在前面</h2><hr>
+<ul>
+<li>嗯，学习云原生相关，整理课堂笔记记忆</li>
+<li>学习的原因：<ul>
+<li>云原生的代表技术包括<code>容器、服务网格、微服务、不可变基础设施和声明式API</code>。</li>
+<li>作为Java开发来讲，微服务是大多数行业都要涉及的开源技术栈</li>
+</ul>
+</li>
+<li>博文主要内容涉及：<ul>
+<li>企业应用架构的演进:<code>单体地狱、SOA，微服务架构,当然微服务并不是“银弹&quot;</code></li>
+<li>典型的微服务框架介绍<code>Springclound</code>之类</li>
+</ul>
+</li>
+<li>食用方式：<ul>
+<li>博文全是理论，适合对微服务的技术体系初学或者理论温习</li>
+<li>如果希望系统学习，这里推荐<code>《微服务架构设计模式》</code>一书，看了一点，个人感觉不错</li>
+</ul>
+</li>
+<li>理解不足小伙伴帮忙指正</li>
+</ul>
+<p><strong><font color="009688"> 傍晚时分，你坐在屋檐下，看着天慢慢地黑下去，心里寂寞而凄凉，感到自己的生命被剥夺了。当时我是个年轻人，但我害怕这样生活下去，衰老下去。在我看来，这是比死亡更可怕的事。——–王小波</strong></font></p>
+<hr>
+<h1 id="企业应用架构演进"><a href="#企业应用架构演进" class="headerlink" title="企业应用架构演进"></a>企业应用架构演进</h1><p><img src="https://img-blog.csdnimg.cn/69ad1d7aa57d44d4b3a52ec713bd53a8.png" alt="在这里插入图片描述"></p>
+<p>应用向<code>CloudNative(云原生)</code>演进，微服务是<code>CloudNative</code>的事实标准。</p>
+<ul>
+<li>第一代是<code>单体架构</code>，当然它有很多例如紧耦合、封闭架构等各种各样的问题。</li>
+<li>第二代是<code>SOA架构</code>，可能大型企业级的应用里面会比较多，提供了很多种支持，实际上我们看到SOA架构的时候，它已经强调松耦合了。但是没有彻底解耦，存在服务总线</li>
+<li>第三代<code>微服务架构</code>，它实际上是变得更加灵活了。在业务变化非常快速的背景之下，微服务架构是一个非常好的解决方案，微服务的核心一<code>敏捷、灵活、精准弹性</code>。 <strong>微服务架构出现的最大的意义是不断地提高交付效率，缩短交付周期。</strong></li>
+</ul>
+<h3 id="什么是微服务架构"><a href="#什么是微服务架构" class="headerlink" title="什么是微服务架构"></a>什么是微服务架构</h3><p><code>从架构师的角度</code>：微服务架构就是把一个大系统按业务功能分解成多个职责相对单一的小系统，并利用简单的方法使多个小系统相互协作，组合成一个大系统。</p>
+<p><img src="https://img-blog.csdnimg.cn/9e7f8963bc5b40d790e0a393d37d31b5.png" alt="在这里插入图片描述"></p>
+<p>在微服务架构中，只需要在特定的某种服务中增加所需功能，而不影响整体进程的架构。</p>
+<p><code>从技术专家的角度</code>：微服务架构就是把相同业务领域或因相同原因而变化的功能聚合到一起，而把不同业务领域或因不同原因而变化的功能分离开并利用轻量化机制(通常为<code>HTTP RESTful APl</code>)实现通信。</p>
+<p><img src="https://img-blog.csdnimg.cn/5b7456a68971410d8f94f5e2c2e193cc.png" alt="在这里插入图片描述"></p>
+<p>微服务可以在“自己的程序”中运行，并通过“<code>轻量级设备与HTTP型API进行沟通</code>”。关键在于该服务可以在自己的程序中运行。</p>
+<h3 id="微服务的定义"><a href="#微服务的定义" class="headerlink" title="微服务的定义"></a>微服务的定义</h3><p>2014年，<code>Martin Fowler与James Lewis</code>共同提出了微服务的概念(实际上2009年Netflix就已经开始实践微服务了，但是当时没有微服务一词)，定义了<code>微服务是由以单一应用程序构成的小服务</code>，自己拥有自己的行程与轻量化处理，服务依业务功能设计，以全自动的方式部署，与其他服务使用HTTP API通信。同时服务会使用最小的规模的集中管理(例如Docker)能力，服务可以用不同的编程语言与数据库等组件实现。</p>
+<ul>
+<li>微服务架构是一种架构模式，将<code>单体应用划分成一组小的服务，通过服务之间互相协作，共同实现系统功能</code>·</li>
+<li>每个服务运行在其独立的<code>进程</code>中，服务间采用轻是级的<code>通信机制协作</code>(通常是基于Restful Apl)。</li>
+<li>每个服务都围绕着<code>具体业务进行构建</code>，由独立的小团队负责设计、开发、测试，并可以<code>独立部署</code>到生产环境·</li>
+</ul>
+<h3 id="微服务的特征"><a href="#微服务的特征" class="headerlink" title="微服务的特征"></a>微服务的特征</h3><p><img src="https://img-blog.csdnimg.cn/be6a0a157cba494f86f1e9d491728772.png" alt="在这里插入图片描述"></p>
+<p>微服务最主要的就是<code>：小、独、轻、松</code>。就是说: <code>微服务要小</code>，模块边界要更清晰， 支持独立部署独立演进，每个微服务都应该可以独立部署，独立演进，独立升级的。</p>
+<p>另外允许技术多样性，就是在微服务构成的一个整体的应用系统里面，每一块的业务要用你最适合的技术去实现，而不是都统一用一种语言去实现，这也是微服务非常重要的一个特点。</p>
+<h3 id="单体架构"><a href="#单体架构" class="headerlink" title="单体架构"></a>单体架构</h3><p><strong>MVC架构</strong> ：MVC是<code>模型(Model)、视图(View)、控制器(Controller)</code>的简写，是一种软件设计规范，用一种捋业务逻辑、数据、显示分离的方法组织代码。在J2EE领域，最经典的MVC架构之一就是<code>Spring+Struts(SpringMVC)+ORM(Hibernate/MyBatis)。</code></p>
+<p><code>经典MVC模式中</code>，M是指业务模型，V是指用户界面，C则是控制器，使用MVC的目的是捋M和V的实现代码分离，从而使同一个程序可以使用不同的表现形式。其中，View的定义比较清晰，就是用户界面。</p>
+<p><code>MVC开始是存在于桌面程序中的</code>，M是指业务模型，V是指用户界面，C则是控制器，使用MVC的目的是捋M和V的实现代码分离，从而使同一个程序可以使用不同的表现形式。比如一批统计数据可以分别用柱状图、饼图来表示。C存在的目的则是确保M和V的同步，一旦M改变，V应该同步更新。</p>
+<h3 id="单体架构的优缺点"><a href="#单体架构的优缺点" class="headerlink" title="单体架构的优缺点"></a>单体架构的优缺点</h3><p><img src="https://img-blog.csdnimg.cn/6bc1cc44b11b4be9b13ffdd579c56a7b.png" alt="在这里插入图片描述"></p>
+<h3 id="从单体架构演进到SOA服务化架构"><a href="#从单体架构演进到SOA服务化架构" class="headerlink" title="从单体架构演进到SOA服务化架构"></a>从单体架构演进到SOA服务化架构</h3><p><img src="https://img-blog.csdnimg.cn/869d5e66c612444786724475eb1da54a.png" alt="在这里插入图片描述"></p>
+<p>SOA是指<code>Service Oriented Architecture</code></p>
+<h3 id="SOA服务化架构"><a href="#SOA服务化架构" class="headerlink" title="SOA服务化架构"></a>SOA服务化架构</h3><p><img src="https://img-blog.csdnimg.cn/d245578ccf36404bba646a05f8433592.png" alt="在这里插入图片描述"></p>
+<p><code>面向服务架构(SOA)</code>是一个组件模型，它捋<code>应用程序的不同功能单元(称为服务)进行拆分</code>，并通过这些服务之间定义<code>良好的接口和协议联系起来</code>。接口是采用中立的方式进行定义的，它应该独立于实现<code>服务的硬件平台、操作系统和编程语言</code>。这使得构建在各种各样的系统中的服务可以以一种<code>统一和通用的方式进行交互</code>。</p>
+<h3 id="SOA-有哪些不足"><a href="#SOA-有哪些不足" class="headerlink" title="SOA 有哪些不足"></a>SOA 有哪些不足</h3><p><code>总线ESB的弊端</code>： 我们俩的小区是隔壁，但是要开车去你家，还要到高速上兜一圈。<br><img src="https://img-blog.csdnimg.cn/dbbbb4653eab45948791f767a004943e.png" alt="在这里插入图片描述"></p>
+<h3 id="微服务架构"><a href="#微服务架构" class="headerlink" title="微服务架构"></a>微服务架构</h3><p>微服务架构是一项在云中部署应用和服务的新技术。</p>
+<p><img src="https://img-blog.csdnimg.cn/a747d8d4a90740089b4c8682011b5820.png" alt="在这里插入图片描述"></p>
+<p>微服务可以在“自己的程序”中运行，并通过“轻量级设备与HTTP型API进行沟通”。关键在于该服务可以在自己的程序中运行。</p>
+<p><img src="https://img-blog.csdnimg.cn/023e56027265410b9c560a6bf8109d61.png" alt="在这里插入图片描述"></p>
+<h3 id="微服务架构与单体架构"><a href="#微服务架构与单体架构" class="headerlink" title="微服务架构与单体架构"></a>微服务架构与单体架构</h3><p><img src="https://img-blog.csdnimg.cn/6732bdc1cc8a4043bdc9958e58997c41.png" alt="在这里插入图片描述"></p>
+<p><strong>微服务与单体架构区别：</strong></p>
+<ul>
+<li><code>单体架构所有的模块全都耦合在一块</code>，代码量大，维护困难，微服务每个模块就相当于一个单独的项目，代码量明显减少，遇到问题也相对来说比较好解决。</li>
+<li>单体架构所有的模块都<code>共用一个数据库</code>，存储方式比较单一，微服务每个模块都可以使用不同的存储方式(比如有的用redis，有的用mysql等)，数据库也是单个模块对应自己的数据库。</li>
+<li>单体架构所有的<code>模块开发所使用的技术一样</code>，微服务每个模块都可以使用不同的开发技术，开发模式更灵活。</li>
+</ul>
+<h3 id="微服务架构于SOA架构"><a href="#微服务架构于SOA架构" class="headerlink" title="微服务架构于SOA架构"></a>微服务架构于SOA架构</h3><p><img src="https://img-blog.csdnimg.cn/99345c58d7f144049385d4e76d526665.png" alt="在这里插入图片描述"></p>
+<p>在传统的IT行业软件大多都是各种独立系统的堆砌，这些系统的问题总结来说就是扩展性差，可靠性不高，维护成本高。到后面引入了<code>SOA服务化</code>，但是，由于SOA早期均使用了<code>总线模式</code>，这种总线模式是与某种技术栈强绑定的，比如：<code>J2EE</code>。这导致很多企业的遗留系统很难对接，切换时间太长，成本太高，新系统稳定性的收敛也需要一些时间。最终SOA看起来很美，但却成为了企业级奢侈品，中小公司都望而生畏。总结一下，太重了。侵入性强</p>
+<p>相比传统SOA的服务实现方式，微服务更具有灵活性、可实施性以及可扩展性，其强调的是一种<code>独立测试、独立部署、独立运行</code>的软件架构模式。</p>
+<p><code>微服务架构诞生于SOA</code>，提倡将单一的应用程序按功能划分为更小的服务单元，服务之间采用通用轻量化机制进行通信，能够将<code>服务单独部署到生产环境</code>。</p>
+<p>互联网行业的高速发展，需求变化快，用户群体大，要求系统架构上能灵活构建，易于扩展，还要考虑可伸缩性，高可用性等等。这些需求催生出微服务架构。</p>
+<p><code>微服务不是银弹</code>(不能解决所有的问题)，同样前面说的单体应用和SOA架构也没有过时，需要结合自己的业务场景来选择合适的架构。</p>
+<h3 id="微服务的优势和挑战"><a href="#微服务的优势和挑战" class="headerlink" title="微服务的优势和挑战"></a>微服务的优势和挑战</h3><p>在微服务架构中，只需要在特定的某种服务中增加所需功能，而不影响整体进程的架构。</p>
+<p><img src="https://img-blog.csdnimg.cn/2b088bab02ad467d895ee2d7e0101308.png" alt="在这里插入图片描述"></p>
+<h1 id="典型微服务框架介绍"><a href="#典型微服务框架介绍" class="headerlink" title="典型微服务框架介绍"></a>典型微服务框架介绍</h1><h3 id="常见的微服务框架"><a href="#常见的微服务框架" class="headerlink" title="常见的微服务框架"></a>常见的微服务框架</h3><ul>
+<li><p><code>Spring Cloud</code>是一系列框架的有序集合，具有丰富的生态。它利用<code>Spring Boot</code>的开发便利性巧妙地简化了分布式系统基础设施的开发，主要功能包括<code>服务发现注册、配置中心、消息总线、负载均衡、断路器、数据监控</code>等。</p>
+</li>
+<li><p><code>ServiceComb</code>作为功能完善的<code>微服务框架</code>，包括<code>应用框架代码生成、服务注册发现、服务配置管理、服务监控、服务调用追踪等功能</code>，为开发者提供<code>端到端的应用DevOps体验</code>。</p>
+</li>
+<li><p><code>Apache Dubbo</code>是一款高性能、轻量级的<code>开源服务框架</code>，提供了<code>六大核心能力</code>：<code>面向接口代理的高性能RPC调用</code>，<code>智能容错和负载均衡</code>，<code>服务自动注册和发现</code>，<code>高度可扩展能力</code>，<code>运行期流量调度</code>，<code>可视化的服务治理与运维</code>。</p>
+</li>
+</ul>
+<p>微服务的基本思想在于考虑<code>围绕着业务领域组件来创建应用</code>，这些应用可独立地进行开发、管理和加速。在分散的组件中使用微服务云架构和平台，使部署、管理和服务功能交付变得更加简单。</p>
+<h3 id="微服务架构模式"><a href="#微服务架构模式" class="headerlink" title="微服务架构模式"></a>微服务架构模式</h3><p>微服务架构模式涉及：</p>
+<ul>
+<li>微服务之间的<code>RPC通信</code>。</li>
+<li>分布式微服务实例和<code>服务发现</code>。</li>
+<li>配置外置，动态、集中的<code>配置管理</code>。</li>
+<li>提供熔断、隔离、限流、负载均衡等<code>微服务治理能力</code>。</li>
+<li><code>分布式事务</code>管理能力。</li>
+<li>调用链、集中<code>日志采集和检索</code>。</li>
+</ul>
+<p>下面问问详细来看下：</p>
+<p><strong>微服务之间的<code>RPC通信(Remote Procedure Call，远程过程调用)</code></strong> 。微服务架构模式要求微服务之间通过RPC进行通信，不采用其他传统的通信方式，比如<code>共享内存、管道</code>等。常见的<code>RPC通信协议</code>包括<code>REST、gRPC、Web Service</code>等。使用<code>RPC</code>通信，能够降低微服务之间的耦合，提升系统的开放性，减少技术选型的限制。一般建议采用业界标准协议，比如REST。对于性&#96;能要求非常高的场景，也可以考虑私有协议。</p>
+<p><strong>分布式微服务实例和服务发现</strong>。 微服务架构特别强调 <code>架构的弹性</code>，业务架构需要支持微服务多实例部署来满足业务流量的动态变化。微服务设计一般会遵循<code>无状态设计原则</code>，符合该原则的微服务扩充实例，能够带来处理性能的线性提升。</p>
+<p><strong>配置外置及动态、集中的配置管理</strong> 。配置管理中间件给所有微服务提供统一的配置管理视图，有效降低配置管理的复杂性。搭配治理控制台，可以在微服务运行态对微服务的行为进行调整。</p>
+<p><strong>提供熔断、隔离、限流、负载均衡等微服务治理能力</strong> 。微服务架构存在一些常见的故障模式，通过这些治理能力，容灾措施，能够减少故障对于整体业务的影响，避免雪崩效应。</p>
+<p><strong>分布式事务管理能力</strong> 。常见的分布式事务处理模式包括Saga、TCC、无侵入式等。分布式事务管理可以降低处理分布式事务一致性问题的难度。</p>
+<p><strong>调用链、集中日志采集和检索</strong>。查看日志仍然是分析系统故障最常用的手段，调用链信息可以帮助界定故障和分析性能瓶颈。</p>
+<h3 id="为什么需要Spring-Cloud？"><a href="#为什么需要Spring-Cloud？" class="headerlink" title="为什么需要Spring Cloud？"></a>为什么需要Spring Cloud？</h3><ul>
+<li>Spring Cloud来源于Spring，质量、稳定性、持续性都可以得到保证。</li>
+<li>Spirng Cloud天然支持Spring Boot，更加便于业务落地。</li>
+<li>Spring Cloud发展非常的快。</li>
+<li>Spring Cloud是Java领域最适合做微服务的框架。</li>
+<li>相比于其它框架，Spring Cloud对微服务周边环境的支持力度最大。</li>
+<li>对于中小企业来讲，使用门槛较低。开源</li>
+</ul>
+<h3 id="Spring-Cloud的优势分析"><a href="#Spring-Cloud的优势分析" class="headerlink" title="Spring Cloud的优势分析"></a>Spring Cloud的优势分析</h3><p><strong>优点：</strong></p>
+<ul>
+<li>产出于Spring大家族，社区生态完善</li>
+<li>有Spring Boot这个独立干将可以省很多事,内嵌的web服务器，起不依赖，自动化配置，各种微服务组件兼容性好。</li>
+<li>Spring Cloud 活跃度很高，教程很丰富，遇到问题很容易找到解决方案。</li>
+<li>提供了注解的方式来自动化配置，轻轻松松几行代码就完成了熔断、均衡负责、服务中心的各种平台功能。</li>
+</ul>
+<p><strong>缺点</strong></p>
+<ul>
+<li>Spring Cloud也有一个缺点，只能使用Java开发，SDK侵入性强，sdk版本差距较大时需要对代码进行修改，对于废弃的api寻找一些新的替代，不适合小型独立的项目。</li>
+</ul>
+<p>整理来讲，<code>Spring Cloud</code>对于中小型互联网公司来说是一种福音，因为这类公司往往没有实力或者没有足够的资金投入去开发自己的分布式系统基础设施，使用<code>Spring Cloud</code>一站式解决方案能在从容应对业务发展的同时大大减少开发成本。同时，随着近几年微服务架构和Docker容器概念的火爆，也会让<code>Spring Cloud</code>在未来越来越“云”化的软件开发风格中立有一席之地，尤其是在五花八门的分布式解决方案中提供了标准化的、全站式的技术方案，意义可能会堪比当年Servlet规范的诞生，有效推进服务端软件系统技术水平的进步。</p>
+<h3 id="Spring-Cloud-框架"><a href="#Spring-Cloud-框架" class="headerlink" title="Spring Cloud 框架"></a>Spring Cloud 框架</h3><p><img src="https://img-blog.csdnimg.cn/7e057844aec841468403b48e53d612c9.png" alt="在这里插入图片描述"></p>
+<p>从上图可以看出Spring Cloud各个组件相互配合，合作支持了一套完整的微服务架构。</p>
+<ul>
+<li>其中<code>Eureka</code>负责服务的注册与发现，很好地将各服务连接起来,不过现在已经不维护了</li>
+<li><code>Hystrix</code>负责监控服务之间的调用情况，连续多次失败进行熔断保护。</li>
+<li><code>Hystrix dashboard，Turbine</code> 负责监控Hystrix的熔断情况，并给予图形化的展示。</li>
+<li><code>Spring Cloud Config</code>提供了统一的配置中心服务。当配置文件发生变化的时候，<code>Spring Cloud Bus负责通知各服务</code>去获取最新的配置信息。</li>
+<li>所有对外的请求和服务，我们都通过<code>Zuul</code>来进行转发，起到<code>API网关</code>的作用。</li>
+<li>最后我们使用<code>Sleuth+Zipkin</code>将所有的请求数据记录下来，方便我们进行后续分析。</li>
+</ul>
+<p>Spring Cloud从设计之初就考虑了绝大多数互联网公司架构演化所需的功能，如<code>服务发现注册、配置中心、消息总线、负载均衡、断路器、数据监控</code>等。这些功能都是以插拔的形式提供出来，方便我们系统架构演进的过程中，可以合理的选择需要的组件进行集成，从而在架构演进的过程中会更加平滑、顺利。</p>
+<p>Spring Cloud提供了标准化的、全站式的技术方案，意义可能会堪比当前Servlet规范的诞生，有效推进服务端软件系统技术水平的进步。</p>
+<h3 id="核心概念"><a href="#核心概念" class="headerlink" title="核心概念"></a>核心概念</h3><h4 id="服务注册"><a href="#服务注册" class="headerlink" title="服务注册"></a>服务注册</h4><p>服务实例将自身服务信息注册到注册中心。这部分服务信息包括服务所在主机IP和提供服务的Port，以及暴露服务自身状态以及访问协议等信息。</p>
+<h4 id="服务发现"><a href="#服务发现" class="headerlink" title="服务发现"></a>服务发现</h4><p>服务实例请求注册中心获取所依赖服务信息。服务实例通过注册中心，获取到注册到其中的服务实例的信息，通过这些信息去请求它们提供的服务。</p>
+<p><img src="https://img-blog.csdnimg.cn/f8df02acc48e425ea7b69e4d8ad2fa33.png" alt="在这里插入图片描述"></p>
+<p><code>Spring Cloud Netflix</code>是对<code>Netflix</code>开发的一套分布式服务框架的封装，包括服务的发现和注册，负载均衡、断路器、REST客户端、请求路由等。</p>
+<h4 id="负载均衡"><a href="#负载均衡" class="headerlink" title="负载均衡"></a>负载均衡</h4><p>负载均衡是高可用网络基础架构的关键组件，通常用于将工作负载分布到多个服务器来提高网站、应用、数据库或其他服务的性能和可靠性。</p>
+<p><img src="https://img-blog.csdnimg.cn/9c45a4c248dc4ab7afe755eb82ed2cf5.png" alt="在这里插入图片描述"></p>
+<p><code>Ribbon</code>主要为客户一侧提供软件负载均衡算法，客户端组件包括连接超时、重试、重试算法等等，并带有可插拔&#x2F;定制的负载均衡组件策略，并集成一些功能，比如使用<code>Archaius</code>完成运行时配置。</p>
+<p>需要注意的是这里的负载均衡是客户端LB，和我们用Ng或者Haproxy做的LB是有本质区别的，可以理解为细粒度的LB。</p>
+<h4 id="API网关"><a href="#API网关" class="headerlink" title="API网关"></a>API网关</h4><p><code>微服务网关</code>，介于<code>客户端与服务器</code>之间的中间层，所有的外部请求都会先经过<code>微服务网关</code>。客户端只需要与网关交互，只知道一个网关地址即可。</p>
+<p><img src="https://img-blog.csdnimg.cn/654bb97130754bfa94ebbb3918d16e7a.png" alt="在这里插入图片描述"></p>
+<ul>
+<li>将所有API调用统一接入到API网关层，由网关层统一接入和输出。</li>
+<li>一个网关的基本功能有<code>：统一接入、安全防护、协议适配、流量管控、长短链接支持、容错能力。</code></li>
+<li>有了网关之后，各个API服务提供团队可以专注于自己的的业务逻辑处理，而API网关更专注于安全、流量、路由等问题。</li>
+</ul>
+<h4 id="配置中心"><a href="#配置中心" class="headerlink" title="配置中心"></a>配置中心</h4><p><code>配置中心</code>就是把项目中各种配置、各种参数、各种开关，全部都放到一个集中的地方进行统一管理，并提供一套标准的接口。</p>
+<p>当各个服务需要获取配置的时候，就来配置中心的接口拉取。当配置中心中的各种参数有更新的时候，也能通知到各个服务实时的过来同步最新的信息，使之动态更新。</p>
+<p><code>Spring Cloud Config</code>将配置信息中央化保存, 配置<code>Spring Cloud Bus</code>可以实现动态修改配置文件，整体基于观察订阅的设计模式，当然，也可以使用<code>zookeep</code>来实现</p>
+<h4 id="熔断"><a href="#熔断" class="headerlink" title="熔断"></a>熔断</h4><p>熔断：这一概念来源于电子工程中的断路器(Circuit Breaker)。在互联网系统中，当下游服务因访问压力过大而响应变慢或失败，上游服务为了保护系统整体的可用性，可以暂时切断对下游服务的调用。这种牺牲局部，保全整体的措施就叫做熔断。一般熔断的时候，会提供对应的熔断策略。</p>
+<p><code>spring-cloud-netflix-hystrix 对 Hystrix </code>进行封装和适配，使 Hystrix 能够更好地运行于 Spring Cloud 环境中，为微服务间的调用提供强有力的容错机制。 </p>
+<h4 id="雪崩"><a href="#雪崩" class="headerlink" title="雪崩"></a>雪崩</h4><p>客户端访问A服务，而A服务需要调用B服务，B服务需要调用C服务，由于网络原因或者自身的原因，如果B服务或者C服务不能及时响应，A服务将处于阻塞状态，直到B服务和C服务响应。此时若有大量的请求涌入，容器的线程资源会被消耗完毕，导致服务瘫痪。</p>
+<p>服务与服务之间的依赖性，故障会传播，造成连锁反应，会对整个微服务系统造成灾难性的严重后果，这就是服务故障的“雪崩”效应。</p>
+<p><code>断路器</code>将远程方法调用包装到一个断路器对象中，用于监控方法调用过程的失败。 一旦该方法调用发生的失败次数在一段时间内达到一定的阀值，那么这个<code>断路器将会跳闸</code></p>
+<p>在接下来时间里再次调用该方法将会<code>被断路器直接返回异常</code>，而不再发生该方法的真实调 用。 这样就避免了服务调用者在服务提供者不可用时发送请求，从而减少线程池中资源的 消耗，保护了服务调用者。</p>
+<p>虽然断路器在打开的时候避免了被保护方法的无效调用，但是当情况恢复正常时，需要外部干预来重置断路器，使得方法调用可以重新发生。 所以合理的断路器应该具备一定的开关转化逻辑，它需要一个机制来控制它的重新闭合</p>
+<h4 id="链路追踪"><a href="#链路追踪" class="headerlink" title="链路追踪"></a>链路追踪</h4><p>随着微服务架构的流行，服务按照不同的维度进行拆分，一次请求往往需要涉及到多个服务。互联网应用构建在不同的软件模块集上，这些软件模块，有可能是由不同的团队开发、可能使用不同的编程语言来实现、有可能布在了几千台服务器，横跨多个不同的数据中心。因此，就需要对一次请求涉及的<code>多个服务链路进行日志记录，性能监控即链路追踪</code>。</p>
+<p><code>Spring Cloud Sleuth</code>主要功能就是在分布式系统中提供追踪解决方案，并且兼容支持了<code>zipkin</code>。</p>
+<h3 id="Spring-Cloud的技术实现"><a href="#Spring-Cloud的技术实现" class="headerlink" title="Spring Cloud的技术实现"></a>Spring Cloud的技术实现</h3><p><img src="https://img-blog.csdnimg.cn/26ff63d8d734440e845f501273d50969.png" alt="在这里插入图片描述"></p>
+<p>Spring Cloud的子项目，大致可分成两类.</p>
+<p>一类是对现有成熟框架”Spring Boot化”的封装和抽象，也是数量最多的项目；</p>
+<p>二类是开发了一部分分布式系统的基础设施的实现，如<code>Spring Cloud Stream</code>扮演的就是<code>kafka，ActiveMQ</code>这样的角色。对于我们想快速实践微服务的开发者来说，第一类子项目就已经足够使用。</p>
+<ul>
+<li><code>Spring Cloud Netflix是对Netflix</code> 开发的一套分布式服务框架的封装，包括服务的发现和注册，负载均衡、断路器、REST客户端、请求路由等。</li>
+<li><code>Spring Cloud Config</code>将配置信息中央化保存，配置Spring Cloud Bus可以实现动态修改配置文件</li>
+<li><code>Spring Cloud Stream</code>分布式消息队列，是对Kafka，MQ的封装</li>
+<li><code>Spring Cloud Security</code>对Spring Security的封装，并能配合Netflix使用<code>Spring Cloud Zookeeper</code>对Zookeeper的封装，使之能配置其它Spring Cloud的子项目使用</li>
+<li><code>Spring Cloud Eureka</code>是Spring Cloud Netftix微服务套件中的一部分，它基于Netflix Eureka 做了二次封装，主要负责完成微服务架构中的服务治理功能。</li>
+</ul>
+<h3 id="Spring-Cloud微服务典型部署"><a href="#Spring-Cloud微服务典型部署" class="headerlink" title="Spring Cloud微服务典型部署"></a>Spring Cloud微服务典型部署</h3><p><img src="https://img-blog.csdnimg.cn/9bf3d0edf8b54080b0e2a6fdbf534ea4.png" alt="在这里插入图片描述"></p>
+<ul>
+<li>不同的应用可以通过gateway进行交互。</li>
+<li>也可以通过gateway为前端提供接口。</li>
+</ul>
+<h3 id="微服务引擎-CSE"><a href="#微服务引擎-CSE" class="headerlink" title="微服务引擎 CSE"></a>微服务引擎 CSE</h3><ul>
+<li><code>微服务引擎(Cloud ServiceEngine，CSE)</code>，是用于微服务应用的<code>云中间件</code>，为用户提供注册发现、服务治理、配置管理等高性能和高韧性的企业级云服务能力。</li>
+<li>CSE可无缝兼容<code>Spring Cloud、ServiceComb</code>等开源生态。</li>
+<li>用户也可结合其他云服务，快速构建云原生微服务体系，实现微服务应用的快速开发和高可用运维。</li>
+<li>CSE一般和数据库、缓存和消息中间件同时使用，完成业务功能的开发。</li>
+<li>AOM、APM、LTS等工具，则为业务提供运维能力，帮助检测业务故障、分析故障原<br>因。</li>
+</ul>
+<h3 id="CSE功能介绍"><a href="#CSE功能介绍" class="headerlink" title="CSE功能介绍"></a>CSE功能介绍</h3><p><img src="https://img-blog.csdnimg.cn/61729f0a04114b7ab49ad0d3cdb558aa.png" alt="在这里插入图片描述"></p>
+<p>CSE可以支持多种语言。</p>
+<h3 id="CSE功能组件与Spring-Cloud框架的关系"><a href="#CSE功能组件与Spring-Cloud框架的关系" class="headerlink" title="CSE功能组件与Spring Cloud框架的关系"></a>CSE功能组件与Spring Cloud框架的关系</h3><p><img src="https://img-blog.csdnimg.cn/b32ab62eed444ab8970c0c78393c2821.png" alt="在这里插入图片描述"></p>
+<h3 id="Spring-Cloud-Huawei的位置和作用"><a href="#Spring-Cloud-Huawei的位置和作用" class="headerlink" title="Spring Cloud Huawei的位置和作用"></a>Spring Cloud Huawei的位置和作用</h3><p><code>Spring Cloud Huawei</code>是构建在Spring Cloud应用之上，基于Spring Cloud现有能力构建的，<code>Spring Cloud huawei</code>提供的一系列新的组件。目的是让<code>开发者以比较低的成本迁移到华为云微服务引擎CSE</code>。</p>
+<p><img src="https://img-blog.csdnimg.cn/fb70e7a727f9454f91e77fee05ca0181.png" alt="在这里插入图片描述"></p>
+<ul>
+<li>Spring cloud huawei作为依赖被引用。</li>
+<li>开发使用spring cloud框架。</li>
+<li>接入到CSE中。</li>
+<li>CSE中包含服务注册发现、配置、治理功能。</li>
+</ul>
+<h3 id="Spring-Cloud-Huawei功能介绍"><a href="#Spring-Cloud-Huawei功能介绍" class="headerlink" title="Spring Cloud Huawei功能介绍"></a>Spring Cloud Huawei功能介绍</h3><p><img src="https://img-blog.csdnimg.cn/a54c6aa6652948dfa9249fa280166f2b.png" alt="在这里插入图片描述"></p>
+<h3 id="微服务代码框架"><a href="#微服务代码框架" class="headerlink" title="微服务代码框架"></a>微服务代码框架</h3><p><img src="https://img-blog.csdnimg.cn/aacea3dd16ab4be7a9d4104f5bf8e402.png" alt="在这里插入图片描述"></p>
+<h3 id="Spring-Cloud-huawei接入流程"><a href="#Spring-Cloud-huawei接入流程" class="headerlink" title="Spring Cloud huawei接入流程"></a>Spring Cloud huawei接入流程</h3><ul>
+<li><p>引入依赖包，引入Spring Cloud Huawei依赖。<br><img src="https://img-blog.csdnimg.cn/99236121d66242f4be541465f5d9395f.png" alt="在这里插入图片描述"></p>
+</li>
+<li><p>接入服务注册发现中心。<br><img src="https://img-blog.csdnimg.cn/09fda15ccb0a42209ca5823d84973704.png" alt="在这里插入图片描述"></p>
+</li>
+<li><p>接入配置中心。<br><img src="https://img-blog.csdnimg.cn/a340fee251ae43fbbcf0eb7c1a593076.png" alt="在这里插入图片描述"></p>
+</li>
+</ul>
+<h1 id="华为云应用管理与运维服务"><a href="#华为云应用管理与运维服务" class="headerlink" title="华为云应用管理与运维服务"></a>华为云应用管理与运维服务</h1><h3 id="华为云应用管理与运维平台功能框架"><a href="#华为云应用管理与运维平台功能框架" class="headerlink" title="华为云应用管理与运维平台功能框架"></a>华为云应用管理与运维平台功能框架</h3><p><img src="https://img-blog.csdnimg.cn/afa9e674025f4f0f89dc996caeac5923.png" alt="在这里插入图片描述"></p>
+<p>华为云应用管理与运维平台ServiceStage提供应用全生命周期管理，实现业务敏捷DevOps，并通过独有的契约能力实现了微服务治理与业务代码分离，帮助企业开发者聚焦业务逻辑。ServiceStage聚焦行业使能，携手合作伙伴一起打造面向数字政府、智慧金融、数字工业、智慧零售等行业的端到端解决方案。</p>
+<h3 id="华为云应用管理与运维平台流程"><a href="#华为云应用管理与运维平台流程" class="headerlink" title="华为云应用管理与运维平台流程"></a>华为云应用管理与运维平台流程</h3><p>ServiceStage是一个应用托管和微服务管理平台，可以帮助企业简化部署、监控、运维和治理等应用生命周期管理工作。ServiceStage面向企业提供微服务、移动和Web类应用开发的全栈解决方案，帮助企业数字化快速转型。</p>
+<p><img src="https://img-blog.csdnimg.cn/ba8cebae82b74de18d6e77a14442c03d.png" alt="在这里插入图片描述"></p>
+</div><div class="article-licensing box"><div class="licensing-title"><p>云原生入门级开发者认证学习笔记之微服务架构介绍</p><p><a href="https://liruilongs.github.io/2022/05/05/华为云/云原生入门级开发者认证学习笔记之微服务架构介绍/">https://liruilongs.github.io/2022/05/05/华为云/云原生入门级开发者认证学习笔记之微服务架构介绍/</a></p></div><div class="licensing-meta level is-mobile"><div class="level-left"><div class="level-item is-narrow"><div><h6>作者</h6><a href="https://liruilongs.github.io"><p>山河已无恙</p></a></div></div><div class="level-item is-narrow"><div><h6>发布于</h6><p>2022-05-05</p></div></div><div class="level-item is-narrow"><div><h6>更新于</h6><p>2024-02-15</p></div></div><div class="level-item is-narrow"><div><h6>许可协议</h6><p><a class="icon" rel="noopener" target="_blank" title="Creative Commons" href="https://creativecommons.org/"><i class="fab fa-creative-commons"></i></a><a class="icon" rel="noopener" target="_blank" title="Attribution" href="https://creativecommons.org/licenses/by/4.0/"><i class="fab fa-creative-commons-by"></i></a><a class="icon" rel="noopener" target="_blank" title="Noncommercial" href="https://creativecommons.org/licenses/by-nc/4.0/"><i class="fab fa-creative-commons-nc"></i></a></p></div></div></div></div></div><div class="recommend-area"><div class="recommend-post"><span class="is-size-6 has-text-grey has-mr-7"># 相关文章</span><br><span>  1.<a class="is-size-6" href="/2022/03/27/%E5%8D%8E%E4%B8%BA%E4%BA%91/%E4%BA%91%E5%8E%9F%E7%94%9F%E5%85%A5%E9%97%A8%E7%BA%A7%E5%BC%80%E5%8F%91%E8%80%85%E8%AE%A4%E8%AF%81%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0%E4%B9%8B%E4%BA%91%E5%8E%9F%E7%94%9F%E5%9F%BA%E7%A1%80%E8%AE%BE%E6%96%BD%E4%B9%8B%E5%AE%B9%E5%99%A8%E6%8A%80%E6%9C%AF/" target="_blank">云原生入门级开发者认证学习笔记之云原生基础设施之容器技术</a><br></span><span>  2.<a class="is-size-6" href="/2022/03/27/%E5%8D%8E%E4%B8%BA%E4%BA%91/%E4%BA%91%E5%8E%9F%E7%94%9F%E5%85%A5%E9%97%A8%E7%BA%A7%E5%BC%80%E5%8F%91%E8%80%85%E8%AE%A4%E8%AF%81%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0%E4%B9%8B%E4%BA%91%E5%8E%9F%E7%94%9F%E6%9E%B6%E6%9E%84%E6%80%BB%E8%A7%88/" target="_blank">云原生入门级开发者认证学习笔记之云原生架构总览</a><br></span><span>  3.<a class="is-size-6" href="/2022/03/27/%E5%8D%8E%E4%B8%BA%E4%BA%91/%E4%BA%91%E5%8E%9F%E7%94%9F%E5%85%A5%E9%97%A8%E7%BA%A7%E5%BC%80%E5%8F%91%E8%80%85%E8%AE%A4%E8%AF%81%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0%E4%B9%8B%E4%BA%91%E5%8E%9F%E7%94%9F%E5%9F%BA%E7%A1%80%E8%AE%BE%E6%96%BD%E4%B9%8BKubernetes/" target="_blank">云原生入门级开发者认证学习笔记之云原生基础设施之Kubernetes</a><br></span></div><div class="recommend-post"><span class="is-size-6 has-text-grey has-mr-7"># 推荐文章</span><br><span>  1.<a class="is-size-6" href="/2021/08/27/K8s/%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/%E3%80%8AKubernetes%E6%9D%83%E5%A8%81%E6%8C%87%E5%8D%97-%E4%BB%8EDocker%E5%88%B0Kubernetes%E5%AE%9E%E8%B7%B5%E5%85%A8%E6%8E%A5%E8%A7%A6%E3%80%8B%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/" target="_blank">《Kubernetes权威指南:从Docker到Kubernetes实践全接触》读书笔记</a><br></span><span>  2.<a class="is-size-6" href="/2022/11/19/Git/%E5%85%B3%E4%BA%8E-Git-%E9%87%8D%E5%86%99%E5%8E%86%E5%8F%B2%E7%9A%84%E4%B8%80%E4%BA%9B%E7%AC%94%E8%AE%B0/" target="_blank">关于 Git 重写历史的一些笔记</a><br></span><span>  3.<a class="is-size-6" href="/2022/08/02/Git/%E5%85%B3%E4%BA%8EGit%E5%88%86%E6%94%AF%E5%8F%98%E5%9F%BA%E6%93%8D%E4%BD%9C%E7%9A%84%E4%B8%80%E4%BA%9B%E7%AC%94%E8%AE%B0/" target="_blank">关于Git分支变基操作的一些笔记</a><br></span><span>  4.<a class="is-size-6" href="/2022/07/26/Git/%E5%85%B3%E4%BA%8EGit%E5%88%86%E6%94%AF%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86%E7%9A%84%E4%B8%80%E4%BA%9B%E7%AC%94%E8%AE%B0/" target="_blank">关于Git分支基础知识的一些笔记</a><br></span><span>  5.<a class="is-size-6" href="/2022/08/02/Git/%E5%85%B3%E4%BA%8EGit%E5%88%86%E6%94%AF%E5%B7%A5%E4%BD%9C%E6%B5%81%E7%9A%84%E4%B8%80%E4%BA%9B%E7%AC%94%E8%AE%B0/" target="_blank">关于Git分支工作流的一些笔记</a><br></span><span>  6.<a class="is-size-6" href="/2023/02/19/Git/%E5%85%B3%E4%BA%8EGit%E9%AB%98%E7%BA%A7%E5%90%88%E5%B9%B6%E7%9A%84%E4%B8%80%E4%BA%9B%E7%AC%94%E8%AE%B0%E6%95%B4%E7%90%86/" target="_blank">关于Git分支高级合并的一些笔记整理</a><br></span></div></div><link rel="stylesheet" href="https://cdnjs.loli.net/ajax/libs/social-share.js/1.0.16/css/share.min.css"><div class="social-share"></div><script src="https://cdnjs.loli.net/ajax/libs/social-share.js/1.0.16/js/social-share.min.js"></script></article></div><div class="card"><div class="card-content"><h3 class="menu-label has-text-centered">喜欢这篇文章？打赏一下作者吧</h3><div class="buttons is-centered"><a class="button donate" data-type="alipay"><span class="icon is-small"><i class="fab fa-alipay"></i></span><span>支付宝</span><span class="qrcode"><img src="/img/alipay%EF%BF%A5.png" alt="支付宝"></span></a><a class="button donate" data-type="wechat"><span class="icon is-small"><i class="fab fa-weixin"></i></span><span>微信</span><span class="qrcode"><img src="/img/wechat%EF%BF%A5.png" alt="微信"></span></a></div></div></div><nav class="post-navigation mt-4 level is-mobile"><div class="level-start"><a class="article-nav-prev level level-item link-muted" href="/2022/05/08/Ops_demo/%E5%85%B3%E4%BA%8ESRE%E6%96%B9%E6%B3%95%E8%AE%BA%E7%9A%84%E4%B8%80%E4%BA%9B%E7%AC%94%E8%AE%B0/"><i class="level-item fas fa-chevron-left"></i><span class="level-item">关于SRE方法论的一些笔记</span></a></div><div class="level-end"><a class="article-nav-next level level-item link-muted" href="/2022/05/04/Python/Python%E5%AE%9E%E6%88%98%E4%B9%8B%E6%95%B0%E5%AD%97%E3%80%81%E6%97%A5%E6%9C%9F%E5%92%8C%E6%97%B6%E9%97%B4%E7%9A%84%E9%AB%98%E7%BA%A7%E5%A4%84%E7%90%86/"><span class="level-item">Python实战之数字、日期和时间的高级处理</span><i class="level-item fas fa-chevron-right"></i></a></div></nav><!--!--><div class="card"><div class="card-content"><div class="title is-5">评论</div><div id="comment-container"></div><link rel="stylesheet" href="https://cdnjs.loli.net/ajax/libs/gitalk/1.6.0/gitalk.css"><script> $.getScript('/js/gitalk.min.js', function () { 
+            var gitalk = new Gitalk({
+            language:'zh-CN',
+            id: 'a25ac70c96d79443ad24d24e40f88dd5',
+            repo: 'blog_comment',
+            owner: 'LIRUILONGS',
+            clientID: '9fdc9739266d48d5f62e',
+            clientSecret: 'c1cc33697d099a2197650ec9dadcb16bd4904655',
+            admin: ["LIRUILONGS"],
+            createIssueManually: true,
+            distractionFreeMode: true,
+            perPage: 10,
+            pagerDirection: 'last',
+            proxy: 'https://cors-anywhere.azm.workers.dev/https://github.com/login/oauth/access_token',
+            
+            enableHotKey: true,
+            isLocked: false
+        })
+        gitalk.render('comment-container')});</script></div></div></div><div class="column column-left is-4-tablet is-4-desktop is-3-widescreen  order-1 is-sticky"><div class="card widget" id="toc" data-type="toc"><div class="card-content"><div class="menu"><h3 class="menu-label">目录</h3><ul class="menu-list"><ul class="menu-list"><li><a class="is-flex is-mobile" href="#写在前面"><span class="mr-2">1.1</span><span>写在前面</span></a></li></ul><li><a class="is-flex is-mobile" href="#企业应用架构演进"><span class="mr-2">2</span><span>企业应用架构演进</span></a><ul class="menu-list"><ul class="menu-list"><li><a class="is-flex is-mobile" href="#什么是微服务架构"><span class="mr-2">2.1.1</span><span>什么是微服务架构</span></a></li><li><a class="is-flex is-mobile" href="#微服务的定义"><span class="mr-2">2.1.2</span><span>微服务的定义</span></a></li><li><a class="is-flex is-mobile" href="#微服务的特征"><span class="mr-2">2.1.3</span><span>微服务的特征</span></a></li><li><a class="is-flex is-mobile" href="#单体架构"><span class="mr-2">2.1.4</span><span>单体架构</span></a></li><li><a class="is-flex is-mobile" href="#单体架构的优缺点"><span class="mr-2">2.1.5</span><span>单体架构的优缺点</span></a></li><li><a class="is-flex is-mobile" href="#从单体架构演进到SOA服务化架构"><span class="mr-2">2.1.6</span><span>从单体架构演进到SOA服务化架构</span></a></li><li><a class="is-flex is-mobile" href="#SOA服务化架构"><span class="mr-2">2.1.7</span><span>SOA服务化架构</span></a></li><li><a class="is-flex is-mobile" href="#SOA-有哪些不足"><span class="mr-2">2.1.8</span><span>SOA 有哪些不足</span></a></li><li><a class="is-flex is-mobile" href="#微服务架构"><span class="mr-2">2.1.9</span><span>微服务架构</span></a></li><li><a class="is-flex is-mobile" href="#微服务架构与单体架构"><span class="mr-2">2.1.10</span><span>微服务架构与单体架构</span></a></li><li><a class="is-flex is-mobile" href="#微服务架构于SOA架构"><span class="mr-2">2.1.11</span><span>微服务架构于SOA架构</span></a></li><li><a class="is-flex is-mobile" href="#微服务的优势和挑战"><span class="mr-2">2.1.12</span><span>微服务的优势和挑战</span></a></li></ul></ul></li><li><a class="is-flex is-mobile" href="#典型微服务框架介绍"><span class="mr-2">3</span><span>典型微服务框架介绍</span></a><ul class="menu-list"><ul class="menu-list"><li><a class="is-flex is-mobile" href="#常见的微服务框架"><span class="mr-2">3.1.1</span><span>常见的微服务框架</span></a></li><li><a class="is-flex is-mobile" href="#微服务架构模式"><span class="mr-2">3.1.2</span><span>微服务架构模式</span></a></li><li><a class="is-flex is-mobile" href="#为什么需要Spring-Cloud？"><span class="mr-2">3.1.3</span><span>为什么需要Spring Cloud？</span></a></li><li><a class="is-flex is-mobile" href="#Spring-Cloud的优势分析"><span class="mr-2">3.1.4</span><span>Spring Cloud的优势分析</span></a></li><li><a class="is-flex is-mobile" href="#Spring-Cloud-框架"><span class="mr-2">3.1.5</span><span>Spring Cloud 框架</span></a></li><li><a class="is-flex is-mobile" href="#链路追踪"><span class="mr-2">3.1.6</span><span>链路追踪</span></a></li><li><a class="is-flex is-mobile" href="#Spring-Cloud的技术实现"><span class="mr-2">3.1.7</span><span>Spring Cloud的技术实现</span></a></li><li><a class="is-flex is-mobile" href="#Spring-Cloud微服务典型部署"><span class="mr-2">3.1.8</span><span>Spring Cloud微服务典型部署</span></a></li><li><a class="is-flex is-mobile" href="#微服务引擎-CSE"><span class="mr-2">3.1.9</span><span>微服务引擎 CSE</span></a></li><li><a class="is-flex is-mobile" href="#CSE功能介绍"><span class="mr-2">3.1.10</span><span>CSE功能介绍</span></a></li><li><a class="is-flex is-mobile" href="#CSE功能组件与Spring-Cloud框架的关系"><span class="mr-2">3.1.11</span><span>CSE功能组件与Spring Cloud框架的关系</span></a></li><li><a class="is-flex is-mobile" href="#Spring-Cloud-Huawei的位置和作用"><span class="mr-2">3.1.12</span><span>Spring Cloud Huawei的位置和作用</span></a></li><li><a class="is-flex is-mobile" href="#Spring-Cloud-Huawei功能介绍"><span class="mr-2">3.1.13</span><span>Spring Cloud Huawei功能介绍</span></a></li><li><a class="is-flex is-mobile" href="#微服务代码框架"><span class="mr-2">3.1.14</span><span>微服务代码框架</span></a></li><li><a class="is-flex is-mobile" href="#Spring-Cloud-huawei接入流程"><span class="mr-2">3.1.15</span><span>Spring Cloud huawei接入流程</span></a></li></ul></ul></li><li><a class="is-flex is-mobile" href="#华为云应用管理与运维服务"><span class="mr-2">4</span><span>华为云应用管理与运维服务</span></a><ul class="menu-list"><ul class="menu-list"><li><a class="is-flex is-mobile" href="#华为云应用管理与运维平台功能框架"><span class="mr-2">4.1.1</span><span>华为云应用管理与运维平台功能框架</span></a></li><li><a class="is-flex is-mobile" href="#华为云应用管理与运维平台流程"><span class="mr-2">4.1.2</span><span>华为云应用管理与运维平台流程</span></a></li></ul></ul></li></ul></div></div><style>.menu-list > li > a.is-active + .menu-list { display: block; }.menu-list > li > a + .menu-list { display: none; }</style><script src="/js/toc.js" defer></script></div><div class="card widget" data-type="profile"><div class="card-content"><nav class=""><div class="level-item has-text-centered flex-shrink-1"><div><figure class="image is-128x128 mx-auto mb-2"><img class="avatar" src="/img/%E5%BE%AE%E4%BF%A1%E5%85%AC%E4%BC%97%E5%8F%B7.jpg" alt="山河已无恙"></figure><p class="title is-size-4 is-block" style="line-height:inherit;">山河已无恙</p><p class="is-size-6 is-block">爱自己，是终生浪漫的开始</p><p class="is-size-6 is-flex justify-content-center"><i class="fas fa-map-marker-alt mr-1"></i><span>中国·呼和浩特</span></p></div></div></nav><nav class="level is-mobile"><div class="level-item has-text-centered is-marginless"><div><p class="heading">文章</p><a href="/archives"><p class="title">350</p></a></div></div><div class="level-item has-text-centered is-marginless"><div><p class="heading">分类</p><a href="/categories"><p class="title">112</p></a></div></div><div class="level-item has-text-centered is-marginless"><div><p class="heading">标签</p><a href="/tags"><p class="title">164</p></a></div></div></nav><div class="level"><a class="level-item button is-primary is-rounded" href="https://mp.weixin.qq.com/s?__biz=MzkyNjIxNTYwMw==&amp;mid=2247496480&amp;idx=1&amp;sn=a9971fed3962ef2a1aeda1f0bda65f86&amp;chksm=c2380ffcf54f86eaba8daac6caca72a70f38e61a8d25dc2a66d3a17b87c02530e326dcaea14b#rd" target="_blank" rel="noopener">关注我</a></div><div class="level is-mobile"><a class="level-item button is-transparent is-marginless" target="_blank" rel="noopener" title="Github" href="https://github.com/LIRUILONGS"><i class="fab fa-github"></i></a><a class="level-item button is-transparent is-marginless" target="_blank" rel="noopener" title="CSDN" href="https://liruilong.blog.csdn.net/"><i class="fa fa-code"></i></a><a class="level-item button is-transparent is-marginless" target="_blank" rel="noopener" title="Email" href="mailto:1224965096@qq.com"><i class="fa fa-envelope"></i></a></div></div></div><div class="card widget" data-type="links"><div class="card-content"><div class="menu"><h3 class="menu-label">链接</h3><ul class="menu-list"><li><a class="level is-mobile" href="https://liruilong.blog.csdn.net/?t=1&amp;type=blog" target="_blank" rel="noopener"><span class="level-left"><span class="level-item">CSDN</span></span><span class="level-right"><span class="level-item tag">liruilong.blog.csdn.net</span></span></a></li><li><a class="level is-mobile" href="https://www.cnblogs.com/liruilong/" target="_blank" rel="noopener"><span class="level-left"><span class="level-item">博客园</span></span><span class="level-right"><span class="level-item tag">www.cnblogs.com</span></span></a></li><li><a class="level is-mobile" href="https://github.com/LIRUILONGS" target="_blank" rel="noopener"><span class="level-left"><span class="level-item">Githup</span></span><span class="level-right"><span class="level-item tag">github.com</span></span></a></li><li><a class="level is-mobile" href="https://gitee.com/liruilonger" target="_blank" rel="noopener"><span class="level-left"><span class="level-item">码云</span></span><span class="level-right"><span class="level-item tag">gitee.com</span></span></a></li></ul></div></div></div><div class="card widget"><div class="card-content"><h3 class="menu-label">最新评论</h3><span class="body_hot_comment">加载中，最新评论有1分钟缓存...</span></div></div><div class="card widget"><div class="card-content"><h3 class="menu-label">最新文章</h3><article class="media"><div class="media-content"><p class="date"><time dateTime="2024-03-07T18:02:06.000Z">2024-03-08</time></p><p class="title"><a href="/2024/03/08/%E5%BE%85%E5%8F%91%E5%B8%83/Linux-%E6%80%A7%E8%83%BD%E8%B0%83%E4%BC%98%E4%B9%8B%E9%85%8D%E7%BD%AECPU%E8%B0%83%E5%BA%A6%E7%AD%96%E7%95%A5%E5%92%8C%E5%8F%AF%E8%B0%83%E5%8F%82%E6%95%B0/">Linux 性能调优之配置CPU调度策略和可调参数</a></p><p class="categories"><a href="/categories/Linux/">Linux</a></p></div></article><article class="media"><div class="media-content"><p class="date"><time dateTime="2024-03-05T03:02:27.000Z">2024-03-05</time></p><p class="title"><a href="/2024/03/05/%E5%BE%85%E5%8F%91%E5%B8%83/Linux%E7%BD%91%E7%BB%9C%E9%9A%A7%E9%81%93%E5%8D%8F%E8%AE%AEIPIP%E8%AE%A4%E7%9F%A5/">Linux网络隧道协议IPIP认知(基于Linux network namespace 的 IPIP 隧道通信)</a></p><p class="categories"><a href="/categories/IPIP/">IPIP</a></p></div></article><article class="media"><div class="media-content"><p class="date"><time dateTime="2024-03-04T12:30:31.000Z">2024-03-04</time></p><p class="title"><a href="/2024/03/04/%E5%BE%85%E5%8F%91%E5%B8%83/%E6%91%84%E5%BD%B1%E6%9E%84%E5%9B%BE%EF%BC%9A%E7%AE%80%E5%8D%95%E6%98%93%E7%94%A8%E7%9A%84%E6%91%84%E5%BD%B1%E6%9E%84%E5%9B%BE%E6%96%B9%E6%B3%95%EF%BC%88%E4%BA%8C%EF%BC%89/">摄影构图：简单易用的摄影构图方法（二）</a></p><p class="categories"><a href="/categories/%E6%91%84%E5%BD%B1%E6%9E%84%E5%9B%BE/">摄影构图</a></p></div></article><article class="media"><div class="media-content"><p class="date"><time dateTime="2024-03-04T11:27:06.000Z">2024-03-04</time></p><p class="title"><a href="/2024/03/04/%E5%BE%85%E5%8F%91%E5%B8%83/%E6%91%84%E5%BD%B1%E6%9E%84%E5%9B%BE%EF%BC%9A%E7%AE%80%E5%8D%95%E6%98%93%E7%94%A8%E7%9A%84%E6%91%84%E5%BD%B1%E6%9E%84%E5%9B%BE%E6%96%B9%E6%B3%95%EF%BC%88%E4%B8%80%EF%BC%89/">摄影构图：简单易用的摄影构图方法（一）</a></p><p class="categories"><a href="/categories/%E6%91%84%E5%BD%B1%E6%9E%84%E5%9B%BE/">摄影构图</a></p></div></article><article class="media"><div class="media-content"><p class="date"><time dateTime="2024-03-03T03:50:54.000Z">2024-03-03</time></p><p class="title"><a href="/2024/03/03/%E5%BE%85%E5%8F%91%E5%B8%83/Linux-%E7%BD%91%E7%BB%9C%E6%8E%A5%E5%8F%A3%E7%9A%84%E6%B7%B7%E6%9D%82%E6%A8%A1%E5%BC%8F-Promiscuous-mode-%E8%AE%A4%E7%9F%A5/">Linux 网络接口的混杂模式(Promiscuous  mode)认知</a></p><p class="categories"><a href="/categories/Linux/">Linux</a></p></div></article></div></div><div class="card widget"><div class="card-content"><div class="menu"><h3 class="menu-label">分类</h3><ul class="menu-list"><li><a class="level is-mobile is-marginless" href="/categories/AIGC/"><span class="level-start"><span class="level-item">AIGC</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/AdaFace/"><span class="level-start"><span class="level-item">AdaFace</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/Ajax/"><span class="level-start"><span class="level-item">Ajax</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/Ansible/"><span class="level-start"><span class="level-item">Ansible</span></span><span class="level-end"><span class="level-item tag">23</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/AppCube/"><span class="level-start"><span class="level-item">AppCube</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/BPF/"><span class="level-start"><span class="level-item">BPF</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/Bind9/"><span class="level-start"><span class="level-item">Bind9</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/CI-CD/"><span class="level-start"><span class="level-item">CI/CD</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/CSS/"><span class="level-start"><span class="level-item">CSS</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/Ceph/"><span class="level-start"><span class="level-item">Ceph</span></span><span class="level-end"><span class="level-item tag">11</span></span></a></li><a class="level is-mobile is-marginless" href="/categories/"><span class="level-start"><span class="level-item">查看全部&gt;&gt;</span></span></a></ul></div></div></div><div class="card widget"><div class="card-content"><div class="menu"><h3 class="menu-label">归档</h3><ul class="menu-list"><li><a class="level is-mobile is-marginless" href="/archives/2024/03/"><span class="level-start"><span class="level-item">三月 2024</span></span><span class="level-end"><span class="level-item tag">5</span></span></a></li><li><a class="level is-mobile is-marginless" href="/archives/2024/02/"><span class="level-start"><span class="level-item">二月 2024</span></span><span class="level-end"><span class="level-item tag">18</span></span></a></li><li><a class="level is-mobile is-marginless" href="/archives/2024/01/"><span class="level-start"><span class="level-item">一月 2024</span></span><span class="level-end"><span class="level-item tag">5</span></span></a></li><li><a class="level is-mobile is-marginless" href="/archives/2023/12/"><span class="level-start"><span class="level-item">十二月 2023</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li><li><a class="level is-mobile is-marginless" href="/archives/2023/11/"><span class="level-start"><span class="level-item">十一月 2023</span></span><span class="level-end"><span class="level-item tag">7</span></span></a></li><a class="level is-mobile is-marginless" href="/archives/"><span class="level-start"><span class="level-item">查看全部&gt;&gt;</span></span></a></ul></div></div></div><div class="card widget"><div class="card-content"><div class="menu"><h3 class="menu-label">标签</h3><div class="field is-grouped is-grouped-multiline"><div class="control"><a class="tags has-addons" href="/tags/Kubernetes/"><span class="tag">Kubernetes</span><span class="tag is-grey-lightest">94</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Linux/"><span class="tag">Linux</span><span class="tag is-grey-lightest">42</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Ansible/"><span class="tag">Ansible</span><span class="tag is-grey-lightest">25</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Python/"><span class="tag">Python</span><span class="tag is-grey-lightest">14</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Ceph/"><span class="tag">Ceph</span><span class="tag is-grey-lightest">11</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Docker/"><span class="tag">Docker</span><span class="tag is-grey-lightest">8</span></a></div><div class="control"><a class="tags has-addons" href="/tags/JAVA/"><span class="tag">JAVA</span><span class="tag is-grey-lightest">8</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%E5%8D%8E%E4%B8%BA%E4%BA%91/"><span class="tag">华为云</span><span class="tag is-grey-lightest">8</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Git/"><span class="tag">Git</span><span class="tag is-grey-lightest">7</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Go/"><span class="tag">Go</span><span class="tag is-grey-lightest">6</span></a></div><div class="control"><a class="tags has-addons" href="/tags/OpenShift/"><span class="tag">OpenShift</span><span class="tag is-grey-lightest">6</span></a></div><div class="control"><a class="tags has-addons" href="/tags/DNS/"><span class="tag">DNS</span><span class="tag is-grey-lightest">5</span></a></div><div class="control"><a class="tags has-addons" href="/tags/OKD/"><span class="tag">OKD</span><span class="tag is-grey-lightest">5</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%E7%A8%8B%E5%BA%8F%E4%BA%BA%E7%94%9F/"><span class="tag">程序人生</span><span class="tag is-grey-lightest">5</span></a></div><div class="control"><a class="tags has-addons" href="/tags/selenium/"><span class="tag">selenium</span><span class="tag is-grey-lightest">4</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%E5%AE%B9%E5%99%A8/"><span class="tag">容器</span><span class="tag is-grey-lightest">4</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%E7%BD%91%E7%BB%9C/"><span class="tag">网络</span><span class="tag is-grey-lightest">4</span></a></div><div class="control"><a class="tags has-addons" href="/tags/CKA/"><span class="tag">CKA</span><span class="tag is-grey-lightest">3</span></a></div><div class="control"><a class="tags has-addons" href="/tags/GO/"><span class="tag">GO</span><span class="tag is-grey-lightest">3</span></a></div><div class="control"><a class="tags has-addons" href="/tags/ISCSI/"><span class="tag">ISCSI</span><span class="tag is-grey-lightest">3</span></a></div></div><div class="field is-grouped is-grouped-multiline"><a class="tags has-addons" href="/tags/"><span class="tag">查看全部&gt;&gt;</span></a></div></div></div></div><div class="card widget" data-type="subscribe-email"><div class="card-content"><div class="menu"><h3 class="menu-label">订阅更新</h3><form action="https://feedburner.google.com/fb/a/mailverify" method="post" target="popupwindow" onsubmit="window.open(&#039;https://feedburner.google.com/fb/a/mailverify?uri=&#039;,&#039;popupwindow&#039;,&#039;scrollbars=yes,width=550,height=520&#039;);return true"><input type="hidden" value="" name="uri"><input type="hidden" name="loc" value="en_US"><div class="field has-addons"><div class="control has-icons-left is-expanded"><input class="input" name="email" type="email" placeholder="Email"><span class="icon is-small is-left"><i class="fas fa-envelope"></i></span></div><div class="control"><input class="button" type="submit" value="订阅"></div></div></form></div></div></div><!--!--><div class="column-right-shadow is-hidden-widescreen is-sticky"></div></div></div></div></section><footer class="footer"><div class="container"><div class="level"><div class="level-start"><a class="footer-logo is-block mb-2" href="/"><img src="/img/logo.png" alt="山河已无恙" height="28"></a><p class="size-small"><span>&copy; 2024 山河已无恙</span>  Powered by <a href="https://hexo.io/" target="_blank">Hexo</a> &amp; <a href="https://github.com/ppoffice/hexo-theme-icarus" target="_blank">Icarus</a> &amp; <a href="https://github.com/removeif/hexo-theme-amazing" target="_blank">Amazing</a> <br><span>© <a href="http://www.beian.miit.gov.cn/" target="_blank">备案中</a><br></span><span>© 版权说明：[本网站所有内容均收集于互联网或自己创作,<br />&nbsp;&nbsp;&nbsp;&nbsp;方便于网友与自己学习交流，如有侵权，请<a href="/message" target="_blank">留言</a>，立即处理]<br /></span><span><span id="statistic-times">loading...</span><script>function createTime(time) {
+            var n = new Date(time);
+            now.setTime(now.getTime() + 250),
+                days = (now - n) / 1e3 / 60 / 60 / 24,
+                dnum = Math.floor(days),
+                hours = (now - n) / 1e3 / 60 / 60 - 24 * dnum,
+                hnum = Math.floor(hours),
+            1 == String(hnum).length && (hnum = "0" + hnum),
+                minutes = (now - n) / 1e3 / 60 - 1440 * dnum - 60 * hnum,
+                mnum = Math.floor(minutes),
+            1 == String(mnum).length && (mnum = "0" + mnum),
+                seconds = (now - n) / 1e3 - 86400 * dnum - 3600 * hnum - 60 * mnum,
+                snum = Math.round(seconds),
+            1 == String(snum).length && (snum = "0" + snum),
+                document.getElementById("statistic-times").innerHTML = "❤️本站自 <strong>"+time.split(" ")[0].replace(/\//g,".")+"</strong> 已运行 <strong>" + dnum + "</strong> 天 <strong>" + hnum + "</strong> 小时 <strong>" + mnum + "</strong> 分 <strong>" + snum + "</strong> 秒！❤️";
+        }var now = new Date();setInterval("createTime('2021/6/26 21:27:00')", 250,"");</script><br></span><div class="size-small"><span>❤️感谢 <strong><span id="busuanzi_value_site_uv">99+</span></strong> 小伙伴的 <strong><span id="busuanzi_value_site_pv">99+</span></strong> 次光临！❤️</span></div></p></div><div class="level-end"><div class="field has-addons"><p class="control"><a class="button is-transparent is-large" target="_blank" rel="noopener" title="Creative Commons" href="https://creativecommons.org/"><i class="fab fa-creative-commons"></i></a></p><p class="control"><a class="button is-transparent is-large" target="_blank" rel="noopener" title="Attribution 4.0 International" href="https://creativecommons.org/licenses/by/4.0/"><i class="fab fa-creative-commons-by"></i></a></p><p class="control"><a class="button is-transparent is-large" target="_blank" rel="noopener" title="Download on GitHub" href="https://github.com/removeif/hexo-theme-amazing"><i class="fab fa-github"></i></a></p></div><div class="sideMusic"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/aplayer/dist/APlayer.min.css"><script src="/js/APlayer.min.js"></script><script src="https://cdn.jsdelivr.net/npm/meting@2/dist/Meting.min.js"></script><meting-js style="width: auto;height: 2000px;" server="netease" type="playlist" id="2364053447" theme="#2980b9" loop="all" autoplay="false" order="list" storageName="aplayer-setting" lrctype="0" list-max-height="400px" fixed="true"></meting-js></div></div></div></div></footer><script src="https://cdnjs.loli.net/ajax/libs/moment.js/2.22.2/moment-with-locales.min.js"></script><script src="https://cdnjs.loli.net/ajax/libs/clipboard.js/2.0.4/clipboard.min.js" async></script><script>moment.locale("zh-CN");</script><script>var IcarusThemeSettings = {
+            article: {
+                highlight: {
+                    clipboard: true,
+                    fold: 'unfolded'
+                }
+            }
+        };</script><script src="/js/column.js"></script><!--!--><script src="/js/animation.js"></script><a id="back-to-top" title="回到顶端" href="javascript:;"><i class="fas fa-chevron-up"></i></a><script src="/js/back_to_top.js" defer></script><!--!--><script src="https://cdnjs.loli.net/ajax/libs/lightgallery/1.6.8/js/lightgallery.min.js" defer></script><script src="https://cdnjs.loli.net/ajax/libs/justifiedGallery/3.7.0/js/jquery.justifiedGallery.min.js" defer></script><script>window.addEventListener("load", () => {
+            if (typeof $.fn.lightGallery === 'function') {
+                $('.article').lightGallery({ selector: '.gallery-item' });
+            }
+            if (typeof $.fn.justifiedGallery === 'function') {
+                if ($('.justified-gallery > p > .gallery-item').length) {
+                    $('.justified-gallery > p > .gallery-item').unwrap();
+                }
+                $('.justified-gallery').justifiedGallery();
+            }
+        });</script><!--!--><!--!--><link rel="stylesheet" href="https://cdnjs.loli.net/ajax/libs/KaTeX/0.11.1/katex.min.css"><script src="https://cdnjs.loli.net/ajax/libs/KaTeX/0.11.1/katex.min.js" defer></script><script src="https://cdnjs.loli.net/ajax/libs/KaTeX/0.11.1/contrib/auto-render.min.js" defer></script><script src="https://cdnjs.loli.net/ajax/libs/KaTeX/0.11.1/contrib/mhchem.js" defer></script><script>window.addEventListener("load", function() {
+            document.querySelectorAll('[role="article"] > .content').forEach(function(element) {
+                renderMathInElement(element);
+            });
+        });</script><script type="text/x-mathjax-config">MathJax.Hub.Config({
+            'HTML-CSS': {
+                matchFontHeight: false
+            },
+            SVG: {
+                matchFontHeight: false
+            },
+            CommonHTML: {
+                matchFontHeight: false
+            },
+            tex2jax: {
+                inlineMath: [
+                    ['$','$'],
+                    ['\\(','\\)']
+                ]
+            }
+        });</script><script src="https://cdnjs.loli.net/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-MML-AM_CHTML" defer></script><div id="outdated"><h6>Your browser is out-of-date!</h6><p>Update your browser to view this website correctly.&amp;npsb;<a id="btnUpdateBrowser" target="_blank" rel="noopener" href="http://outdatedbrowser.com/">Update my browser now </a></p><p class="last"><a href="#" id="btnCloseUpdateBrowser" title="Close">×</a></p></div><script src="https://cdnjs.loli.net/ajax/libs/outdated-browser/1.1.5/outdatedbrowser.min.js" defer></script><script>window.addEventListener("load", function () {
+            outdatedBrowser({
+                bgColor: '#f25648',
+                color: '#ffffff',
+                lowerThan: 'object-fit' // display on IE11 or below
+            });
+        });</script><!--!--><script src="/js/main.js" defer></script><script>$.getScript('/js/comment-issue-data.js',function(){loadIssueData('9fdc9739266d48d5f62e','c1cc33697d099a2197650ec9dadcb16bd4904655','LIRUILONGS','blog_comment',false);})</script><div class="searchbox"><div class="searchbox-container"><div class="searchbox-header"><div class="searchbox-input-container"><input class="searchbox-input" type="text" placeholder="想要查找什么..."></div><a class="searchbox-close" href="javascript:;">×</a></div><div class="searchbox-body"></div></div></div><script src="/js/insight.js" defer></script><script>document.addEventListener('DOMContentLoaded', function () {
+            loadInsight({"contentUrl":"/content.json"}, {"hint":"想要查找什么...","untitled":"(无标题)","posts":"文章","pages":"页面","categories":"分类","tags":"标签"});
+        });</script><script src="https://cdn.jsdelivr.net/npm/pjax@0.2.8/pjax.js"></script><script type="text/javascript">var pjax = new Pjax({
+            elements: "a",//代表点击链接就更新
+            selectors: [  //代表要更新的节点
+                ".section",
+                "title"
+            ],
+            cache: true,
+            cacheBust:false
+        })
+
+        function loadBusuanzi(){
+        $.getScript("//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js", function () {});
+        }
+
+        function loadMathJax() { //加载mathjax
+            $.getScript("//cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.4/MathJax.js?config=TeX-MML-AM_CHTML", function () {
+                MathJax.Hub.Config({ tex2jax: { inlineMath: [['$', '$'], ['\(', '\)']] } });
+                var math = document.getElementsByClassName("entry-content")[0];
+                MathJax.Hub.Queue(["Typeset", MathJax.Hub, math]);
+            });
+        };
+
+        // 开始 PJAX 执行的函数
+        document.addEventListener('pjax:send', function () {
+        });
+        
+        // PJAX 完成之后执行的函数，可以和上面的重载放在一起
+        document.addEventListener('pjax:complete', function () {
+            $(".section").css({opacity:1});
+            if(true){
+                $.getScript('/js/comment-issue-data.js',function(){loadIssueData('9fdc9739266d48d5f62e','c1cc33697d099a2197650ec9dadcb16bd4904655','LIRUILONGS','blog_comment',false);});
+            }
+            if(false){
+                loadMathJax();
+            }
+            loadMainJs(jQuery, window.moment, window.ClipboardJS, window.IcarusThemeSettings);
+            loadBackTop();
+            loadBusuanzi();
+            if(typeof loadBanner == 'function'){
+                loadBanner();
+            }
+        });</script></body></html>
