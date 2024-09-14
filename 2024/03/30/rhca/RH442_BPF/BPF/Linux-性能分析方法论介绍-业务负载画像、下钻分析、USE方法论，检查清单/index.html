@@ -1,0 +1,259 @@
+<!doctype html>
+<html lang="zh"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"><meta><title>Linux 常见性能分析方法论介绍(业务负载画像、下钻分析、USE方法论，检查清单) - 山河已无恙</title><link rel="manifest" href="/manifest.json"><meta name="application-name" content="山河已无恙"><meta name="msapplication-TileImage" content="https://cdn.jsdelivr.net/gh/removeif/removeif-demo@latest/img/favicon.png"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="山河已无恙"><meta name="apple-mobile-web-app-status-bar-style" content="default"><meta description="不必太纠结于当下，也不必太忧虑未来，当你经历过一些事情的时候，眼前的风景已经和从前不一样了。——村上春树"><meta property="og:type" content="blog"><meta property="og:title" content="山河已无恙"><meta property="og:url" content="https://mp.weixin.qq.com/s?__biz=MzkyNjIxNTYwMw==&amp;mid=2247496480&amp;idx=1&amp;sn=a9971fed3962ef2a1aeda1f0bda65f86&amp;chksm=c2380ffcf54f86eaba8daac6caca72a70f38e61a8d25dc2a66d3a17b87c02530e326dcaea14b#rd"><meta property="og:site_name" content="山河已无恙"><meta property="og:description" content="不必太纠结于当下，也不必太忧虑未来，当你经历过一些事情的时候，眼前的风景已经和从前不一样了。——村上春树"><meta property="og:locale" content="zh_CN"><meta property="og:image" content="https://mp.weixin.qq.com/img/头像.jpg"><meta property="article:published_time" content="2024-03-30T12:24:43.000Z"><meta property="article:modified_time" content="2024-05-20T05:07:49.132Z"><meta property="article:author" content="LIRUILONGS"><meta property="article:tag" content="Linux"><meta property="twitter:card" content="summary"><meta property="twitter:image" content="/img/头像.jpg"><script type="application/ld+json">{"@context":"https://schema.org","@type":"BlogPosting","mainEntityOfPage":{"@type":"WebPage","@id":"https://liruilongs.github.io/2024/03/30/rhca/RH442_BPF/BPF/Linux-%E6%80%A7%E8%83%BD%E5%88%86%E6%9E%90%E6%96%B9%E6%B3%95%E8%AE%BA%E4%BB%8B%E7%BB%8D-%E4%B8%9A%E5%8A%A1%E8%B4%9F%E8%BD%BD%E7%94%BB%E5%83%8F%E3%80%81%E4%B8%8B%E9%92%BB%E5%88%86%E6%9E%90%E3%80%81USE%E6%96%B9%E6%B3%95%E8%AE%BA%EF%BC%8C%E6%A3%80%E6%9F%A5%E6%B8%85%E5%8D%95/"},"headline":"山河已无恙","image":["https://img-blog.csdnimg.cn/direct/e5ec4ef856b14be3b685c360a5b42897.png","https://img-blog.csdnimg.cn/direct/c21d8d8c5d5f4369a7ca4cfaccab4106.png","https://img-blog.csdnimg.cn/direct/11daaaafb7de42978f80760c856d4fbf.png","https://img-blog.csdnimg.cn/direct/4a4912dee6b5451e92ff5de9e3bf47fe.png"],"datePublished":"2024-03-30T12:24:43.000Z","dateModified":"2024-05-20T05:07:49.132Z","author":{"@type":"Person","name":"山河已无恙"},"description":"不必太纠结于当下，也不必太忧虑未来，当你经历过一些事情的时候，眼前的风景已经和从前不一样了。——村上春树"}</script><link rel="canonical" href="https://liruilongs.github.io/2024/03/30/rhca/RH442_BPF/BPF/Linux-%E6%80%A7%E8%83%BD%E5%88%86%E6%9E%90%E6%96%B9%E6%B3%95%E8%AE%BA%E4%BB%8B%E7%BB%8D-%E4%B8%9A%E5%8A%A1%E8%B4%9F%E8%BD%BD%E7%94%BB%E5%83%8F%E3%80%81%E4%B8%8B%E9%92%BB%E5%88%86%E6%9E%90%E3%80%81USE%E6%96%B9%E6%B3%95%E8%AE%BA%EF%BC%8C%E6%A3%80%E6%9F%A5%E6%B8%85%E5%8D%95/"><link rel="alternate" href="/path/to/atom.xml" title="山河已无恙" type="application/atom+xml"><link rel="icon" href="https://cdn.jsdelivr.net/gh/removeif/removeif-demo@latest/img/favicon.png"><meta name="referrer" content="no-referrer-when-downgrade"><link rel="stylesheet" href="https://cdnjs.loli.net/ajax/libs/font-awesome/5.12.0/css/all.min.css"><link rel="stylesheet" href="https://cdnjs.loli.net/ajax/libs/highlight.js/9.12.0/styles/dracula.min.css"><link rel="stylesheet" href="https://fonts.loli.net/css2?family=Ubuntu:wght@400;600&amp;family=Source+Code+Pro"><link rel="stylesheet" href="/css/default.css"><link rel="stylesheet" href="https://cdnjs.loli.net/ajax/libs/font-awesome/5.12.0/css/all.min.css"><link rel="stylesheet" href="https://fonts.loli.net/css?family=Ubuntu:400,600|Source+Code+Pro|Monda:300,300italic,400,400italic,700,700italic|Roboto Slab:300,300italic,400,400italic,700,700italic|Microsoft YaHei:300,300italic,400,400italic,700,700italic|PT Mono:300,300italic,400,400italic,700,700italic&amp;amp;subset=latin,latin-ext|Inconsolata|Itim|Lobster.css"><script src="https://cdnjs.loli.net/ajax/libs/jquery/3.3.1/jquery.min.js"></script><script src="/js/globalUtils.js"></script><script src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js" defer></script><style>body>.footer,body>.navbar,body>.section{opacity:0}</style><!--!--><script>var _hmt = _hmt || [];
+        (function() {
+            var hm = document.createElement("script");
+            hm.src = "//hm.baidu.com/hm.js?3f06f2b732a5b1034c989f74e28d0eea";
+            var s = document.getElementsByTagName("script")[0];
+            s.parentNode.insertBefore(hm, s);
+        })();</script><link rel="stylesheet" href="https://cdnjs.loli.net/ajax/libs/lightgallery/1.6.8/css/lightgallery.min.css"><link rel="stylesheet" href="https://cdnjs.loli.net/ajax/libs/justifiedGallery/3.7.0/css/justifiedGallery.min.css"><!--!--><!--!--><!--!--><!--!--><link rel="stylesheet" href="https://cdnjs.loli.net/ajax/libs/outdated-browser/1.1.5/outdatedbrowser.min.css"><script src="https://cdnjs.loli.net/ajax/libs/pace/1.0.2/pace.min.js"></script><link rel="stylesheet" href="/live2d/waifu.css"><script type="text/javascript" async src="/live2d/autoload.js"></script><meta name="generator" content="Hexo 5.4.2"></head><body class="is-3-column has-navbar-fixed-top"><nav class="navbar navbar-main is-fixed-top"><div class="container"><div class="navbar-brand justify-content-center"><a class="navbar-item navbar-logo" href="/"><img src="/img/logo.png" alt="山河已无恙" height="28"></a></div><div class="navbar-menu"><div class="navbar-start"><a class="navbar-item" href="/">首页</a><a class="navbar-item" href="/archives">归档</a><a class="navbar-item" href="/categories">分类</a><a class="navbar-item" href="/tags">标签</a><a class="navbar-item" href="/media">影音</a><a class="navbar-item" href="/album">相册</a><a class="navbar-item" href="/friend">友链</a><a class="navbar-item" href="/self-talking">生活小记</a><a class="navbar-item" href="/message">留言墙</a><a class="navbar-item" href="/about">关于</a></div><div class="navbar-end"><a class="navbar-item" target="_blank" rel="noopener" title="Gitee" href="https://gitee.com/liruilonger"><i class="fab fa-git-square fa-1x"></i></a><a class="navbar-item" target="_blank" rel="noopener" title="GitHub" href="https://github.com/LIRUILONGS"><i class="fab fa-github fa-1x"></i></a><a class="navbar-item is-hidden-tablet catalogue" title="目录" href="javascript:;"><i class="fas fa-list-ul fa-1x"></i></a><a class="navbar-item search" title="搜索" href="javascript:;"><i class="fas fa-search fa-1x"></i></a><a class="navbar-item" id="night-nav" title="Night Mode" href="javascript:;"><i class="fas fa-moon fa-1x" id="night-icon"></i></a></div></div></div></nav><script type="text/javascript" src="/js/theme-setting.js"></script><section class="section"><div class="container"><div class="columns"><div class="column order-2 column-main is-8-tablet is-8-desktop is-9-widescreen"><!--!--><div class="card"><article class="card-content article" role="article"><div class="article-meta size-small is-uppercase level is-mobile"><div class="level-left"><i class="far fa-calendar-plus"> </i>2024-03-30  <a class="commentCountImg" href="/2024/03/30/rhca/RH442_BPF/BPF/Linux-%E6%80%A7%E8%83%BD%E5%88%86%E6%9E%90%E6%96%B9%E6%B3%95%E8%AE%BA%E4%BB%8B%E7%BB%8D-%E4%B8%9A%E5%8A%A1%E8%B4%9F%E8%BD%BD%E7%94%BB%E5%83%8F%E3%80%81%E4%B8%8B%E9%92%BB%E5%88%86%E6%9E%90%E3%80%81USE%E6%96%B9%E6%B3%95%E8%AE%BA%EF%BC%8C%E6%A3%80%E6%9F%A5%E6%B8%85%E5%8D%95/#comment-container"><span class="display-none-class">646bcfb4f6479d4dfdd3dbc623e861c6</span><i class="far fa-comment-dots"></i> <span class="commentCount" id="646bcfb4f6479d4dfdd3dbc623e861c6">99+</span>  </a><span class="level-item"><i class="far fa-clock"> </i>19 分钟  <i class="fas fa-pencil-alt"> </i>2.8 k</span><span class="level-item" id="busuanzi_container_page_pv"><span id="busuanzi_value_page_pv">0</span>次访问</span></div></div><h1 class="title is-3 is-size-4-mobile">Linux 常见性能分析方法论介绍(业务负载画像、下钻分析、USE方法论，检查清单)</h1><div class="content"><p><strong><font color="009688"> 不必太纠结于当下，也不必太忧虑未来，当你经历过一些事情的时候，眼前的风景已经和从前不一样了。——村上春树</strong></font></p>
+<span id="more"></span>
+<h2 id="写在前面"><a href="#写在前面" class="headerlink" title="写在前面"></a>写在前面</h2><hr>
+<ul>
+<li>博文内容为 <code>《BPF Performance Tools》</code> 读书笔记整理</li>
+<li>内容涉及常用的性能调优方法论介绍：</li>
+<li>业务负载画像</li>
+<li>下钻分析</li>
+<li>USE方法论</li>
+<li>检查清单</li>
+<li>理解不足小伙伴帮忙指正</li>
+</ul>
+<p><strong><font color="009688"> 不必太纠结于当下，也不必太忧虑未来，当你经历过一些事情的时候，眼前的风景已经和从前不一样了。——村上春树</strong></font></p>
+<hr>
+<p>讲到性能分析，可以觉得有点高大上，实际上，性能分析在日常运维场景中很常见，系统故障往往可以是性能问题导致。</p>
+<h3 id="性能分析的目标是什么？"><a href="#性能分析的目标是什么？" class="headerlink" title="性能分析的目标是什么？"></a>性能分析的目标是什么？</h3><p>一般来说，性能分析的目标是</p>
+<ul>
+<li><code>改进最终用户的体验</code></li>
+<li><code>降低运行成本</code></li>
+</ul>
+<p>最好能将性能分析的目标进行<code>量化定义</code>;这种量化能够表明是否已经达到<code>性能优化目标</code>，还可以用来定义距离目标还有多少差距。可以测量的指标包括如下几项。</p>
+<ul>
+<li><code>延迟</code>:多久可以完成一次请求或操作，通常以毫秒为单位。</li>
+<li><code>速率</code>:每秒操作或请求的速率</li>
+<li><code>吞吐量</code>:通常指每秒传输的数据量，以比特(bit)或者字节(byte)为单位。</li>
+<li><code>利用率</code>:以百分比形式表示的某资源在一段时间内的繁忙程度</li>
+<li><code>成本</code>:开销&#x2F;性能的比例。</li>
+</ul>
+<p>最终用户眼中的<code>性能</code>，可以通过<code>用户请求从发出到被响应之间所花费的时间来衡量</code>，性能优化的目标就是<code>缩短这个时间</code>。这个等待时间被称为<code>延迟</code></p>
+<p>针对<code>延迟</code>的改进可以通过<code>分析请求时间的组成</code>，将其细分为各个组成部分，例如，</p>
+<ul>
+<li>CPU上运行代码的时间;</li>
+<li>等待某个资源，比如磁盘IO、网络以及锁的时间，等待CPU 调度的时间等。</li>
+</ul>
+<p>可以编写一个 BPF工具,直接跟踪<code>应用的总体请求延迟以及各个部分的单独开销</code>不过这样的工具会和具体应用相关，并且由于同时对多个事件进行跟踪会带来显著的运行开销。</p>
+<p>在开展性能分析工作时请牢记上述<code>目标</code>。<code>使用BPF工具，很容易出现这种情况</code>:生成了大量数据，然后又花费了大量时间来理解这些数据，最后却发现该指标并不重要</p>
+<p>首先应该明确<code>工作目标</code>是什么:我们是要<code>降低请求延迟</code>，还是<code>降低运行成本</code>?明确目标后，进一步的分析工作就有了上下文，不至于跑偏。</p>
+<p>BPF性能分析工具，不只用于分析特定类型的问题。下表所示的是一个<code>性能分析工作的列表</code>，以及在每项工作中 BPF 性能分析工具可以发挥的作用。</p>
+<table>
+<thead>
+<tr>
+<th>性能分析活动</th>
+<th>BPF 性能分析工具</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>原型软件或硬件的性能特征分析</td>
+<td>测量不同业务负载下的<code>延迟直方图</code></td>
+</tr>
+<tr>
+<td>在开发阶段、集成阶段之前的性能分析</td>
+<td>解决性能瓶颈点，寻找一般的性能改进点</td>
+</tr>
+<tr>
+<td>针对软件的某个版本，在发布前&#x2F;后进行的非回归测试</td>
+<td>从多个不同来源记录代码的使用和延迟数据，支持快速定位回归测试问题</td>
+</tr>
+<tr>
+<td>基准测试，为软件发布的市场宣传工作提供数据支撑</td>
+<td>研究性能问题，寻找机会改进基准测试性能</td>
+</tr>
+<tr>
+<td>在目标环境下进行的概念验证(Proof-ofconcept)测试</td>
+<td>生成延迟分布直方图，确保性能满足请求的服务等级协议(SLA)</td>
+</tr>
+<tr>
+<td>监控生产环境中运行的软件</td>
+<td>编写可以 24x7运行的工具，提供新的、之前属于盲区的性能指标</td>
+</tr>
+<tr>
+<td>故障排查时的性能分析</td>
+<td>使用现成的工具或根据需要创建自定义的观测点来解决特定的性能问题</td>
+</tr>
+</tbody></table>
+<h3 id="多重性能问题"><a href="#多重性能问题" class="headerlink" title="多重性能问题"></a>多重性能问题</h3><p>同时发现多个性能问题，需要识别那个性能问题才是最重要的，通常是那些对延迟或者成本开销影响最大的性能问题。</p>
+<h2 id="开展那些工作对性能分析有帮助？（性能分析方法论"><a href="#开展那些工作对性能分析有帮助？（性能分析方法论" class="headerlink" title="开展那些工作对性能分析有帮助？（性能分析方法论)"></a>开展那些工作对性能分析有帮助？（性能分析方法论)</h2><p>如何处理性能分析工具提取的数据，需要机遇性能分析方法论，方法论是一个可以遵循的过程，指导从哪里开始，中间需要做些什么，从哪里结束。</p>
+<h3 id="业务负载画像"><a href="#业务负载画像" class="headerlink" title="业务负载画像"></a>业务负载画像</h3><p>业务负载画像的目的是<code>理解实际运行的业务负载</code>。你不需要对最终的性能结果进行分析.</p>
+<p>“<code>消除不必要的工作</code>”是笔者在性能优化结果中收益最显著的一种，通过研究业务负载的构成就可以找到这样的优化点。开展业务负载画像的推荐步骤如下:</p>
+<ul>
+<li>负载是谁产生的(比如，进程ID、用户ID、进程名、IP地址)?</li>
+<li>负载为什么会产生(代码路径、调用、火焰图)?</li>
+<li>负载的组成是什么(IOPS、吞吐量、负载类型)?</li>
+<li>负载怎样随着时间发生变化(比较每个周期的摘要信息)?</li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">vfsstat</span><br></pre></td></tr></table></figure>
+
+<p><img src="https://img-blog.csdnimg.cn/direct/e5ec4ef856b14be3b685c360a5b42897.png" alt="在这里插入图片描述"></p>
+<p>上面的输出显示了这虚拟文件系统 VFS 层面业务负载的细节,并且回答<code>第三个问题</code>，即负载类型和操作的速率，同时还通过周期性的输出信息回答了<code>第四个问题 </code><br>作为<code>第一个问题</code>的Demo，使用 <code>bpftrace</code> 运行一个单行的程序</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">bpftrace -e <span class="string">&#x27;kprobe:vfs_read &#123; @[comm] == count(); &#125;&#x27;</span></span><br></pre></td></tr></table></figure>
+
+<p><img src="https://img-blog.csdnimg.cn/direct/c21d8d8c5d5f4369a7ca4cfaccab4106.png" alt="在这里插入图片描述"></p>
+<p>输出显示了名称为“Web Content”的进程在上述测量期间执行了1725次 vfs read IO 操作。</p>
+<p>第二个问题，可以通过<code>火焰图</code>来分析</p>
+<p><img src="https://img-blog.csdnimg.cn/direct/11daaaafb7de42978f80760c856d4fbf.png" alt="在这里插入图片描述"></p>
+<h3 id="下钻分析"><a href="#下钻分析" class="headerlink" title="下钻分析"></a>下钻分析</h3><p>下钻分析的工作过程是<code>从一个指标开始</code>，然后将这个指标拆分成<code>多个组成部分</code>，再将最大的组件进一步拆分为更小的组件，不断重复这个过程直到定位出一个或多个根因。</p>
+<p>可以用一个类比来帮助解释这个过程。设想一下，如果你收到了一笔数额巨大的信用卡账单。为了分析它，需要登录到银行账户中调阅交易记录。在那里你发现了一笔线上书店的大额交易。然后你又登录到线上书店去看哪些书引发了这笔交易，结果有点意外:你发现不小心将此刻正在读的这本书购买了1000本(多谢!)。这就是下钻分析过程:先找到一个线索，然后拆分以寻找更深一步的线索，如此反复直到问题解决。<code>下钻分析</code>的推荐步骤如下:</p>
+<ol>
+<li>从业务最高层级开始分析。</li>
+<li>检查下一个层级的细节。</li>
+<li>挑出最感兴趣的部分或者线索。</li>
+<li>如果问题还没有解决，跳转至第2步。</li>
+</ol>
+<p><code>下钻分析</code>可能会涉及对工具进行定制，此时<code>bpftrace 比 bcc 更加适合</code>。有一种类型的下钻分析涉及将延迟分解为各个组成部分。想象一下下面的分析过程:</p>
+<ol>
+<li>请求延迟 100ms 毫秒</li>
+<li>有10ms在CPU上运行，90ms消耗在脱离CPU的等待过程。</li>
+<li>在脱离CPU等待的部分中，有89ms阻塞于文件系统上。</li>
+<li>文件系统的部分，有3ms阻塞于锁上，而86ms阻塞于存储设备上。</li>
+</ol>
+<p>到此为止，你可能已经得出结论:<code>存储设备是问题所在</code>–这确实是一种答案。但是下钻分析可以使问题的上下文更清晰。设想另一种可能的分析过程:</p>
+<ol>
+<li>一个应用花费了89ms被阻塞在文件系统上。</li>
+<li>文件系统花费了78ms被阻塞在写操作上，11ms被阻塞在读操作上。</li>
+<li>在文件系统写操作中，77ms被阻塞在时间戳的更新上。</li>
+</ol>
+<p>此时，可以得出的结论是:<code>文件系统访问时间戳是延迟的根源，它们可以被禁止(通过改变挂载选项)</code>。这个分析结果要比“<code>我们需要更快的磁盘</code>”好得多。</p>
+<h3 id="USE方法论"><a href="#USE方法论" class="headerlink" title="USE方法论"></a>USE方法论</h3><p>通过 USE 方法论来对资源的使用情况进行分析</p>
+<ol>
+<li>使用率</li>
+<li>饱和度</li>
+<li>错误</li>
+</ol>
+<p>使用当前方法第一补是 绘制软件或者硬件资源图，然后一次对资源进行上述检查</p>
+<p><img src="https://img-blog.csdnimg.cn/direct/4a4912dee6b5451e92ff5de9e3bf47fe.png" alt="在这里插入图片描述"></p>
+<p>这个方法论的优势之一是，它以重要的问题作为开始，而非以某种指标形式的答案作为开始，反过来再去找出为什么它重要。这个方法论同时会帮助发现盲区:从你需要回答的问题开始，而不管是否已有工具能够方便测量。</p>
+<h3 id="检查清单法"><a href="#检查清单法" class="headerlink" title="检查清单法"></a>检查清单法</h3><p><code>性能分析检查清单</code>可以列出一系列工具和指标，用于对照运行和检查。这些工具和指标可以聚焦于那些唾手可得的性能问题:列出十几个常见的问题，以及对应的分析方法，这样让每个人都能参照检查。<code>这个方法论适用于指导公司各个层次的工程师实施操作，允许你将个人的技能应用于更广的范围内。</code><br>下面会给出两个清单，<br>一个使用了传统(非BPF)工具，比较适合于快速分析(开始的 60 秒);</p>
+<p>另一个清单是适合及早使用的 BCC 工具列表。</p>
+<h2 id="博文部分内容参考"><a href="#博文部分内容参考" class="headerlink" title="博文部分内容参考"></a>博文部分内容参考</h2><p>© 文中涉及参考链接内容版权归原作者所有，如有侵权请告知 :)</p>
+<hr>
+<p> <code>《BPF Performance Tools》</code></p>
+<hr>
+<p>© 2018-2024 <a href="mailto:&#x6c;&#x69;&#114;&#117;&#x69;&#x6c;&#x6f;&#110;&#103;&#x65;&#x72;&#x40;&#103;&#109;&#x61;&#x69;&#108;&#x2e;&#x63;&#x6f;&#109;">&#x6c;&#x69;&#114;&#117;&#x69;&#x6c;&#x6f;&#110;&#103;&#x65;&#x72;&#x40;&#103;&#109;&#x61;&#x69;&#108;&#x2e;&#x63;&#x6f;&#109;</a>, All rights reserved. 保持署名-非商用-相同方式共享(CC BY-NC-SA 4.0)</p>
+</div><div class="article-licensing box"><div class="licensing-title"><p>Linux 常见性能分析方法论介绍(业务负载画像、下钻分析、USE方法论，检查清单)</p><p><a href="https://liruilongs.github.io/2024/03/30/rhca/RH442_BPF/BPF/Linux-性能分析方法论介绍-业务负载画像、下钻分析、USE方法论，检查清单/">https://liruilongs.github.io/2024/03/30/rhca/RH442_BPF/BPF/Linux-性能分析方法论介绍-业务负载画像、下钻分析、USE方法论，检查清单/</a></p></div><div class="licensing-meta level is-mobile"><div class="level-left"><div class="level-item is-narrow"><div><h6>作者</h6><a href="https://liruilongs.github.io"><p>山河已无恙</p></a></div></div><div class="level-item is-narrow"><div><h6>发布于</h6><p>2024-03-30</p></div></div><div class="level-item is-narrow"><div><h6>更新于</h6><p>2024-05-20</p></div></div><div class="level-item is-narrow"><div><h6>许可协议</h6><p><a class="icon" rel="noopener" target="_blank" title="Creative Commons" href="https://creativecommons.org/"><i class="fab fa-creative-commons"></i></a><a class="icon" rel="noopener" target="_blank" title="Attribution" href="https://creativecommons.org/licenses/by/4.0/"><i class="fab fa-creative-commons-by"></i></a><a class="icon" rel="noopener" target="_blank" title="Noncommercial" href="https://creativecommons.org/licenses/by-nc/4.0/"><i class="fab fa-creative-commons-nc"></i></a></p></div></div></div></div></div><div class="recommend-area"><div class="recommend-post"><span class="is-size-6 has-text-grey has-mr-7"># 相关文章</span><br><span>  1.<a class="is-size-6" href="/2024/09/05/%E5%BE%85%E5%8F%91%E5%B8%83/Linux-%E6%80%A7%E8%83%BD%E8%B0%83%E4%BC%98%E4%B9%8BCPU%E4%B8%8A%E4%B8%8B%E6%96%87%E5%88%87%E6%8D%A2/" target="_blank">Linux 性能观测之CPU上下文切换</a><br></span><span>  2.<a class="is-size-6" href="/2024/08/23/%E5%BE%85%E5%8F%91%E5%B8%83/Linux%20%E6%80%A7%E8%83%BD%E8%A7%82%E6%B5%8B%E4%B9%8B%E5%B9%B3%E5%9D%87%E8%B4%9F%E8%BD%BD/" target="_blank">Linux 性能观测之平均负载</a><br></span><span>  3.<a class="is-size-6" href="/2024/05/10/%E5%BE%85%E5%8F%91%E5%B8%83/Linux-%E6%80%A7%E8%83%BD%E8%B0%83%E4%BC%98%E4%B9%8B%E6%9C%8D%E5%8A%A1CPU%E6%97%B6%E9%97%B4%E5%88%86%E5%B8%83%E9%85%8D%E7%BD%AE/" target="_blank">Linux-性能调优之服务CPU时间分布(亲和性、带宽、权重)配置Demo</a><br></span><span>  4.<a class="is-size-6" href="/2024/05/04/rhca/RH442_BPF/CPU/Linux-%E6%80%A7%E8%83%BD%E8%B0%83%E4%BC%98%E4%B9%8B%E6%9C%8D%E5%8A%A1%20CPU%20%E4%BA%B2%E5%92%8C%E6%80%A7%E9%85%8D%E7%BD%AE/" target="_blank">Linux 性能调优之 CPU 亲和性配置</a><br></span><span>  5.<a class="is-size-6" href="/2024/04/01/rhca/RH442_BPF/BPF/Linux-BPF%E6%80%A7%E8%83%BD%E5%88%86%E6%9E%90%E4%B9%8B%E5%9F%BA%E4%BA%8EBCC%E5%B7%A5%E5%85%B7%E6%B8%85%E5%8D%95%E6%A3%80%E6%9F%A5/" target="_blank">Linux BPF性能分析之基于BCC工具清单检查</a><br></span><span>  6.<a class="is-size-6" href="/2024/03/08/Linux/Linux%E7%BD%91%E7%BB%9C/Linux%20%E7%BD%91%E7%BB%9C%E9%9A%A7%E9%81%93%E6%8A%80%E6%9C%AF%20VXLAN%20%E8%AE%A4%E7%9F%A5/" target="_blank">Linux 网络隧道技术 VXLAN 认知</a><br></span><span>  7.<a class="is-size-6" href="/2024/03/03/Linux/Linux%E7%BD%91%E7%BB%9C/Linux-%E7%BD%91%E7%BB%9C%E6%8E%A5%E5%8F%A3%E7%9A%84%E6%B7%B7%E6%9D%82%E6%A8%A1%E5%BC%8F-Promiscuous-mode-%E8%AE%A4%E7%9F%A5/" target="_blank">Linux 网络接口的混杂模式(Promiscuous  mode)认知</a><br></span><span>  8.<a class="is-size-6" href="/2024/02/11/Linux/Linux%E7%BD%91%E7%BB%9C/Linux-network-namespace-%E5%A4%9A%E7%AB%AF%E9%80%9A%E4%BF%A1(%E7%BB%8F%E5%85%B8%E5%AE%B9%E5%99%A8%E7%BB%84%E7%BD%91%20veth%20pair%20+%20bridge%20%E6%A8%A1%E5%BC%8F%E8%AE%A4%E7%9F%A5)/" target="_blank">Linux network namespace 多端通信(经典容器组网 veth pair + bridge 模式认知)</a><br></span></div><div class="recommend-post"><span class="is-size-6 has-text-grey has-mr-7"># 推荐文章</span><br><span>  1.<a class="is-size-6" href="/2021/08/27/K8s/%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/%E3%80%8AKubernetes%E6%9D%83%E5%A8%81%E6%8C%87%E5%8D%97-%E4%BB%8EDocker%E5%88%B0Kubernetes%E5%AE%9E%E8%B7%B5%E5%85%A8%E6%8E%A5%E8%A7%A6%E3%80%8B%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/" target="_blank">《Kubernetes权威指南:从Docker到Kubernetes实践全接触》读书笔记</a><br></span><span>  2.<a class="is-size-6" href="/2022/11/19/Git/%E5%85%B3%E4%BA%8E-Git-%E9%87%8D%E5%86%99%E5%8E%86%E5%8F%B2%E7%9A%84%E4%B8%80%E4%BA%9B%E7%AC%94%E8%AE%B0/" target="_blank">关于 Git 重写历史的一些笔记</a><br></span><span>  3.<a class="is-size-6" href="/2022/08/02/Git/%E5%85%B3%E4%BA%8EGit%E5%88%86%E6%94%AF%E5%8F%98%E5%9F%BA%E6%93%8D%E4%BD%9C%E7%9A%84%E4%B8%80%E4%BA%9B%E7%AC%94%E8%AE%B0/" target="_blank">关于Git分支变基操作的一些笔记</a><br></span><span>  4.<a class="is-size-6" href="/2022/07/26/Git/%E5%85%B3%E4%BA%8EGit%E5%88%86%E6%94%AF%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86%E7%9A%84%E4%B8%80%E4%BA%9B%E7%AC%94%E8%AE%B0/" target="_blank">关于Git分支基础知识的一些笔记</a><br></span><span>  5.<a class="is-size-6" href="/2022/08/02/Git/%E5%85%B3%E4%BA%8EGit%E5%88%86%E6%94%AF%E5%B7%A5%E4%BD%9C%E6%B5%81%E7%9A%84%E4%B8%80%E4%BA%9B%E7%AC%94%E8%AE%B0/" target="_blank">关于Git分支工作流的一些笔记</a><br></span><span>  6.<a class="is-size-6" href="/2023/02/19/Git/%E5%85%B3%E4%BA%8EGit%E9%AB%98%E7%BA%A7%E5%90%88%E5%B9%B6%E7%9A%84%E4%B8%80%E4%BA%9B%E7%AC%94%E8%AE%B0%E6%95%B4%E7%90%86/" target="_blank">关于Git分支高级合并的一些笔记整理</a><br></span></div></div><link rel="stylesheet" href="https://cdnjs.loli.net/ajax/libs/social-share.js/1.0.16/css/share.min.css"><div class="social-share"></div><script src="https://cdnjs.loli.net/ajax/libs/social-share.js/1.0.16/js/social-share.min.js"></script></article></div><div class="card"><div class="card-content"><h3 class="menu-label has-text-centered">喜欢这篇文章？打赏一下作者吧</h3><div class="buttons is-centered"><a class="button donate" data-type="alipay"><span class="icon is-small"><i class="fab fa-alipay"></i></span><span>支付宝</span><span class="qrcode"><img src="/img/alipay%EF%BF%A5.png" alt="支付宝"></span></a><a class="button donate" data-type="wechat"><span class="icon is-small"><i class="fab fa-weixin"></i></span><span>微信</span><span class="qrcode"><img src="/img/wechat%EF%BF%A5.png" alt="微信"></span></a></div></div></div><nav class="post-navigation mt-4 level is-mobile"><div class="level-start"><a class="article-nav-prev level level-item link-muted" href="/2024/04/01/rhca/RH442_BPF/BPF/Linux-BPF%E6%80%A7%E8%83%BD%E5%88%86%E6%9E%90%E4%B9%8B%E5%9F%BA%E4%BA%8EBCC%E5%B7%A5%E5%85%B7%E6%B8%85%E5%8D%95%E6%A3%80%E6%9F%A5/"><i class="level-item fas fa-chevron-left"></i><span class="level-item">Linux BPF性能分析之基于BCC工具清单检查</span></a></div><div class="level-end"><a class="article-nav-next level level-item link-muted" href="/2024/03/18/K8s/%E6%8F%92%E4%BB%B6/k8s-BPF-%E5%B7%A5%E5%85%B7-kubectl-trace-%E8%AE%A4%E7%9F%A5/"><span class="level-item">使用 BPF 监视 Kubernetes 集群(k8s BPF 工具 kubectl-trace 认知)</span><i class="level-item fas fa-chevron-right"></i></a></div></nav><!--!--><div class="card"><div class="card-content"><div class="title is-5">评论</div><div id="comment-container"></div><link rel="stylesheet" href="https://cdnjs.loli.net/ajax/libs/gitalk/1.6.0/gitalk.css"><script> $.getScript('/js/gitalk.min.js', function () { 
+            var gitalk = new Gitalk({
+            language:'zh-CN',
+            id: '646bcfb4f6479d4dfdd3dbc623e861c6',
+            repo: 'blog_comment',
+            owner: 'LIRUILONGS',
+            clientID: '9fdc9739266d48d5f62e',
+            clientSecret: 'c1cc33697d099a2197650ec9dadcb16bd4904655',
+            admin: ["LIRUILONGS"],
+            createIssueManually: true,
+            distractionFreeMode: true,
+            perPage: 10,
+            pagerDirection: 'last',
+            proxy: 'https://cors-anywhere.azm.workers.dev/https://github.com/login/oauth/access_token',
+            
+            enableHotKey: true,
+            isLocked: false
+        })
+        gitalk.render('comment-container')});</script></div></div></div><div class="column column-left is-4-tablet is-4-desktop is-3-widescreen  order-1 is-sticky"><div class="card widget" id="toc" data-type="toc"><div class="card-content"><div class="menu"><h3 class="menu-label">目录</h3><ul class="menu-list"><li><a class="is-flex is-mobile" href="#写在前面"><span class="mr-2">1</span><span>写在前面</span></a><ul class="menu-list"><li><a class="is-flex is-mobile" href="#性能分析的目标是什么？"><span class="mr-2">1.1</span><span>性能分析的目标是什么？</span></a></li><li><a class="is-flex is-mobile" href="#多重性能问题"><span class="mr-2">1.2</span><span>多重性能问题</span></a></li></ul></li><li><a class="is-flex is-mobile" href="#开展那些工作对性能分析有帮助？（性能分析方法论"><span class="mr-2">2</span><span>开展那些工作对性能分析有帮助？（性能分析方法论)</span></a><ul class="menu-list"><li><a class="is-flex is-mobile" href="#业务负载画像"><span class="mr-2">2.1</span><span>业务负载画像</span></a></li><li><a class="is-flex is-mobile" href="#下钻分析"><span class="mr-2">2.2</span><span>下钻分析</span></a></li><li><a class="is-flex is-mobile" href="#USE方法论"><span class="mr-2">2.3</span><span>USE方法论</span></a></li><li><a class="is-flex is-mobile" href="#检查清单法"><span class="mr-2">2.4</span><span>检查清单法</span></a></li></ul></li><li><a class="is-flex is-mobile" href="#博文部分内容参考"><span class="mr-2">3</span><span>博文部分内容参考</span></a></li></ul></div></div><style>.menu-list > li > a.is-active + .menu-list { display: block; }.menu-list > li > a + .menu-list { display: none; }</style><script src="/js/toc.js" defer></script></div><div class="card widget" data-type="profile"><div class="card-content"><nav class=""><div class="level-item has-text-centered flex-shrink-1"><div><figure class="image is-128x128 mx-auto mb-2"><img class="avatar" src="/img/%E5%BE%AE%E4%BF%A1%E5%85%AC%E4%BC%97%E5%8F%B7.jpg" alt="山河已无恙"></figure><p class="title is-size-4 is-block" style="line-height:inherit;">山河已无恙</p><p class="is-size-6 is-block">爱自己，是终生浪漫的开始</p><p class="is-size-6 is-flex justify-content-center"><i class="fas fa-map-marker-alt mr-1"></i><span>中国·呼和浩特</span></p></div></div></nav><nav class="level is-mobile"><div class="level-item has-text-centered is-marginless"><div><p class="heading">文章</p><a href="/archives"><p class="title">388</p></a></div></div><div class="level-item has-text-centered is-marginless"><div><p class="heading">分类</p><a href="/categories"><p class="title">123</p></a></div></div><div class="level-item has-text-centered is-marginless"><div><p class="heading">标签</p><a href="/tags"><p class="title">173</p></a></div></div></nav><div class="level"><a class="level-item button is-primary is-rounded" href="https://mp.weixin.qq.com/s?__biz=MzkyNjIxNTYwMw==&amp;mid=2247496480&amp;idx=1&amp;sn=a9971fed3962ef2a1aeda1f0bda65f86&amp;chksm=c2380ffcf54f86eaba8daac6caca72a70f38e61a8d25dc2a66d3a17b87c02530e326dcaea14b#rd" target="_blank" rel="noopener">关注我</a></div><div class="level is-mobile"><a class="level-item button is-transparent is-marginless" target="_blank" rel="noopener" title="Github" href="https://github.com/LIRUILONGS"><i class="fab fa-github"></i></a><a class="level-item button is-transparent is-marginless" target="_blank" rel="noopener" title="CSDN" href="https://liruilong.blog.csdn.net/"><i class="fa fa-code"></i></a><a class="level-item button is-transparent is-marginless" target="_blank" rel="noopener" title="Email" href="mailto:1224965096@qq.com"><i class="fa fa-envelope"></i></a></div></div></div><div class="card widget" data-type="links"><div class="card-content"><div class="menu"><h3 class="menu-label">链接</h3><ul class="menu-list"><li><a class="level is-mobile" href="https://liruilong.blog.csdn.net/?t=1&amp;type=blog" target="_blank" rel="noopener"><span class="level-left"><span class="level-item">CSDN</span></span><span class="level-right"><span class="level-item tag">liruilong.blog.csdn.net</span></span></a></li><li><a class="level is-mobile" href="https://www.cnblogs.com/liruilong/" target="_blank" rel="noopener"><span class="level-left"><span class="level-item">博客园</span></span><span class="level-right"><span class="level-item tag">www.cnblogs.com</span></span></a></li><li><a class="level is-mobile" href="https://github.com/LIRUILONGS" target="_blank" rel="noopener"><span class="level-left"><span class="level-item">Githup</span></span><span class="level-right"><span class="level-item tag">github.com</span></span></a></li><li><a class="level is-mobile" href="https://gitee.com/liruilonger" target="_blank" rel="noopener"><span class="level-left"><span class="level-item">码云</span></span><span class="level-right"><span class="level-item tag">gitee.com</span></span></a></li></ul></div></div></div><div class="card widget"><div class="card-content"><h3 class="menu-label">最新评论</h3><span class="body_hot_comment">加载中，最新评论有1分钟缓存...</span></div></div><div class="card widget"><div class="card-content"><h3 class="menu-label">最新文章</h3><article class="media"><div class="media-content"><p class="date"><time dateTime="2024-09-05T01:32:25.000Z">2024-09-05</time></p><p class="title"><a href="/2024/09/05/%E5%BE%85%E5%8F%91%E5%B8%83/Linux-%E6%80%A7%E8%83%BD%E8%B0%83%E4%BC%98%E4%B9%8BCPU%E4%B8%8A%E4%B8%8B%E6%96%87%E5%88%87%E6%8D%A2/">Linux 性能观测之CPU上下文切换</a></p><p class="categories"><a href="/categories/Linux/">Linux</a></p></div></article><article class="media"><div class="media-content"><p class="date"><time dateTime="2024-09-02T06:36:12.000Z">2024-09-02</time></p><p class="title"><a href="/2024/09/02/%E5%BE%85%E5%8F%91%E5%B8%83/%E6%97%A0%E4%BA%BA%E6%9C%BA%EF%BC%9A%E7%BA%AA%E5%BD%95%E7%89%87%E8%88%AA%E6%8B%8D%E8%AE%A4%E7%9F%A5/">无人机：纪录片航拍认知</a></p><p class="categories"><a href="/categories/%E6%97%A0%E4%BA%BA%E6%9C%BA/">无人机</a></p></div></article><article class="media"><div class="media-content"><p class="date"><time dateTime="2024-08-23T07:33:37.000Z">2024-08-23</time></p><p class="title"><a href="/2024/08/23/%E5%BE%85%E5%8F%91%E5%B8%83/Linux%20%E6%80%A7%E8%83%BD%E8%A7%82%E6%B5%8B%E4%B9%8B%E5%B9%B3%E5%9D%87%E8%B4%9F%E8%BD%BD/">Linux 性能观测之平均负载</a></p><p class="categories"><a href="/categories/Linux/">Linux</a></p></div></article><article class="media"><div class="media-content"><p class="date"><time dateTime="2024-08-16T01:54:42.538Z">2024-08-16</time></p><p class="title"><a href="/2024/08/16/rhca/RH442_BPF/CPU/Linux-%E6%80%A7%E8%83%BD%E8%B0%83%E4%BC%98%E4%B9%8B%E9%85%8D%E7%BD%AECPU%E8%B0%83%E5%BA%A6%E7%AD%96%E7%95%A5%E5%92%8C%E5%8F%AF%E8%B0%83%E5%8F%82%E6%95%B0/"> </a></p></div></article><article class="media"><div class="media-content"><p class="date"><time dateTime="2024-08-14T06:00:42.000Z">2024-08-14</time></p><p class="title"><a href="/2024/08/14/%E5%BE%85%E5%8F%91%E5%B8%83/%E6%97%A0%E4%BA%BA%E6%9C%BA%EF%BC%9A%E8%88%AA%E6%8B%8D%E4%B9%A6%E7%B1%8D%E6%8E%A8%E8%8D%90/">无人机：航拍书籍推荐</a></p><p class="categories"><a href="/categories/%E6%97%A0%E4%BA%BA%E6%9C%BA/">无人机</a></p></div></article></div></div><div class="card widget"><div class="card-content"><div class="menu"><h3 class="menu-label">分类</h3><ul class="menu-list"><li><a class="level is-mobile is-marginless" href="/categories/AIGC/"><span class="level-start"><span class="level-item">AIGC</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/AdaFace/"><span class="level-start"><span class="level-item">AdaFace</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/Ajax/"><span class="level-start"><span class="level-item">Ajax</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/Ansible/"><span class="level-start"><span class="level-item">Ansible</span></span><span class="level-end"><span class="level-item tag">23</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/AppCube/"><span class="level-start"><span class="level-item">AppCube</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/BPF/"><span class="level-start"><span class="level-item">BPF</span></span><span class="level-end"><span class="level-item tag">4</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/Bind9/"><span class="level-start"><span class="level-item">Bind9</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/CI-CD/"><span class="level-start"><span class="level-item">CI/CD</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/CSS/"><span class="level-start"><span class="level-item">CSS</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/Ceph/"><span class="level-start"><span class="level-item">Ceph</span></span><span class="level-end"><span class="level-item tag">11</span></span></a></li><a class="level is-mobile is-marginless" href="/categories/"><span class="level-start"><span class="level-item">查看全部&gt;&gt;</span></span></a></ul></div></div></div><div class="card widget"><div class="card-content"><div class="menu"><h3 class="menu-label">归档</h3><ul class="menu-list"><li><a class="level is-mobile is-marginless" href="/archives/2024/09/"><span class="level-start"><span class="level-item">九月 2024</span></span><span class="level-end"><span class="level-item tag">2</span></span></a></li><li><a class="level is-mobile is-marginless" href="/archives/2024/08/"><span class="level-start"><span class="level-item">八月 2024</span></span><span class="level-end"><span class="level-item tag">6</span></span></a></li><li><a class="level is-mobile is-marginless" href="/archives/2024/07/"><span class="level-start"><span class="level-item">七月 2024</span></span><span class="level-end"><span class="level-item tag">4</span></span></a></li><li><a class="level is-mobile is-marginless" href="/archives/2024/06/"><span class="level-start"><span class="level-item">六月 2024</span></span><span class="level-end"><span class="level-item tag">11</span></span></a></li><li><a class="level is-mobile is-marginless" href="/archives/2024/05/"><span class="level-start"><span class="level-item">五月 2024</span></span><span class="level-end"><span class="level-item tag">3</span></span></a></li><a class="level is-mobile is-marginless" href="/archives/"><span class="level-start"><span class="level-item">查看全部&gt;&gt;</span></span></a></ul></div></div></div><div class="card widget"><div class="card-content"><div class="menu"><h3 class="menu-label">标签</h3><div class="field is-grouped is-grouped-multiline"><div class="control"><a class="tags has-addons" href="/tags/Kubernetes/"><span class="tag">Kubernetes</span><span class="tag is-grey-lightest">97</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Linux/"><span class="tag">Linux</span><span class="tag is-grey-lightest">48</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Ansible/"><span class="tag">Ansible</span><span class="tag is-grey-lightest">25</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Python/"><span class="tag">Python</span><span class="tag is-grey-lightest">15</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Ceph/"><span class="tag">Ceph</span><span class="tag is-grey-lightest">11</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Docker/"><span class="tag">Docker</span><span class="tag is-grey-lightest">9</span></a></div><div class="control"><a class="tags has-addons" href="/tags/JAVA/"><span class="tag">JAVA</span><span class="tag is-grey-lightest">8</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%E5%8D%8E%E4%B8%BA%E4%BA%91/"><span class="tag">华为云</span><span class="tag is-grey-lightest">8</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Git/"><span class="tag">Git</span><span class="tag is-grey-lightest">7</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Go/"><span class="tag">Go</span><span class="tag is-grey-lightest">6</span></a></div><div class="control"><a class="tags has-addons" href="/tags/OpenShift/"><span class="tag">OpenShift</span><span class="tag is-grey-lightest">6</span></a></div><div class="control"><a class="tags has-addons" href="/tags/BPF/"><span class="tag">BPF</span><span class="tag is-grey-lightest">5</span></a></div><div class="control"><a class="tags has-addons" href="/tags/DNS/"><span class="tag">DNS</span><span class="tag is-grey-lightest">5</span></a></div><div class="control"><a class="tags has-addons" href="/tags/OKD/"><span class="tag">OKD</span><span class="tag is-grey-lightest">5</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%E6%91%84%E5%BD%B1%E6%9B%9D%E5%85%89/"><span class="tag">摄影曝光</span><span class="tag is-grey-lightest">5</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%E7%A8%8B%E5%BA%8F%E4%BA%BA%E7%94%9F/"><span class="tag">程序人生</span><span class="tag is-grey-lightest">5</span></a></div><div class="control"><a class="tags has-addons" href="/tags/selenium/"><span class="tag">selenium</span><span class="tag is-grey-lightest">4</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%E5%AE%B9%E5%99%A8/"><span class="tag">容器</span><span class="tag is-grey-lightest">4</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%E6%91%84%E5%BD%B1%E6%9E%84%E5%9B%BE/"><span class="tag">摄影构图</span><span class="tag is-grey-lightest">4</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%E7%BD%91%E7%BB%9C/"><span class="tag">网络</span><span class="tag is-grey-lightest">4</span></a></div></div><div class="field is-grouped is-grouped-multiline"><a class="tags has-addons" href="/tags/"><span class="tag">查看全部&gt;&gt;</span></a></div></div></div></div><div class="card widget" data-type="subscribe-email"><div class="card-content"><div class="menu"><h3 class="menu-label">订阅更新</h3><form action="https://feedburner.google.com/fb/a/mailverify" method="post" target="popupwindow" onsubmit="window.open(&#039;https://feedburner.google.com/fb/a/mailverify?uri=&#039;,&#039;popupwindow&#039;,&#039;scrollbars=yes,width=550,height=520&#039;);return true"><input type="hidden" value="" name="uri"><input type="hidden" name="loc" value="en_US"><div class="field has-addons"><div class="control has-icons-left is-expanded"><input class="input" name="email" type="email" placeholder="Email"><span class="icon is-small is-left"><i class="fas fa-envelope"></i></span></div><div class="control"><input class="button" type="submit" value="订阅"></div></div></form></div></div></div><!--!--><div class="column-right-shadow is-hidden-widescreen is-sticky"></div></div></div></div></section><footer class="footer"><div class="container"><div class="level"><div class="level-start"><a class="footer-logo is-block mb-2" href="/"><img src="/img/logo.png" alt="山河已无恙" height="28"></a><p class="size-small"><span>&copy; 2024 山河已无恙</span>  Powered by <a href="https://hexo.io/" target="_blank">Hexo</a> &amp; <a href="https://github.com/ppoffice/hexo-theme-icarus" target="_blank">Icarus</a> &amp; <a href="https://github.com/removeif/hexo-theme-amazing" target="_blank">Amazing</a> <br><span>© <a href="http://www.beian.miit.gov.cn/" target="_blank">备案中</a><br></span><span>© 版权说明：[本网站所有内容均收集于互联网或自己创作,<br />&nbsp;&nbsp;&nbsp;&nbsp;方便于网友与自己学习交流，如有侵权，请<a href="/message" target="_blank">留言</a>，立即处理]<br /></span><span><span id="statistic-times">loading...</span><script>function createTime(time) {
+            var n = new Date(time);
+            now.setTime(now.getTime() + 250),
+                days = (now - n) / 1e3 / 60 / 60 / 24,
+                dnum = Math.floor(days),
+                hours = (now - n) / 1e3 / 60 / 60 - 24 * dnum,
+                hnum = Math.floor(hours),
+            1 == String(hnum).length && (hnum = "0" + hnum),
+                minutes = (now - n) / 1e3 / 60 - 1440 * dnum - 60 * hnum,
+                mnum = Math.floor(minutes),
+            1 == String(mnum).length && (mnum = "0" + mnum),
+                seconds = (now - n) / 1e3 - 86400 * dnum - 3600 * hnum - 60 * mnum,
+                snum = Math.round(seconds),
+            1 == String(snum).length && (snum = "0" + snum),
+                document.getElementById("statistic-times").innerHTML = "❤️本站自 <strong>"+time.split(" ")[0].replace(/\//g,".")+"</strong> 已运行 <strong>" + dnum + "</strong> 天 <strong>" + hnum + "</strong> 小时 <strong>" + mnum + "</strong> 分 <strong>" + snum + "</strong> 秒！❤️";
+        }var now = new Date();setInterval("createTime('2021/6/26 21:27:00')", 250,"");</script><br></span><div class="size-small"><span>❤️感谢 <strong><span id="busuanzi_value_site_uv">99+</span></strong> 小伙伴的 <strong><span id="busuanzi_value_site_pv">99+</span></strong> 次光临！❤️</span></div></p></div><div class="level-end"><div class="field has-addons"><p class="control"><a class="button is-transparent is-large" target="_blank" rel="noopener" title="Creative Commons" href="https://creativecommons.org/"><i class="fab fa-creative-commons"></i></a></p><p class="control"><a class="button is-transparent is-large" target="_blank" rel="noopener" title="Attribution 4.0 International" href="https://creativecommons.org/licenses/by/4.0/"><i class="fab fa-creative-commons-by"></i></a></p><p class="control"><a class="button is-transparent is-large" target="_blank" rel="noopener" title="Download on GitHub" href="https://github.com/removeif/hexo-theme-amazing"><i class="fab fa-github"></i></a></p></div><div class="sideMusic"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/aplayer/dist/APlayer.min.css"><script src="/js/APlayer.min.js"></script><script src="https://cdn.jsdelivr.net/npm/meting@2/dist/Meting.min.js"></script><meting-js style="width: auto;height: 2000px;" server="netease" type="playlist" id="2364053447" theme="#2980b9" loop="all" autoplay="false" order="list" storageName="aplayer-setting" lrctype="0" list-max-height="400px" fixed="true"></meting-js></div></div></div></div></footer><script src="https://cdnjs.loli.net/ajax/libs/moment.js/2.22.2/moment-with-locales.min.js"></script><script src="https://cdnjs.loli.net/ajax/libs/clipboard.js/2.0.4/clipboard.min.js" async></script><script>moment.locale("zh-CN");</script><script>var IcarusThemeSettings = {
+            article: {
+                highlight: {
+                    clipboard: true,
+                    fold: 'unfolded'
+                }
+            }
+        };</script><script src="/js/column.js"></script><!--!--><script src="/js/animation.js"></script><a id="back-to-top" title="回到顶端" href="javascript:;"><i class="fas fa-chevron-up"></i></a><script src="/js/back_to_top.js" defer></script><!--!--><script src="https://cdnjs.loli.net/ajax/libs/lightgallery/1.6.8/js/lightgallery.min.js" defer></script><script src="https://cdnjs.loli.net/ajax/libs/justifiedGallery/3.7.0/js/jquery.justifiedGallery.min.js" defer></script><script>window.addEventListener("load", () => {
+            if (typeof $.fn.lightGallery === 'function') {
+                $('.article').lightGallery({ selector: '.gallery-item' });
+            }
+            if (typeof $.fn.justifiedGallery === 'function') {
+                if ($('.justified-gallery > p > .gallery-item').length) {
+                    $('.justified-gallery > p > .gallery-item').unwrap();
+                }
+                $('.justified-gallery').justifiedGallery();
+            }
+        });</script><!--!--><!--!--><link rel="stylesheet" href="https://cdnjs.loli.net/ajax/libs/KaTeX/0.11.1/katex.min.css"><script src="https://cdnjs.loli.net/ajax/libs/KaTeX/0.11.1/katex.min.js" defer></script><script src="https://cdnjs.loli.net/ajax/libs/KaTeX/0.11.1/contrib/auto-render.min.js" defer></script><script src="https://cdnjs.loli.net/ajax/libs/KaTeX/0.11.1/contrib/mhchem.js" defer></script><script>window.addEventListener("load", function() {
+            document.querySelectorAll('[role="article"] > .content').forEach(function(element) {
+                renderMathInElement(element);
+            });
+        });</script><script type="text/x-mathjax-config">MathJax.Hub.Config({
+            'HTML-CSS': {
+                matchFontHeight: false
+            },
+            SVG: {
+                matchFontHeight: false
+            },
+            CommonHTML: {
+                matchFontHeight: false
+            },
+            tex2jax: {
+                inlineMath: [
+                    ['$','$'],
+                    ['\\(','\\)']
+                ]
+            }
+        });</script><script src="https://cdnjs.loli.net/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-MML-AM_CHTML" defer></script><div id="outdated"><h6>Your browser is out-of-date!</h6><p>Update your browser to view this website correctly.&amp;npsb;<a id="btnUpdateBrowser" target="_blank" rel="noopener" href="http://outdatedbrowser.com/">Update my browser now </a></p><p class="last"><a href="#" id="btnCloseUpdateBrowser" title="Close">×</a></p></div><script src="https://cdnjs.loli.net/ajax/libs/outdated-browser/1.1.5/outdatedbrowser.min.js" defer></script><script>window.addEventListener("load", function () {
+            outdatedBrowser({
+                bgColor: '#f25648',
+                color: '#ffffff',
+                lowerThan: 'object-fit' // display on IE11 or below
+            });
+        });</script><!--!--><script src="/js/main.js" defer></script><script>$.getScript('/js/comment-issue-data.js',function(){loadIssueData('9fdc9739266d48d5f62e','c1cc33697d099a2197650ec9dadcb16bd4904655','LIRUILONGS','blog_comment',false);})</script><div class="searchbox"><div class="searchbox-container"><div class="searchbox-header"><div class="searchbox-input-container"><input class="searchbox-input" type="text" placeholder="想要查找什么..."></div><a class="searchbox-close" href="javascript:;">×</a></div><div class="searchbox-body"></div></div></div><script src="/js/insight.js" defer></script><script>document.addEventListener('DOMContentLoaded', function () {
+            loadInsight({"contentUrl":"/content.json"}, {"hint":"想要查找什么...","untitled":"(无标题)","posts":"文章","pages":"页面","categories":"分类","tags":"标签"});
+        });</script><script src="https://cdn.jsdelivr.net/npm/pjax@0.2.8/pjax.js"></script><script type="text/javascript">var pjax = new Pjax({
+            elements: "a",//代表点击链接就更新
+            selectors: [  //代表要更新的节点
+                ".section",
+                "title"
+            ],
+            cache: true,
+            cacheBust:false
+        })
+
+        function loadBusuanzi(){
+        $.getScript("//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js", function () {});
+        }
+
+        function loadMathJax() { //加载mathjax
+            $.getScript("//cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.4/MathJax.js?config=TeX-MML-AM_CHTML", function () {
+                MathJax.Hub.Config({ tex2jax: { inlineMath: [['$', '$'], ['\(', '\)']] } });
+                var math = document.getElementsByClassName("entry-content")[0];
+                MathJax.Hub.Queue(["Typeset", MathJax.Hub, math]);
+            });
+        };
+
+        // 开始 PJAX 执行的函数
+        document.addEventListener('pjax:send', function () {
+        });
+        
+        // PJAX 完成之后执行的函数，可以和上面的重载放在一起
+        document.addEventListener('pjax:complete', function () {
+            $(".section").css({opacity:1});
+            if(true){
+                $.getScript('/js/comment-issue-data.js',function(){loadIssueData('9fdc9739266d48d5f62e','c1cc33697d099a2197650ec9dadcb16bd4904655','LIRUILONGS','blog_comment',false);});
+            }
+            if(false){
+                loadMathJax();
+            }
+            loadMainJs(jQuery, window.moment, window.ClipboardJS, window.IcarusThemeSettings);
+            loadBackTop();
+            loadBusuanzi();
+            if(typeof loadBanner == 'function'){
+                loadBanner();
+            }
+        });</script></body></html>

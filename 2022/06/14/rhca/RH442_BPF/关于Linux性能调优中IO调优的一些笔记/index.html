@@ -1,0 +1,594 @@
+<!doctype html>
+<html lang="zh"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"><meta><title>关于Linux性能调优中IO调优的一些笔记 - 山河已无恙</title><link rel="manifest" href="/manifest.json"><meta name="application-name" content="山河已无恙"><meta name="msapplication-TileImage" content="https://cdn.jsdelivr.net/gh/removeif/removeif-demo@latest/img/favicon.png"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="山河已无恙"><meta name="apple-mobile-web-app-status-bar-style" content="default"><meta description="总感觉当下的生活不是想要的，总感觉一路走下去会是一个讨厌的未来，每天睁眼的一瞬间就是懊悔，昨天又浪费掉了…人生没有意义，但是要寻找活着的意义——–山河已无恙  和小伙伴分享一些Linux IO优化的笔记,内容很浅，可以用作入门  博文内容结合《Linux性能优化》读书笔记整理  涉及内容包括  使用vmstat 确定系统内磁盘I&amp;#x2F;O的总量和类型(读&amp;#x2F;写) 使用iostat 确"><meta property="og:type" content="blog"><meta property="og:title" content="山河已无恙"><meta property="og:url" content="https://mp.weixin.qq.com/s?__biz=MzkyNjIxNTYwMw==&amp;mid=2247496480&amp;idx=1&amp;sn=a9971fed3962ef2a1aeda1f0bda65f86&amp;chksm=c2380ffcf54f86eaba8daac6caca72a70f38e61a8d25dc2a66d3a17b87c02530e326dcaea14b#rd"><meta property="og:site_name" content="山河已无恙"><meta property="og:description" content="总感觉当下的生活不是想要的，总感觉一路走下去会是一个讨厌的未来，每天睁眼的一瞬间就是懊悔，昨天又浪费掉了…人生没有意义，但是要寻找活着的意义——–山河已无恙  和小伙伴分享一些Linux IO优化的笔记,内容很浅，可以用作入门  博文内容结合《Linux性能优化》读书笔记整理  涉及内容包括  使用vmstat 确定系统内磁盘I&amp;#x2F;O的总量和类型(读&amp;#x2F;写) 使用iostat 确"><meta property="og:locale" content="zh_CN"><meta property="og:image" content="https://mp.weixin.qq.com/img/头像.jpg"><meta property="article:published_time" content="2022-06-14T15:50:52.000Z"><meta property="article:modified_time" content="2024-01-14T03:11:55.734Z"><meta property="article:author" content="LIRUILONGS"><meta property="article:tag" content="Linux"><meta property="twitter:card" content="summary"><meta property="twitter:image" content="/img/头像.jpg"><script type="application/ld+json">{"@context":"https://schema.org","@type":"BlogPosting","mainEntityOfPage":{"@type":"WebPage","@id":"https://liruilongs.github.io/2022/06/14/rhca/RH442_BPF/%E5%85%B3%E4%BA%8ELinux%E6%80%A7%E8%83%BD%E8%B0%83%E4%BC%98%E4%B8%ADIO%E8%B0%83%E4%BC%98%E7%9A%84%E4%B8%80%E4%BA%9B%E7%AC%94%E8%AE%B0/"},"headline":"山河已无恙","image":["https://img-blog.csdnimg.cn/3baffb6c16dc43cc92b87baad5700594.png"],"datePublished":"2022-06-14T15:50:52.000Z","dateModified":"2024-01-14T03:11:55.734Z","author":{"@type":"Person","name":"山河已无恙"},"description":"总感觉当下的生活不是想要的，总感觉一路走下去会是一个讨厌的未来，每天睁眼的一瞬间就是懊悔，昨天又浪费掉了…人生没有意义，但是要寻找活着的意义——–山河已无恙  和小伙伴分享一些Linux IO优化的笔记,内容很浅，可以用作入门  博文内容结合《Linux性能优化》读书笔记整理  涉及内容包括  使用vmstat 确定系统内磁盘I&#x2F;O的总量和类型(读&#x2F;写) 使用iostat 确"}</script><link rel="canonical" href="https://liruilongs.github.io/2022/06/14/rhca/RH442_BPF/%E5%85%B3%E4%BA%8ELinux%E6%80%A7%E8%83%BD%E8%B0%83%E4%BC%98%E4%B8%ADIO%E8%B0%83%E4%BC%98%E7%9A%84%E4%B8%80%E4%BA%9B%E7%AC%94%E8%AE%B0/"><link rel="alternate" href="/path/to/atom.xml" title="山河已无恙" type="application/atom+xml"><link rel="icon" href="https://cdn.jsdelivr.net/gh/removeif/removeif-demo@latest/img/favicon.png"><meta name="referrer" content="no-referrer-when-downgrade"><link rel="stylesheet" href="https://cdnjs.loli.net/ajax/libs/font-awesome/5.12.0/css/all.min.css"><link rel="stylesheet" href="https://cdnjs.loli.net/ajax/libs/highlight.js/9.12.0/styles/dracula.min.css"><link rel="stylesheet" href="https://fonts.loli.net/css2?family=Ubuntu:wght@400;600&amp;family=Source+Code+Pro"><link rel="stylesheet" href="/css/default.css"><link rel="stylesheet" href="https://cdnjs.loli.net/ajax/libs/font-awesome/5.12.0/css/all.min.css"><link rel="stylesheet" href="https://fonts.loli.net/css?family=Ubuntu:400,600|Source+Code+Pro|Monda:300,300italic,400,400italic,700,700italic|Roboto Slab:300,300italic,400,400italic,700,700italic|Microsoft YaHei:300,300italic,400,400italic,700,700italic|PT Mono:300,300italic,400,400italic,700,700italic&amp;amp;subset=latin,latin-ext|Inconsolata|Itim|Lobster.css"><script src="https://cdnjs.loli.net/ajax/libs/jquery/3.3.1/jquery.min.js"></script><script src="/js/globalUtils.js"></script><script src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js" defer></script><style>body>.footer,body>.navbar,body>.section{opacity:0}</style><!--!--><script>var _hmt = _hmt || [];
+        (function() {
+            var hm = document.createElement("script");
+            hm.src = "//hm.baidu.com/hm.js?3f06f2b732a5b1034c989f74e28d0eea";
+            var s = document.getElementsByTagName("script")[0];
+            s.parentNode.insertBefore(hm, s);
+        })();</script><link rel="stylesheet" href="https://cdnjs.loli.net/ajax/libs/lightgallery/1.6.8/css/lightgallery.min.css"><link rel="stylesheet" href="https://cdnjs.loli.net/ajax/libs/justifiedGallery/3.7.0/css/justifiedGallery.min.css"><!--!--><!--!--><!--!--><!--!--><link rel="stylesheet" href="https://cdnjs.loli.net/ajax/libs/outdated-browser/1.1.5/outdatedbrowser.min.css"><script src="https://cdnjs.loli.net/ajax/libs/pace/1.0.2/pace.min.js"></script><link rel="stylesheet" href="/live2d/waifu.css"><script type="text/javascript" async src="/live2d/autoload.js"></script><meta name="generator" content="Hexo 5.4.2"></head><body class="is-3-column has-navbar-fixed-top"><nav class="navbar navbar-main is-fixed-top"><div class="container"><div class="navbar-brand justify-content-center"><a class="navbar-item navbar-logo" href="/"><img src="/img/logo.png" alt="山河已无恙" height="28"></a></div><div class="navbar-menu"><div class="navbar-start"><a class="navbar-item" href="/">首页</a><a class="navbar-item" href="/archives">归档</a><a class="navbar-item" href="/categories">分类</a><a class="navbar-item" href="/tags">标签</a><a class="navbar-item" href="/media">影音</a><a class="navbar-item" href="/album">相册</a><a class="navbar-item" href="/friend">友链</a><a class="navbar-item" href="/self-talking">生活小记</a><a class="navbar-item" href="/message">留言墙</a><a class="navbar-item" href="/about">关于</a></div><div class="navbar-end"><a class="navbar-item" target="_blank" rel="noopener" title="Gitee" href="https://gitee.com/liruilonger"><i class="fab fa-git-square fa-1x"></i></a><a class="navbar-item" target="_blank" rel="noopener" title="GitHub" href="https://github.com/LIRUILONGS"><i class="fab fa-github fa-1x"></i></a><a class="navbar-item is-hidden-tablet catalogue" title="目录" href="javascript:;"><i class="fas fa-list-ul fa-1x"></i></a><a class="navbar-item search" title="搜索" href="javascript:;"><i class="fas fa-search fa-1x"></i></a><a class="navbar-item" id="night-nav" title="Night Mode" href="javascript:;"><i class="fas fa-moon fa-1x" id="night-icon"></i></a></div></div></div></nav><script type="text/javascript" src="/js/theme-setting.js"></script><section class="section"><div class="container"><div class="columns"><div class="column order-2 column-main is-8-tablet is-8-desktop is-9-widescreen"><!--!--><div class="card"><article class="card-content article" role="article"><div class="article-meta size-small is-uppercase level is-mobile"><div class="level-left"><i class="far fa-calendar-plus"> </i>2022-06-14  <a class="commentCountImg" href="/2022/06/14/rhca/RH442_BPF/%E5%85%B3%E4%BA%8ELinux%E6%80%A7%E8%83%BD%E8%B0%83%E4%BC%98%E4%B8%ADIO%E8%B0%83%E4%BC%98%E7%9A%84%E4%B8%80%E4%BA%9B%E7%AC%94%E8%AE%B0/#comment-container"><span class="display-none-class">63d2f26dd65bd0bfa6991b46b423b7ca</span><i class="far fa-comment-dots"></i> <span class="commentCount" id="63d2f26dd65bd0bfa6991b46b423b7ca">99+</span>  </a><span class="level-item"><i class="far fa-clock"> </i>32 分钟  <i class="fas fa-pencil-alt"> </i>4.8 k</span><span class="level-item" id="busuanzi_container_page_pv"><span id="busuanzi_value_page_pv">0</span>次访问</span></div></div><h1 class="title is-3 is-size-4-mobile">关于Linux性能调优中IO调优的一些笔记</h1><div class="content"><p><strong><font color="009688"> 总感觉当下的生活不是想要的，总感觉一路走下去会是一个讨厌的未来，每天睁眼的一瞬间就是懊悔，昨天又浪费掉了…人生没有意义，但是要寻找活着的意义——–山河已无恙</strong></font></p>
+<ul>
+<li><p>和小伙伴分享一些<code>Linux IO优化</code>的笔记,内容很浅，可以用作入门</p>
+</li>
+<li><p>博文内容结合<code>《Linux性能优化》</code>读书笔记整理</p>
+</li>
+<li><p>涉及内容包括</p>
+<ul>
+<li>使用<code>vmstat</code> 确定系统内磁盘I&#x2F;O的总量和类型(读&#x2F;写)</li>
+<li>使用<code>iostat</code> 确定哪些设备服务了大部分的磁盘I&#x2F;O</li>
+<li>使用<code>iostat</code> 确定特定磁盘处理I&#x2F;O请求的有效性</li>
+<li>使用<code>lsof</code> 确定哪些进程正在使用一组给定的文件，即对应的磁盘位置</li>
+</ul>
+</li>
+<li><p>食用方式：</p>
+<ul>
+<li>需要了解<code>Linux基础</code>，存储相关知识</li>
+<li>没有完整的调优Demo，只是提供的一些工具。</li>
+</ul>
+</li>
+<li><p>理解不足小伙伴帮忙指正</p>
+</li>
+</ul>
+<span id="more"></span>
+<h2 id="写在前面"><a href="#写在前面" class="headerlink" title="写在前面"></a>写在前面</h2><hr>
+<h1 id="性能工具：磁盘I-x2F-O"><a href="#性能工具：磁盘I-x2F-O" class="headerlink" title="性能工具：磁盘I&#x2F;O"></a>性能工具：磁盘I&#x2F;O</h1><p>在Linux中，我们可以通过一些性能工具评估磁盘I&#x2F;O子系统的使用情况。展示那些磁盘或分区已被使用，每个磁盘处理了多少I&#x2F;O，发给这些磁盘的I&#x2F;O请求要等多久才被处理。</p>
+<h2 id="磁盘I-x2F-O介绍"><a href="#磁盘I-x2F-O介绍" class="headerlink" title="磁盘I&#x2F;O介绍"></a>磁盘I&#x2F;O介绍</h2><p>在学习性能工具之前，我们来了解Linux磁盘I&#x2F;O系统是怎样构成的。</p>
+<p>大多数现代Linux系统都有一个或多个磁盘驱动。SCSI驱动则常常被命名为sda、sdb、sdc等。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">┌──[root@vms81.liruilongs.github.io]-[/]</span><br><span class="line">└─<span class="variable">$lsblk</span></span><br><span class="line">NAME   MAJ:MIN RM  SIZE RO TYPE MOUNTPOINT</span><br><span class="line">sda      8:0    0  200G  0 disk</span><br><span class="line">|-sda1   8:1    0  150G  0 part /</span><br><span class="line">`-sda2   8:2    0   10G  0 part</span><br></pre></td></tr></table></figure>
+
+<p>磁盘通常要分为多个分区，分区设备名称的创建方法是在基础驱动名称的后面直接添加分区编号。</p>
+<p>一般每个独立分区要么包含一个文件系统，要么包含一个交换分区。当然也可以是一个VDO卷，分区被挂载到Linux文件系统，由<code>/etc/fstab</code>指定。</p>
+<p>在Linux 中，我们可以直接对磁盘进行分区，使用文件系统格式化，也使用LVM的方式来使用管理磁盘，大多数情况下，是通过LVM来管理Linux存储。利用LVM，化零为整，可以对数据卷进行统一分配，动态扩容。关于LVM(PV,VG,LV)，感兴趣小伙伴可以看看我之前的博文。</p>
+<p><img src="https://img-blog.csdnimg.cn/3baffb6c16dc43cc92b87baad5700594.png"></p>
+<p>分区或者逻辑卷被指定文件系统格式化后，挂载目录。即可存放应用程序要读写的文件。</p>
+<p>当一个应用程序进行读写时，Linux内核可以在其高速缓存或缓冲区中保存文件的副本，并且可以在不访问磁盘的情况下返回被请求的信息。但是，如果Linux内核没有在内存中保存数据副本，那它就向磁盘 I&#x2F;O 队列添加一个请求。</p>
+<p><code>若Linux内核注意到多个请求都指向磁盘内相邻的区域，它会把它们合并为一个大的请求。这种合并能消除第二次请求的寻道时间</code>, 以此来提高磁盘整体性能。</p>
+<p>当请求被放入磁盘队列，而磁盘当前不忙时，它就开始为IO请求服务。如果磁盘正忙，则请求就在队列中等待，直到该设备可用，请求将被服务。这里的等待，即我们在编程中讲的IO阻塞，尤其在涉及的并发的问题中，我们常常要考虑线程I&#x2F;O阻塞情况来调整线程优先级，Java在JDK1.4 的版本中,提供NIO(采用内存映射文件的方式处理，将文件或文件的一段区域映射到内存中)来提高访问效率。</p>
+<h2 id="磁盘I-x2F-O性能工具"><a href="#磁盘I-x2F-O性能工具" class="headerlink" title="磁盘I&#x2F;O性能工具"></a>磁盘I&#x2F;O性能工具</h2><h3 id="vmstat"><a href="#vmstat" class="headerlink" title="vmstat"></a>vmstat</h3><p>vmstat是一个强大的工具，它能给出系统在性能方面的总览图。除了CPU和内存统计信息之外，vmstat还可以提供系统整体上的I&#x2F;O性能情况。</p>
+<p>我们用的版本</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">┌──[root@vms81.liruilongs.github.io]-[/]</span><br><span class="line">└─<span class="variable">$vmstat</span>  -V</span><br><span class="line">vmstat from procps-ng 3.3.10</span><br><span class="line">┌──[root@vms81.liruilongs.github.io]-[/]</span><br><span class="line">└─<span class="variable">$which</span> vmstat</span><br><span class="line">/usr/bin/vmstat</span><br></pre></td></tr></table></figure>
+
+<p>vmstat超过其他I&#x2F;O工具的主要优势是：几乎所有的Linux发行版本都包含该工具。同时 vmstat提供的扩展磁盘统计信息只用于内核版本高于2.5.70的Linux系统</p>
+<h4 id="磁盘I-x2F-O性能相关的选项和输出"><a href="#磁盘I-x2F-O性能相关的选项和输出" class="headerlink" title="磁盘I&#x2F;O性能相关的选项和输出"></a>磁盘I&#x2F;O性能相关的选项和输出</h4><p>在使用vmstat从系统获取磁盘1&#x2F;0统计信息时,要按照如下方式进行调用:</p>
+<p><code>vmstat [-D] [-d] [-p partition] [interval [count]]</code></p>
+<p>命令行选项</p>
+<table>
+<thead>
+<tr>
+<th>选项</th>
+<th>描述</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>-D</td>
+<td>显示Linux I&#x2F;O子系统总的统计数据。它可以让你很好地了解你的IO子系统是如何被使用的,但它不会给出单个磁盘的统计数据。显示的统计数据是从系统启动.开始的总信息,而不是两次采样之间的发生量</td>
+</tr>
+<tr>
+<td>-d</td>
+<td>按每interval一个样本的速率显示单个磁盘的统计数据。这些统计信息是从系统启动开始的总信息,而不是两次采样之间的发生量</td>
+</tr>
+<tr>
+<td>-p partition</td>
+<td>按照每interval一个采样的速率显示给定分区的性能统计数据。这些统计信息是从系统启动开始的总信息,而不是两次采样之间的发生量</td>
+</tr>
+<tr>
+<td>interval</td>
+<td>采样之间的时间间隔</td>
+</tr>
+<tr>
+<td>count</td>
+<td>所取的样本总数</td>
+</tr>
+</tbody></table>
+<h5 id="整个系统的IO统计数据"><a href="#整个系统的IO统计数据" class="headerlink" title="整个系统的IO统计数据"></a>整个系统的IO统计数据</h5><p><code>在用-D模式运行时, vmstat提供的是系统内磁盘10系统的总体统计数据。</code></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">┌──[root@vms81.liruilongs.github.io]-[/]</span><br><span class="line">└─<span class="variable">$vmstat</span> -D</span><br><span class="line">            1 disks</span><br><span class="line">            2 partitions</span><br><span class="line">        14661 total reads</span><br><span class="line">           33 merged reads</span><br><span class="line">      3369384 <span class="built_in">read</span> sectors</span><br><span class="line">        16091 milli reading</span><br><span class="line">       521150 writes</span><br><span class="line">         5093 merged writes</span><br><span class="line">      5189564 written sectors</span><br><span class="line">       110797 milli writing</span><br><span class="line">            0 inprogress IO</span><br><span class="line">           86 milli spent IO</span><br></pre></td></tr></table></figure>
+
+<table>
+<thead>
+<tr>
+<th>参数</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>disks</td>
+<td>系统中的磁盘总数</td>
+</tr>
+<tr>
+<td>partitions</td>
+<td>系统中的分区总数</td>
+</tr>
+<tr>
+<td>total reads</td>
+<td>读请求总数</td>
+</tr>
+<tr>
+<td>merged reads</td>
+<td>为了提升性能而被合并的不同读请求数量,这些读请求访问的是磁盘上的相邻位置</td>
+</tr>
+<tr>
+<td>read sectors</td>
+<td>从磁盘读取的扇区总数(一个扇区通常为512字节)</td>
+</tr>
+<tr>
+<td>milli reading</td>
+<td>磁盘读所花费的时间(以毫秒为单位)</td>
+</tr>
+<tr>
+<td>writes</td>
+<td>写请求的总数</td>
+</tr>
+<tr>
+<td>merged writes</td>
+<td>为了提升性能而被合并的不同写请求数量,这些写请求访问的是磁盘上的相邻位置</td>
+</tr>
+<tr>
+<td>written sectors</td>
+<td>向磁盘写入的扇区总数(一个扇区通常为512字节)</td>
+</tr>
+<tr>
+<td>milli writing</td>
+<td>磁盘写所花费的时间(以毫秒为单位)</td>
+</tr>
+<tr>
+<td>inprogress IO</td>
+<td>当前正在处理的10总数。请注意,最近版本(v3.2)的vmstat在这里有个漏洞,除以1000时其结果是错误的,几乎总是得到。</td>
+</tr>
+<tr>
+<td>milli spent IO</td>
+<td>等待1&#x2F;0完成所花费的毫秒数。请注意,最近版本(v3.2)的vmstat在这里有个漏洞,其数值为1&#x2F;0花费的秒数,而非毫秒数</td>
+</tr>
+</tbody></table>
+<h5 id="整个系统的IO性能情况"><a href="#整个系统的IO性能情况" class="headerlink" title="整个系统的IO性能情况"></a>整个系统的IO性能情况</h5><p>如果你在运行vmstat时只使用了[interval]和[count]参数,其他参数没有使用,那么显示的就是默认输出。该输出中包含了三列与磁盘1&#x2F;0性能相关的内容: bo, bi和wa。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">┌──[root@vms81.liruilongs.github.io]-[/]</span><br><span class="line">└─<span class="variable">$vmstat</span>  1 2</span><br><span class="line">procs -----------memory---------- ---swap-- -----io---- -system-- ------cpu-----</span><br><span class="line"> r  b   swpd   free   buff  cache   si   so    bi    bo   <span class="keyword">in</span>   cs us sy <span class="built_in">id</span> wa st</span><br><span class="line"> 1  0      0 243708   2072 1748600    0    0    13    21   55  107  2  3 95  0  0</span><br><span class="line"> 0  0      0 242768   2072 1748604    0    0     0    32 3352 5026  4  3 93  0  0</span><br><span class="line">┌──[root@vms81.liruilongs.github.io]-[/]</span><br><span class="line">└─$</span><br></pre></td></tr></table></figure>
+
+<table>
+<thead>
+<tr>
+<th>列名</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>bo</td>
+<td>表示前次间隔中被写入磁盘的总块数(vmstat内磁盘的典型块大小为1024字节)</td>
+</tr>
+<tr>
+<td>bi</td>
+<td>表示前次间隔中从磁盘读出的块数(vmstat内磁盘的典型块大小为1024字节)</td>
+</tr>
+<tr>
+<td>wa</td>
+<td>表示等待1&#x2F;0完成所消耗的CPU时间。每秒写磁盘块的速率</td>
+</tr>
+</tbody></table>
+<p>使用vmstat取样3个样本，时间间隔为1秒</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">┌──[root@vms81.liruilongs.github.io]-[/]</span><br><span class="line">└─<span class="variable">$vmstat</span> 1 3</span><br><span class="line">procs -----------memory---------- ---swap-- -----io---- -system-- ------cpu-----</span><br><span class="line"> r  b   swpd   free   buff  cache   si   so    bi    bo   <span class="keyword">in</span>   cs us sy <span class="built_in">id</span> wa st</span><br><span class="line"> 1  0      0 209244   2072 1751828    0    0    13    20   88  160  2  3 95  0  0</span><br><span class="line"> 0  0      0 209040   2072 1751828    0    0     0    12 3182 4760  2  3 95  0  0</span><br><span class="line"> 0  0      0 209028   2072 1751828    0    0     0    58 3053 4668  2  3 96  0  0</span><br><span class="line">┌──[root@vms81.liruilongs.github.io]-[/]</span><br><span class="line">└─$</span><br></pre></td></tr></table></figure>
+<p>我们可以看到，在第一秒的时候，io读取13块，写入了20块，第二读取0，写入12块，磁盘块的大小为1024字节，即系统读取速率为13&#x2F;1024，等待IO的时间为O，说明当前系统IO读写空闲</p>
+<h5 id="每个磁盘的统计信息"><a href="#每个磁盘的统计信息" class="headerlink" title="每个磁盘的统计信息"></a>每个磁盘的统计信息</h5><p><code>vmstat的-d选项显示的是每一个磁盘的I/O统计信息。这些统计数据与-D选项的数据类似</code></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">┌──[root@vms81.liruilongs.github.io]-[/]</span><br><span class="line">└─<span class="variable">$vmstat</span>  -d</span><br><span class="line">disk- ------------reads------------ ------------writes----------- -----IO------</span><br><span class="line">       total merged sectors      ms  total merged sectors      ms    cur    sec</span><br><span class="line">sda    14661     33 3369384   16091 523799   5120 5213233  111242      0     86</span><br></pre></td></tr></table></figure>
+
+<table>
+<thead>
+<tr>
+<th>统计数据</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>reads:total</td>
+<td>读请求的总数</td>
+</tr>
+<tr>
+<td>reads:merged</td>
+<td>为了提升性能而被合并的不同读请求数量，这些读请求访问的是磁盘上的相邻位置</td>
+</tr>
+<tr>
+<td>reads:sectors</td>
+<td>从磁盘读取的扇区总数</td>
+</tr>
+<tr>
+<td>reads:ms</td>
+<td>磁盘读所花费的时间(以毫秒为单位)</td>
+</tr>
+<tr>
+<td>writes:total</td>
+<td>写请求的总数</td>
+</tr>
+<tr>
+<td>writes:merged</td>
+<td>为了提升性能而被合并的不同写请求数量，这些写请求访问的是磁盘上的相邻位置</td>
+</tr>
+<tr>
+<td>writes:sectors</td>
+<td>向磁盘写人的扇区总数(一个扇区通常为512字节)</td>
+</tr>
+<tr>
+<td>writes:ms</td>
+<td>磁盘写所花费的时间(以毫秒为单位)当前正在处理的I&#x2F;O总数</td>
+</tr>
+<tr>
+<td>IO:cur</td>
+<td>当前正在处理的I&#x2F;O总数。</td>
+</tr>
+<tr>
+<td>10：sec</td>
+<td>等待1&#x2F;0完成所花费的秒数</td>
+</tr>
+</tbody></table>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">[root@foundation0 ~]<span class="comment"># vmstat -d 1 2</span></span><br><span class="line">disk- ------------reads------------ ------------writes----------- -----IO------</span><br><span class="line">       total merged sectors      ms  total merged sectors      ms    cur    sec</span><br><span class="line">nvme0n1  72865      5 6560405   54580 138514   1015 6715558   94026      0    149</span><br><span class="line">sr0        0      0       0       0      0      0       0       0      0      0</span><br><span class="line">loop0     49      0    2308      10      0      0       0       0      0      0</span><br><span class="line">loop1     93      0   19822     146      0      0       0       0      0      0</span><br><span class="line">loop2     77      0    3764      20      0      0       0       0      0      0</span><br><span class="line">loop3     88      0   20882      73      0      0       0       0      0      0</span><br><span class="line">loop4    463      0   64058    1904      0      0       0       0      0      0</span><br><span class="line">nvme0n1  72865      5 6560405   54580 138514   1015 6715558   94026      0    149</span><br><span class="line">sr0        0      0       0       0      0      0       0       0      0      0</span><br><span class="line">loop0     49      0    2308      10      0      0       0       0      0      0</span><br><span class="line">loop1     93      0   19822     146      0      0       0       0      0      0</span><br><span class="line">loop2     77      0    3764      20      0      0       0       0      0      0</span><br><span class="line">loop3     88      0   20882      73      0      0       0       0      0      0</span><br><span class="line">loop4    463      0   64058    1904      0      0       0       0      0      0</span><br><span class="line">[root@foundation0 ~]<span class="comment">#</span></span><br></pre></td></tr></table></figure>
+
+<h5 id="统计磁盘分区的读写情况"><a href="#统计磁盘分区的读写情况" class="headerlink" title="统计磁盘分区的读写情况"></a>统计磁盘分区的读写情况</h5><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">┌──[root@vms81.liruilongs.github.io]-[/]</span><br><span class="line">└─<span class="variable">$vmstat</span> -p sda1 1 3</span><br><span class="line">sda1          reads   <span class="built_in">read</span> sectors  writes    requested writes</span><br><span class="line">               15036    3381024     545880    5414724</span><br><span class="line">               15036    3381024     545894    5414837</span><br><span class="line">               15036    3381024     545895    5414846</span><br></pre></td></tr></table></figure>
+<p>上面我们可以看到，对于sda1物理分区来讲，有14(545880-545894)个写提交了</p>
+<p>虽然vmstat提供了单个磁盘&#x2F;分区的统计信息，但是它只给出其总量，却不给出在采样过程中的变化率。因此，要分辨哪个设备的统计数据在采样期间发生了明显的变化就显得很困难。</p>
+<h3 id="iostat"><a href="#iostat" class="headerlink" title="iostat"></a>iostat</h3><p>iostat与vmstat相似，但它是一个专门用于显示磁盘1&#x2F;0子系统统计信息的工具。</p>
+<p>iostat提供的信息细化到每个设备和每个分区从特定磁盘读写了多少个块。(iostat中块大小一般为512字节。)</p>
+<p>此外，iostat还可以提供大量的信息来显示磁盘是如何被利用的，以及Linux花费了多长时间来等待将请求提交到磁盘。</p>
+<h4 id="磁盘I-x2F-O性能相关的选项和输出-1"><a href="#磁盘I-x2F-O性能相关的选项和输出-1" class="headerlink" title="磁盘I&#x2F;O性能相关的选项和输出"></a>磁盘I&#x2F;O性能相关的选项和输出</h4><p>iostat用如下命令行调用：</p>
+<p><code>iostat [-d] [-k] [-x] [devicel] [interval[count]]</code></p>
+<p>与vmstat很相似，iostat可以定期显示性能统计信息。</p>
+<table>
+<thead>
+<tr>
+<th>选项</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>-d</td>
+<td>只显示磁盘I&#x2F;O的统计信息，而不是默认信息。默认信息中还包括了CPU使用情况</td>
+</tr>
+<tr>
+<td>-k</td>
+<td>按KB显示统计数据，而不是按块显示</td>
+</tr>
+<tr>
+<td>-x</td>
+<td>显示扩展性能I&#x2F;O统计信息</td>
+</tr>
+<tr>
+<td>device</td>
+<td>若指定设备，则iostat只显示该设备的信息</td>
+</tr>
+<tr>
+<td>interval</td>
+<td>采样间隔时间</td>
+</tr>
+<tr>
+<td>count</td>
+<td>获取的样本总数</td>
+</tr>
+</tbody></table>
+<p>iostat设备统计信息</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">┌──[root@vms81.liruilongs.github.io]-[/]</span><br><span class="line">└─<span class="variable">$iostat</span></span><br><span class="line">Linux 3.10.0-693.el7.x86_64 (vms81.liruilongs.github.io)        06/14/22        _x86_64_        (2 CPU)</span><br><span class="line"></span><br><span class="line">avg-cpu:  %user   %<span class="built_in">nice</span> %system %iowait  %steal   %idle</span><br><span class="line">           2.42    0.00    2.94    0.01    0.00   94.63</span><br><span class="line"></span><br><span class="line">Device:            tps    kB_read/s    kB_wrtn/s    kB_read    kB_wrtn</span><br><span class="line">sda               8.18        24.59        39.45    1694748    2718599</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<table>
+<thead>
+<tr>
+<th>统计数据</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>tps</td>
+<td>每秒传输次数。该项为每秒对设备&#x2F;分区读写请求的次数</td>
+</tr>
+<tr>
+<td>kB_read&#x2F;s</td>
+<td>每秒读取磁盘块的速率</td>
+</tr>
+<tr>
+<td>kB_wrtn&#x2F;s</td>
+<td>每秒写入磁盘块的速率</td>
+</tr>
+<tr>
+<td>kB_read</td>
+<td>在时间间隔内读取块的总数量</td>
+</tr>
+<tr>
+<td>kB_wrtn</td>
+<td>在时间间隔内写入块的总数量</td>
+</tr>
+</tbody></table>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">┌──[root@vms81.liruilongs.github.io]-[/]</span><br><span class="line">└─<span class="variable">$iostat</span>  -d 1 3</span><br><span class="line">Linux 3.10.0-693.el7.x86_64 (vms81.liruilongs.github.io)        06/14/22        _x86_64_        (2 CPU)</span><br><span class="line"></span><br><span class="line">Device:            tps    kB_read/s    kB_wrtn/s    kB_read    kB_wrtn</span><br><span class="line">sda               8.17        24.33        39.40    1694756    2744300</span><br><span class="line"></span><br><span class="line">Device:            tps    kB_read/s    kB_wrtn/s    kB_read    kB_wrtn</span><br><span class="line">sda               9.00         0.00        37.00          0         37</span><br><span class="line"></span><br><span class="line">Device:            tps    kB_read/s    kB_wrtn/s    kB_read    kB_wrtn</span><br><span class="line">sda               0.00         0.00         0.00          0          0</span><br><span class="line"></span><br><span class="line">┌──[root@vms81.liruilongs.github.io]-[/]</span><br><span class="line">└─$</span><br></pre></td></tr></table></figure>
+
+<p>当你使用-x参数调用iostat时，它会显示更多关于磁盘I&#x2F;O子系统的统计信息。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">┌──[root@vms81.liruilongs.github.io]-[/]</span><br><span class="line">└─<span class="variable">$iostat</span> -x  -dk  1 3 /dev/sda1</span><br><span class="line">Linux 3.10.0-693.el7.x86_64 (vms81.liruilongs.github.io)        06/14/22        _x86_64_        (2 CPU)</span><br><span class="line"></span><br><span class="line">Device:         rrqm/s   wrqm/s     r/s     w/s    rkB/s    wkB/s avgrq-sz avgqu-sz   await r_await w_await  svctm  %util</span><br><span class="line">sda1              0.00     0.08    0.22    7.96    24.21    39.39    15.57     0.00    0.23    1.10    0.21   0.16   0.13</span><br><span class="line"></span><br><span class="line">Device:         rrqm/s   wrqm/s     r/s     w/s    rkB/s    wkB/s avgrq-sz avgqu-sz   await r_await w_await  svctm  %util</span><br><span class="line">sda1              0.00     0.00    0.00   15.00     0.00    60.00     8.00     0.00    0.27    0.00    0.27   0.27   0.40</span><br><span class="line"></span><br><span class="line">Device:         rrqm/s   wrqm/s     r/s     w/s    rkB/s    wkB/s avgrq-sz avgqu-sz   await r_await w_await  svctm  %util</span><br><span class="line">sda1              0.00     0.00    0.00    8.00     0.00    32.00     8.00     0.00    0.25    0.00    0.25   0.25   0.20</span><br><span class="line"></span><br><span class="line">┌──[root@vms81.liruilongs.github.io]-[/]</span><br><span class="line">└─$</span><br></pre></td></tr></table></figure>
+
+<p>iostat的扩展磁盘统计信息</p>
+<table>
+<thead>
+<tr>
+<th>统计数据</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>rrqm&#x2F;s</td>
+<td>在提交给磁盘前，被合并的读请求的数量</td>
+</tr>
+<tr>
+<td>wrqm&#x2F;s</td>
+<td>在提交给磁盘前，被合并的写请求的数量</td>
+</tr>
+<tr>
+<td>r&#x2F;s</td>
+<td>每秒提交给磁盘的读请求数量</td>
+</tr>
+<tr>
+<td>w&#x2F;s</td>
+<td>每秒提交给磁盘的写请求数量</td>
+</tr>
+<tr>
+<td>rsec&#x2F;s</td>
+<td>每秒读取的磁盘扇区数</td>
+</tr>
+<tr>
+<td>wsec&#x2F;s</td>
+<td>每秒写入的磁盘扇区数</td>
+</tr>
+<tr>
+<td>rkB&#x2F;s</td>
+<td>每秒从磁盘读取了多少KB的数据</td>
+</tr>
+<tr>
+<td>wkB&#x2F;s</td>
+<td>每秒向磁盘写入了多少KB的数据</td>
+</tr>
+<tr>
+<td>avgrq-sz</td>
+<td>磁盘请求的平均大小(按扇区计)</td>
+</tr>
+<tr>
+<td>avgqu-sz</td>
+<td>磁盘请求队列的平均大小。</td>
+</tr>
+<tr>
+<td>await</td>
+<td>完成对一个请求的服务所需的平均时间(按毫秒计),该平均时间为请求在磁盘队列中等待的时间加上磁盘对其服务所需的时间</td>
+</tr>
+<tr>
+<td>svctm</td>
+<td>提交到磁盘的请求的平均服务时间(按毫秒计)。该项表明磁盘完成一个请求所花费的平均时间。与await不同，该项不包含在队列中等待的时间</td>
+</tr>
+<tr>
+<td>%util</td>
+<td>利用率</td>
+</tr>
+</tbody></table>
+<p><code>当avgqu-sz的值特别大的时候，且请求等待时间await远远高于请求服务svctm所花费时间，且利用率%util为100%的时候，表明该磁盘处于饱和状态。</code></p>
+<h3 id="sar"><a href="#sar" class="headerlink" title="sar"></a>sar</h3><p>sar可以收集Linux系统多个不同方面的性能统计信息。除了CPU和内存之外，它还可以收集关于磁盘I&#x2F;O子系统的信息。</p>
+<h4 id="磁盘I-x2F-O性能相关的选项和输出-2"><a href="#磁盘I-x2F-O性能相关的选项和输出-2" class="headerlink" title="磁盘I&#x2F;O性能相关的选项和输出"></a>磁盘I&#x2F;O性能相关的选项和输出</h4><p>当使用sar 来监视磁盘I&#x2F;O统计数据时，你可以用如下命令行来调用它：</p>
+<p><code>sar -d [interval [count] ]</code></p>
+<p>通常，sar显示的是系统中CPU使用的相关信息。若要显示磁盘使用情况的统计信息，你必须使用-d选项。sar只能在高于2.5.70的内核版本中显示磁盘I&#x2F;O统计数据。</p>
+<p>显示信息进行了说明。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">┌──[root@vms81.liruilongs.github.io]-[/]</span><br><span class="line">└─<span class="variable">$sar</span> -d 1 3</span><br><span class="line">Linux 3.10.0-693.el7.x86_64 (vms81.liruilongs.github.io)        06/14/22        _x86_64_        (2 CPU)</span><br><span class="line"></span><br><span class="line">23:31:21          DEV       tps  rd_sec/s  wr_sec/s  avgrq-sz  avgqu-sz     await     svctm     %util</span><br><span class="line">23:31:22       dev8-0      7.00      0.00     56.00      8.00      0.00      0.29      0.29      0.20</span><br><span class="line"></span><br><span class="line">23:31:22          DEV       tps  rd_sec/s  wr_sec/s  avgrq-sz  avgqu-sz     await     svctm     %util</span><br><span class="line">23:31:23       dev8-0      1.00      0.00     10.00     10.00      0.00      0.00      0.00      0.00</span><br><span class="line"></span><br><span class="line">23:31:23          DEV       tps  rd_sec/s  wr_sec/s  avgrq-sz  avgqu-sz     await     svctm     %util</span><br><span class="line">23:31:24       dev8-0     12.00      0.00     96.00      8.00      0.00      0.33      0.25      0.30</span><br><span class="line"></span><br><span class="line">Average:          DEV       tps  rd_sec/s  wr_sec/s  avgrq-sz  avgqu-sz     await     svctm     %util</span><br><span class="line">Average:       dev8-0      6.67      0.00     54.00      8.10      0.00      0.30      0.25      0.17</span><br><span class="line">┌──[root@vms81.liruilongs.github.io]-[/]</span><br><span class="line">└─$</span><br></pre></td></tr></table></figure>
+
+
+<table>
+<thead>
+<tr>
+<th>统计数据</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>tps</td>
+<td>每秒传输数。该项为每秒对设备&#x2F;分区进行读写的次数</td>
+</tr>
+<tr>
+<td>rd_sec&#x2F;s</td>
+<td>每秒读取的磁盘扇区数</td>
+</tr>
+<tr>
+<td>wr_sec&#x2F;s</td>
+<td>每秒写入的磁盘扇区数</td>
+</tr>
+<tr>
+<td>avgrq-sz</td>
+<td>磁盘请求的平均大小(按扇区计)</td>
+</tr>
+<tr>
+<td>avgqu-sz</td>
+<td>磁盘请求队列的平均大小。</td>
+</tr>
+<tr>
+<td>await</td>
+<td>完成对一个请求的服务所需的平均时间(按毫秒计),该平均时间为请求在磁盘队列中等待的时间加上磁盘对其服务所需的时间</td>
+</tr>
+<tr>
+<td>svctm</td>
+<td>提交到磁盘的请求的平均服务时间(按毫秒计)。该项表明磁盘完成一个请求所花费的平均时间。与await不同，该项不包含在队列中等待的时间</td>
+</tr>
+<tr>
+<td>%util</td>
+<td>利用率</td>
+</tr>
+</tbody></table>
+<h3 id="lsof-列出打开文件"><a href="#lsof-列出打开文件" class="headerlink" title="lsof(列出打开文件)"></a>lsof(列出打开文件)</h3><p>1sof提供了一种方法来确定哪些进程打开了一个特定的文件。除了跟踪单个文件的用户外，lsof还可以显示使用了特定目录下文件的进程。同时，它还可以递归搜索整个目录树，并列出使用了该目录树内文件的进程。在要筛选哪些应用程序产生了I&#x2F;O时，lsof是很有用的。</p>
+<h4 id="磁盘I-x2F-O性能相关的选项和输出-3"><a href="#磁盘I-x2F-O性能相关的选项和输出-3" class="headerlink" title="磁盘I&#x2F;O性能相关的选项和输出"></a>磁盘I&#x2F;O性能相关的选项和输出</h4><p>你可以使用如下命令行调用lsof来找出进程打开了哪些文件：</p>
+<p><code>1sof [-r delay] [+D directory] [+d directory] [file]</code></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">┌──[root@vms81.liruilongs.github.io]-[/]</span><br><span class="line">└─<span class="variable">$yum</span> -y install  lsof</span><br></pre></td></tr></table></figure>
+
+<p>通常，lsof显示的是使用给定文件的进程。但是，通过使用+d和+D选项，它可以显示多个文件的相关信息。表6-10解释了1sof的命令行选项，它们可用于追踪I&#x2F;O性能问题。</p>
+<p>sof 命令行选项</p>
+<table>
+<thead>
+<tr>
+<th>选项</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>-r delay</td>
+<td>使得1sof每间隔delay秒输出一次统计数据</td>
+</tr>
+<tr>
+<td>+D directory</td>
+<td>使得1sof递归搜索给定目录下的所有文件，并报告哪些进程正在使用它们</td>
+</tr>
+<tr>
+<td>+d directory</td>
+<td>使得1sof报告哪些进程正在使用给定目录下的文件</td>
+</tr>
+</tbody></table>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">┌──[root@vms81.liruilongs.github.io]-[/]</span><br><span class="line">└─<span class="variable">$lsof</span>  -r 2 +D /usr/bin/</span><br><span class="line">COMMAND      PID USER  FD   TYPE DEVICE  SIZE/OFF      NODE NAME</span><br><span class="line">dbus-daem    539 dbus txt    REG    8,1    442080 268592945 /usr/bin/dbus-daemon</span><br><span class="line">VGAuthSer    544 root txt    REG    8,1    128488 268979997 /usr/bin/VGAuthService</span><br><span class="line">vmtoolsd     545 root txt    REG    8,1     48976 268980000 /usr/bin/vmtoolsd</span><br><span class="line">firewalld    636 root txt    REG    8,1      7136 268591652 /usr/bin/python2.7</span><br><span class="line">tuned        951 root txt    REG    8,1      7136 268591652 /usr/bin/python2.7</span><br><span class="line">kubelet      957 root txt    REG    8,1 153350040 270317939 /usr/bin/kubelet</span><br><span class="line">container    961 root txt    REG    8,1  48766984 268964765 /usr/bin/containerd</span><br><span class="line">dockerd     1073 root txt    REG    8,1  96765968 268963237 /usr/bin/dockerd</span><br><span class="line">container   1735 root txt    REG    8,1   8617984 268592410 /usr/bin/containerd-shim-runc-v2</span><br><span class="line">container   1782 root txt    REG    8,1   8617984 268592410 /usr/bin/containerd-shim-runc-v2</span><br><span class="line">container   1853 root txt    REG    8,1   8617984 268592410 /usr/bin/containerd-shim-runc-v</span><br></pre></td></tr></table></figure>
+
+<table>
+<thead>
+<tr>
+<th>统计数据</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>COMMAND</td>
+<td>打开该文件的命令的名称</td>
+</tr>
+<tr>
+<td>PID</td>
+<td>打开该文件的命令的PID</td>
+</tr>
+<tr>
+<td>USER</td>
+<td>打开文件的用户</td>
+</tr>
+<tr>
+<td>FD</td>
+<td>该文件的描述符。txt表示可执行文件，mem表示内存映射文件TYPE文件类型，REG表示常规文件</td>
+</tr>
+<tr>
+<td>DEVICE</td>
+<td>用主设备号和次设备号表示的设备编号</td>
+</tr>
+<tr>
+<td>SIZE</td>
+<td>文件的大小</td>
+</tr>
+<tr>
+<td>NODE</td>
+<td>文件的索引节点</td>
+</tr>
+</tbody></table>
+<p>可以通过DEVICE来查看对应的设备位置</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">┌──[root@vms81.liruilongs.github.io]-[/]</span><br><span class="line">└─<span class="variable">$ls</span> -la /dev/ | grep sd</span><br><span class="line">brw-rw----   1 root disk      8,   0 Jun 12 14:58 sda</span><br><span class="line">brw-rw----   1 root disk      8,   1 Jun 12 14:58 sda1</span><br><span class="line">brw-rw----   1 root disk      8,   2 Jun 12 14:58 sda2</span><br><span class="line">┌──[root@vms81.liruilongs.github.io]-[/]</span><br><span class="line">└─$</span><br></pre></td></tr></table></figure>
+
+<p><code>当我们通过前面的命令确定了饱和的磁盘设备。那么我们可以通过lsof来根据磁盘找到对应的文件，从而确认对应的PID</code></p>
+</div><div class="article-licensing box"><div class="licensing-title"><p>关于Linux性能调优中IO调优的一些笔记</p><p><a href="https://liruilongs.github.io/2022/06/14/rhca/RH442_BPF/关于Linux性能调优中IO调优的一些笔记/">https://liruilongs.github.io/2022/06/14/rhca/RH442_BPF/关于Linux性能调优中IO调优的一些笔记/</a></p></div><div class="licensing-meta level is-mobile"><div class="level-left"><div class="level-item is-narrow"><div><h6>作者</h6><a href="https://liruilongs.github.io"><p>山河已无恙</p></a></div></div><div class="level-item is-narrow"><div><h6>发布于</h6><p>2022-06-14</p></div></div><div class="level-item is-narrow"><div><h6>更新于</h6><p>2024-01-14</p></div></div><div class="level-item is-narrow"><div><h6>许可协议</h6><p><a class="icon" rel="noopener" target="_blank" title="Creative Commons" href="https://creativecommons.org/"><i class="fab fa-creative-commons"></i></a><a class="icon" rel="noopener" target="_blank" title="Attribution" href="https://creativecommons.org/licenses/by/4.0/"><i class="fab fa-creative-commons-by"></i></a><a class="icon" rel="noopener" target="_blank" title="Noncommercial" href="https://creativecommons.org/licenses/by-nc/4.0/"><i class="fab fa-creative-commons-nc"></i></a></p></div></div></div></div></div><div class="recommend-area"><div class="recommend-post"><span class="is-size-6 has-text-grey has-mr-7"># 相关文章</span><br><span>  1.<a class="is-size-6" href="/2024/09/05/%E5%BE%85%E5%8F%91%E5%B8%83/Linux-%E6%80%A7%E8%83%BD%E8%B0%83%E4%BC%98%E4%B9%8BCPU%E4%B8%8A%E4%B8%8B%E6%96%87%E5%88%87%E6%8D%A2/" target="_blank">Linux 性能观测之CPU上下文切换</a><br></span><span>  2.<a class="is-size-6" href="/2024/08/23/%E5%BE%85%E5%8F%91%E5%B8%83/Linux%20%E6%80%A7%E8%83%BD%E8%A7%82%E6%B5%8B%E4%B9%8B%E5%B9%B3%E5%9D%87%E8%B4%9F%E8%BD%BD/" target="_blank">Linux 性能观测之平均负载</a><br></span><span>  3.<a class="is-size-6" href="/2024/05/10/%E5%BE%85%E5%8F%91%E5%B8%83/Linux-%E6%80%A7%E8%83%BD%E8%B0%83%E4%BC%98%E4%B9%8B%E6%9C%8D%E5%8A%A1CPU%E6%97%B6%E9%97%B4%E5%88%86%E5%B8%83%E9%85%8D%E7%BD%AE/" target="_blank">Linux-性能调优之服务CPU时间分布(亲和性、带宽、权重)配置Demo</a><br></span><span>  4.<a class="is-size-6" href="/2024/05/04/rhca/RH442_BPF/CPU/Linux-%E6%80%A7%E8%83%BD%E8%B0%83%E4%BC%98%E4%B9%8B%E6%9C%8D%E5%8A%A1%20CPU%20%E4%BA%B2%E5%92%8C%E6%80%A7%E9%85%8D%E7%BD%AE/" target="_blank">Linux 性能调优之 CPU 亲和性配置</a><br></span><span>  5.<a class="is-size-6" href="/2024/04/01/rhca/RH442_BPF/BPF/Linux-BPF%E6%80%A7%E8%83%BD%E5%88%86%E6%9E%90%E4%B9%8B%E5%9F%BA%E4%BA%8EBCC%E5%B7%A5%E5%85%B7%E6%B8%85%E5%8D%95%E6%A3%80%E6%9F%A5/" target="_blank">Linux BPF性能分析之基于BCC工具清单检查</a><br></span><span>  6.<a class="is-size-6" href="/2024/03/30/rhca/RH442_BPF/BPF/Linux-%E6%80%A7%E8%83%BD%E5%88%86%E6%9E%90%E6%96%B9%E6%B3%95%E8%AE%BA%E4%BB%8B%E7%BB%8D-%E4%B8%9A%E5%8A%A1%E8%B4%9F%E8%BD%BD%E7%94%BB%E5%83%8F%E3%80%81%E4%B8%8B%E9%92%BB%E5%88%86%E6%9E%90%E3%80%81USE%E6%96%B9%E6%B3%95%E8%AE%BA%EF%BC%8C%E6%A3%80%E6%9F%A5%E6%B8%85%E5%8D%95/" target="_blank">Linux 常见性能分析方法论介绍(业务负载画像、下钻分析、USE方法论，检查清单)</a><br></span><span>  7.<a class="is-size-6" href="/2024/03/08/Linux/Linux%E7%BD%91%E7%BB%9C/Linux%20%E7%BD%91%E7%BB%9C%E9%9A%A7%E9%81%93%E6%8A%80%E6%9C%AF%20VXLAN%20%E8%AE%A4%E7%9F%A5/" target="_blank">Linux 网络隧道技术 VXLAN 认知</a><br></span><span>  8.<a class="is-size-6" href="/2024/03/03/Linux/Linux%E7%BD%91%E7%BB%9C/Linux-%E7%BD%91%E7%BB%9C%E6%8E%A5%E5%8F%A3%E7%9A%84%E6%B7%B7%E6%9D%82%E6%A8%A1%E5%BC%8F-Promiscuous-mode-%E8%AE%A4%E7%9F%A5/" target="_blank">Linux 网络接口的混杂模式(Promiscuous  mode)认知</a><br></span></div><div class="recommend-post"><span class="is-size-6 has-text-grey has-mr-7"># 推荐文章</span><br><span>  1.<a class="is-size-6" href="/2021/08/27/K8s/%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/%E3%80%8AKubernetes%E6%9D%83%E5%A8%81%E6%8C%87%E5%8D%97-%E4%BB%8EDocker%E5%88%B0Kubernetes%E5%AE%9E%E8%B7%B5%E5%85%A8%E6%8E%A5%E8%A7%A6%E3%80%8B%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/" target="_blank">《Kubernetes权威指南:从Docker到Kubernetes实践全接触》读书笔记</a><br></span><span>  2.<a class="is-size-6" href="/2022/11/19/Git/%E5%85%B3%E4%BA%8E-Git-%E9%87%8D%E5%86%99%E5%8E%86%E5%8F%B2%E7%9A%84%E4%B8%80%E4%BA%9B%E7%AC%94%E8%AE%B0/" target="_blank">关于 Git 重写历史的一些笔记</a><br></span><span>  3.<a class="is-size-6" href="/2022/08/02/Git/%E5%85%B3%E4%BA%8EGit%E5%88%86%E6%94%AF%E5%8F%98%E5%9F%BA%E6%93%8D%E4%BD%9C%E7%9A%84%E4%B8%80%E4%BA%9B%E7%AC%94%E8%AE%B0/" target="_blank">关于Git分支变基操作的一些笔记</a><br></span><span>  4.<a class="is-size-6" href="/2022/07/26/Git/%E5%85%B3%E4%BA%8EGit%E5%88%86%E6%94%AF%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86%E7%9A%84%E4%B8%80%E4%BA%9B%E7%AC%94%E8%AE%B0/" target="_blank">关于Git分支基础知识的一些笔记</a><br></span><span>  5.<a class="is-size-6" href="/2022/08/02/Git/%E5%85%B3%E4%BA%8EGit%E5%88%86%E6%94%AF%E5%B7%A5%E4%BD%9C%E6%B5%81%E7%9A%84%E4%B8%80%E4%BA%9B%E7%AC%94%E8%AE%B0/" target="_blank">关于Git分支工作流的一些笔记</a><br></span><span>  6.<a class="is-size-6" href="/2023/02/19/Git/%E5%85%B3%E4%BA%8EGit%E9%AB%98%E7%BA%A7%E5%90%88%E5%B9%B6%E7%9A%84%E4%B8%80%E4%BA%9B%E7%AC%94%E8%AE%B0%E6%95%B4%E7%90%86/" target="_blank">关于Git分支高级合并的一些笔记整理</a><br></span></div></div><link rel="stylesheet" href="https://cdnjs.loli.net/ajax/libs/social-share.js/1.0.16/css/share.min.css"><div class="social-share"></div><script src="https://cdnjs.loli.net/ajax/libs/social-share.js/1.0.16/js/social-share.min.js"></script></article></div><div class="card"><div class="card-content"><h3 class="menu-label has-text-centered">喜欢这篇文章？打赏一下作者吧</h3><div class="buttons is-centered"><a class="button donate" data-type="alipay"><span class="icon is-small"><i class="fab fa-alipay"></i></span><span>支付宝</span><span class="qrcode"><img src="/img/alipay%EF%BF%A5.png" alt="支付宝"></span></a><a class="button donate" data-type="wechat"><span class="icon is-small"><i class="fab fa-weixin"></i></span><span>微信</span><span class="qrcode"><img src="/img/wechat%EF%BF%A5.png" alt="微信"></span></a></div></div></div><nav class="post-navigation mt-4 level is-mobile"><div class="level-start"><a class="article-nav-prev level level-item link-muted" href="/2022/06/24/anothe/%E4%B8%8ETH%E7%9A%84%E4%B8%80%E4%BA%9B%E9%82%AE%E4%BB%B6%E4%BA%A4%E6%B5%81/"><i class="level-item fas fa-chevron-left"></i><span class="level-item">与TH的一些邮件往来</span></a></div><div class="level-end"><a class="article-nav-next level level-item link-muted" href="/2022/06/01/rhca/RH442_BPF/Linux%E6%80%A7%E8%83%BD%E8%B0%83%E4%BC%98%E4%B9%8B%E7%94%A8%E7%94%B5%E8%B0%83%E4%BC%98/"><span class="level-item">Linux性能调优之用电调优(Power Usage Tuning)</span><i class="level-item fas fa-chevron-right"></i></a></div></nav><!--!--><div class="card"><div class="card-content"><div class="title is-5">评论</div><div id="comment-container"></div><link rel="stylesheet" href="https://cdnjs.loli.net/ajax/libs/gitalk/1.6.0/gitalk.css"><script> $.getScript('/js/gitalk.min.js', function () { 
+            var gitalk = new Gitalk({
+            language:'zh-CN',
+            id: '63d2f26dd65bd0bfa6991b46b423b7ca',
+            repo: 'blog_comment',
+            owner: 'LIRUILONGS',
+            clientID: '9fdc9739266d48d5f62e',
+            clientSecret: 'c1cc33697d099a2197650ec9dadcb16bd4904655',
+            admin: ["LIRUILONGS"],
+            createIssueManually: true,
+            distractionFreeMode: true,
+            perPage: 10,
+            pagerDirection: 'last',
+            proxy: 'https://cors-anywhere.azm.workers.dev/https://github.com/login/oauth/access_token',
+            
+            enableHotKey: true,
+            isLocked: false
+        })
+        gitalk.render('comment-container')});</script></div></div></div><div class="column column-left is-4-tablet is-4-desktop is-3-widescreen  order-1 is-sticky"><div class="card widget" id="toc" data-type="toc"><div class="card-content"><div class="menu"><h3 class="menu-label">目录</h3><ul class="menu-list"><ul class="menu-list"><li><a class="is-flex is-mobile" href="#写在前面"><span class="mr-2">1.1</span><span>写在前面</span></a></li></ul><li><a class="is-flex is-mobile" href="#性能工具：磁盘I-x2F-O"><span class="mr-2">2</span><span>性能工具：磁盘I/O</span></a><ul class="menu-list"><li><a class="is-flex is-mobile" href="#磁盘I-x2F-O介绍"><span class="mr-2">2.1</span><span>磁盘I/O介绍</span></a></li><li><a class="is-flex is-mobile" href="#磁盘I-x2F-O性能工具"><span class="mr-2">2.2</span><span>磁盘I/O性能工具</span></a><ul class="menu-list"><li><a class="is-flex is-mobile" href="#统计磁盘分区的读写情况"><span class="mr-2">2.2.1</span><span>统计磁盘分区的读写情况</span></a></li><li><a class="is-flex is-mobile" href="#磁盘I-x2F-O性能相关的选项和输出-1"><span class="mr-2">2.2.2</span><span>磁盘I/O性能相关的选项和输出</span></a></li><li><a class="is-flex is-mobile" href="#磁盘I-x2F-O性能相关的选项和输出-2"><span class="mr-2">2.2.3</span><span>磁盘I/O性能相关的选项和输出</span></a></li><li><a class="is-flex is-mobile" href="#磁盘I-x2F-O性能相关的选项和输出-3"><span class="mr-2">2.2.4</span><span>磁盘I/O性能相关的选项和输出</span></a></li></ul></li></ul></li></ul></div></div><style>.menu-list > li > a.is-active + .menu-list { display: block; }.menu-list > li > a + .menu-list { display: none; }</style><script src="/js/toc.js" defer></script></div><div class="card widget" data-type="profile"><div class="card-content"><nav class=""><div class="level-item has-text-centered flex-shrink-1"><div><figure class="image is-128x128 mx-auto mb-2"><img class="avatar" src="/img/%E5%BE%AE%E4%BF%A1%E5%85%AC%E4%BC%97%E5%8F%B7.jpg" alt="山河已无恙"></figure><p class="title is-size-4 is-block" style="line-height:inherit;">山河已无恙</p><p class="is-size-6 is-block">爱自己，是终生浪漫的开始</p><p class="is-size-6 is-flex justify-content-center"><i class="fas fa-map-marker-alt mr-1"></i><span>中国·呼和浩特</span></p></div></div></nav><nav class="level is-mobile"><div class="level-item has-text-centered is-marginless"><div><p class="heading">文章</p><a href="/archives"><p class="title">388</p></a></div></div><div class="level-item has-text-centered is-marginless"><div><p class="heading">分类</p><a href="/categories"><p class="title">123</p></a></div></div><div class="level-item has-text-centered is-marginless"><div><p class="heading">标签</p><a href="/tags"><p class="title">173</p></a></div></div></nav><div class="level"><a class="level-item button is-primary is-rounded" href="https://mp.weixin.qq.com/s?__biz=MzkyNjIxNTYwMw==&amp;mid=2247496480&amp;idx=1&amp;sn=a9971fed3962ef2a1aeda1f0bda65f86&amp;chksm=c2380ffcf54f86eaba8daac6caca72a70f38e61a8d25dc2a66d3a17b87c02530e326dcaea14b#rd" target="_blank" rel="noopener">关注我</a></div><div class="level is-mobile"><a class="level-item button is-transparent is-marginless" target="_blank" rel="noopener" title="Github" href="https://github.com/LIRUILONGS"><i class="fab fa-github"></i></a><a class="level-item button is-transparent is-marginless" target="_blank" rel="noopener" title="CSDN" href="https://liruilong.blog.csdn.net/"><i class="fa fa-code"></i></a><a class="level-item button is-transparent is-marginless" target="_blank" rel="noopener" title="Email" href="mailto:1224965096@qq.com"><i class="fa fa-envelope"></i></a></div></div></div><div class="card widget" data-type="links"><div class="card-content"><div class="menu"><h3 class="menu-label">链接</h3><ul class="menu-list"><li><a class="level is-mobile" href="https://liruilong.blog.csdn.net/?t=1&amp;type=blog" target="_blank" rel="noopener"><span class="level-left"><span class="level-item">CSDN</span></span><span class="level-right"><span class="level-item tag">liruilong.blog.csdn.net</span></span></a></li><li><a class="level is-mobile" href="https://www.cnblogs.com/liruilong/" target="_blank" rel="noopener"><span class="level-left"><span class="level-item">博客园</span></span><span class="level-right"><span class="level-item tag">www.cnblogs.com</span></span></a></li><li><a class="level is-mobile" href="https://github.com/LIRUILONGS" target="_blank" rel="noopener"><span class="level-left"><span class="level-item">Githup</span></span><span class="level-right"><span class="level-item tag">github.com</span></span></a></li><li><a class="level is-mobile" href="https://gitee.com/liruilonger" target="_blank" rel="noopener"><span class="level-left"><span class="level-item">码云</span></span><span class="level-right"><span class="level-item tag">gitee.com</span></span></a></li></ul></div></div></div><div class="card widget"><div class="card-content"><h3 class="menu-label">最新评论</h3><span class="body_hot_comment">加载中，最新评论有1分钟缓存...</span></div></div><div class="card widget"><div class="card-content"><h3 class="menu-label">最新文章</h3><article class="media"><div class="media-content"><p class="date"><time dateTime="2024-09-05T01:32:25.000Z">2024-09-05</time></p><p class="title"><a href="/2024/09/05/%E5%BE%85%E5%8F%91%E5%B8%83/Linux-%E6%80%A7%E8%83%BD%E8%B0%83%E4%BC%98%E4%B9%8BCPU%E4%B8%8A%E4%B8%8B%E6%96%87%E5%88%87%E6%8D%A2/">Linux 性能观测之CPU上下文切换</a></p><p class="categories"><a href="/categories/Linux/">Linux</a></p></div></article><article class="media"><div class="media-content"><p class="date"><time dateTime="2024-09-02T06:36:12.000Z">2024-09-02</time></p><p class="title"><a href="/2024/09/02/%E5%BE%85%E5%8F%91%E5%B8%83/%E6%97%A0%E4%BA%BA%E6%9C%BA%EF%BC%9A%E7%BA%AA%E5%BD%95%E7%89%87%E8%88%AA%E6%8B%8D%E8%AE%A4%E7%9F%A5/">无人机：纪录片航拍认知</a></p><p class="categories"><a href="/categories/%E6%97%A0%E4%BA%BA%E6%9C%BA/">无人机</a></p></div></article><article class="media"><div class="media-content"><p class="date"><time dateTime="2024-08-23T07:33:37.000Z">2024-08-23</time></p><p class="title"><a href="/2024/08/23/%E5%BE%85%E5%8F%91%E5%B8%83/Linux%20%E6%80%A7%E8%83%BD%E8%A7%82%E6%B5%8B%E4%B9%8B%E5%B9%B3%E5%9D%87%E8%B4%9F%E8%BD%BD/">Linux 性能观测之平均负载</a></p><p class="categories"><a href="/categories/Linux/">Linux</a></p></div></article><article class="media"><div class="media-content"><p class="date"><time dateTime="2024-08-16T01:54:42.538Z">2024-08-16</time></p><p class="title"><a href="/2024/08/16/rhca/RH442_BPF/CPU/Linux-%E6%80%A7%E8%83%BD%E8%B0%83%E4%BC%98%E4%B9%8B%E9%85%8D%E7%BD%AECPU%E8%B0%83%E5%BA%A6%E7%AD%96%E7%95%A5%E5%92%8C%E5%8F%AF%E8%B0%83%E5%8F%82%E6%95%B0/"> </a></p></div></article><article class="media"><div class="media-content"><p class="date"><time dateTime="2024-08-14T06:00:42.000Z">2024-08-14</time></p><p class="title"><a href="/2024/08/14/%E5%BE%85%E5%8F%91%E5%B8%83/%E6%97%A0%E4%BA%BA%E6%9C%BA%EF%BC%9A%E8%88%AA%E6%8B%8D%E4%B9%A6%E7%B1%8D%E6%8E%A8%E8%8D%90/">无人机：航拍书籍推荐</a></p><p class="categories"><a href="/categories/%E6%97%A0%E4%BA%BA%E6%9C%BA/">无人机</a></p></div></article></div></div><div class="card widget"><div class="card-content"><div class="menu"><h3 class="menu-label">分类</h3><ul class="menu-list"><li><a class="level is-mobile is-marginless" href="/categories/AIGC/"><span class="level-start"><span class="level-item">AIGC</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/AdaFace/"><span class="level-start"><span class="level-item">AdaFace</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/Ajax/"><span class="level-start"><span class="level-item">Ajax</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/Ansible/"><span class="level-start"><span class="level-item">Ansible</span></span><span class="level-end"><span class="level-item tag">23</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/AppCube/"><span class="level-start"><span class="level-item">AppCube</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/BPF/"><span class="level-start"><span class="level-item">BPF</span></span><span class="level-end"><span class="level-item tag">4</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/Bind9/"><span class="level-start"><span class="level-item">Bind9</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/CI-CD/"><span class="level-start"><span class="level-item">CI/CD</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/CSS/"><span class="level-start"><span class="level-item">CSS</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/Ceph/"><span class="level-start"><span class="level-item">Ceph</span></span><span class="level-end"><span class="level-item tag">11</span></span></a></li><a class="level is-mobile is-marginless" href="/categories/"><span class="level-start"><span class="level-item">查看全部&gt;&gt;</span></span></a></ul></div></div></div><div class="card widget"><div class="card-content"><div class="menu"><h3 class="menu-label">归档</h3><ul class="menu-list"><li><a class="level is-mobile is-marginless" href="/archives/2024/09/"><span class="level-start"><span class="level-item">九月 2024</span></span><span class="level-end"><span class="level-item tag">2</span></span></a></li><li><a class="level is-mobile is-marginless" href="/archives/2024/08/"><span class="level-start"><span class="level-item">八月 2024</span></span><span class="level-end"><span class="level-item tag">6</span></span></a></li><li><a class="level is-mobile is-marginless" href="/archives/2024/07/"><span class="level-start"><span class="level-item">七月 2024</span></span><span class="level-end"><span class="level-item tag">4</span></span></a></li><li><a class="level is-mobile is-marginless" href="/archives/2024/06/"><span class="level-start"><span class="level-item">六月 2024</span></span><span class="level-end"><span class="level-item tag">11</span></span></a></li><li><a class="level is-mobile is-marginless" href="/archives/2024/05/"><span class="level-start"><span class="level-item">五月 2024</span></span><span class="level-end"><span class="level-item tag">3</span></span></a></li><a class="level is-mobile is-marginless" href="/archives/"><span class="level-start"><span class="level-item">查看全部&gt;&gt;</span></span></a></ul></div></div></div><div class="card widget"><div class="card-content"><div class="menu"><h3 class="menu-label">标签</h3><div class="field is-grouped is-grouped-multiline"><div class="control"><a class="tags has-addons" href="/tags/Kubernetes/"><span class="tag">Kubernetes</span><span class="tag is-grey-lightest">97</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Linux/"><span class="tag">Linux</span><span class="tag is-grey-lightest">48</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Ansible/"><span class="tag">Ansible</span><span class="tag is-grey-lightest">25</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Python/"><span class="tag">Python</span><span class="tag is-grey-lightest">15</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Ceph/"><span class="tag">Ceph</span><span class="tag is-grey-lightest">11</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Docker/"><span class="tag">Docker</span><span class="tag is-grey-lightest">9</span></a></div><div class="control"><a class="tags has-addons" href="/tags/JAVA/"><span class="tag">JAVA</span><span class="tag is-grey-lightest">8</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%E5%8D%8E%E4%B8%BA%E4%BA%91/"><span class="tag">华为云</span><span class="tag is-grey-lightest">8</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Git/"><span class="tag">Git</span><span class="tag is-grey-lightest">7</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Go/"><span class="tag">Go</span><span class="tag is-grey-lightest">6</span></a></div><div class="control"><a class="tags has-addons" href="/tags/OpenShift/"><span class="tag">OpenShift</span><span class="tag is-grey-lightest">6</span></a></div><div class="control"><a class="tags has-addons" href="/tags/BPF/"><span class="tag">BPF</span><span class="tag is-grey-lightest">5</span></a></div><div class="control"><a class="tags has-addons" href="/tags/DNS/"><span class="tag">DNS</span><span class="tag is-grey-lightest">5</span></a></div><div class="control"><a class="tags has-addons" href="/tags/OKD/"><span class="tag">OKD</span><span class="tag is-grey-lightest">5</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%E6%91%84%E5%BD%B1%E6%9B%9D%E5%85%89/"><span class="tag">摄影曝光</span><span class="tag is-grey-lightest">5</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%E7%A8%8B%E5%BA%8F%E4%BA%BA%E7%94%9F/"><span class="tag">程序人生</span><span class="tag is-grey-lightest">5</span></a></div><div class="control"><a class="tags has-addons" href="/tags/selenium/"><span class="tag">selenium</span><span class="tag is-grey-lightest">4</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%E5%AE%B9%E5%99%A8/"><span class="tag">容器</span><span class="tag is-grey-lightest">4</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%E6%91%84%E5%BD%B1%E6%9E%84%E5%9B%BE/"><span class="tag">摄影构图</span><span class="tag is-grey-lightest">4</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%E7%BD%91%E7%BB%9C/"><span class="tag">网络</span><span class="tag is-grey-lightest">4</span></a></div></div><div class="field is-grouped is-grouped-multiline"><a class="tags has-addons" href="/tags/"><span class="tag">查看全部&gt;&gt;</span></a></div></div></div></div><div class="card widget" data-type="subscribe-email"><div class="card-content"><div class="menu"><h3 class="menu-label">订阅更新</h3><form action="https://feedburner.google.com/fb/a/mailverify" method="post" target="popupwindow" onsubmit="window.open(&#039;https://feedburner.google.com/fb/a/mailverify?uri=&#039;,&#039;popupwindow&#039;,&#039;scrollbars=yes,width=550,height=520&#039;);return true"><input type="hidden" value="" name="uri"><input type="hidden" name="loc" value="en_US"><div class="field has-addons"><div class="control has-icons-left is-expanded"><input class="input" name="email" type="email" placeholder="Email"><span class="icon is-small is-left"><i class="fas fa-envelope"></i></span></div><div class="control"><input class="button" type="submit" value="订阅"></div></div></form></div></div></div><!--!--><div class="column-right-shadow is-hidden-widescreen is-sticky"></div></div></div></div></section><footer class="footer"><div class="container"><div class="level"><div class="level-start"><a class="footer-logo is-block mb-2" href="/"><img src="/img/logo.png" alt="山河已无恙" height="28"></a><p class="size-small"><span>&copy; 2024 山河已无恙</span>  Powered by <a href="https://hexo.io/" target="_blank">Hexo</a> &amp; <a href="https://github.com/ppoffice/hexo-theme-icarus" target="_blank">Icarus</a> &amp; <a href="https://github.com/removeif/hexo-theme-amazing" target="_blank">Amazing</a> <br><span>© <a href="http://www.beian.miit.gov.cn/" target="_blank">备案中</a><br></span><span>© 版权说明：[本网站所有内容均收集于互联网或自己创作,<br />&nbsp;&nbsp;&nbsp;&nbsp;方便于网友与自己学习交流，如有侵权，请<a href="/message" target="_blank">留言</a>，立即处理]<br /></span><span><span id="statistic-times">loading...</span><script>function createTime(time) {
+            var n = new Date(time);
+            now.setTime(now.getTime() + 250),
+                days = (now - n) / 1e3 / 60 / 60 / 24,
+                dnum = Math.floor(days),
+                hours = (now - n) / 1e3 / 60 / 60 - 24 * dnum,
+                hnum = Math.floor(hours),
+            1 == String(hnum).length && (hnum = "0" + hnum),
+                minutes = (now - n) / 1e3 / 60 - 1440 * dnum - 60 * hnum,
+                mnum = Math.floor(minutes),
+            1 == String(mnum).length && (mnum = "0" + mnum),
+                seconds = (now - n) / 1e3 - 86400 * dnum - 3600 * hnum - 60 * mnum,
+                snum = Math.round(seconds),
+            1 == String(snum).length && (snum = "0" + snum),
+                document.getElementById("statistic-times").innerHTML = "❤️本站自 <strong>"+time.split(" ")[0].replace(/\//g,".")+"</strong> 已运行 <strong>" + dnum + "</strong> 天 <strong>" + hnum + "</strong> 小时 <strong>" + mnum + "</strong> 分 <strong>" + snum + "</strong> 秒！❤️";
+        }var now = new Date();setInterval("createTime('2021/6/26 21:27:00')", 250,"");</script><br></span><div class="size-small"><span>❤️感谢 <strong><span id="busuanzi_value_site_uv">99+</span></strong> 小伙伴的 <strong><span id="busuanzi_value_site_pv">99+</span></strong> 次光临！❤️</span></div></p></div><div class="level-end"><div class="field has-addons"><p class="control"><a class="button is-transparent is-large" target="_blank" rel="noopener" title="Creative Commons" href="https://creativecommons.org/"><i class="fab fa-creative-commons"></i></a></p><p class="control"><a class="button is-transparent is-large" target="_blank" rel="noopener" title="Attribution 4.0 International" href="https://creativecommons.org/licenses/by/4.0/"><i class="fab fa-creative-commons-by"></i></a></p><p class="control"><a class="button is-transparent is-large" target="_blank" rel="noopener" title="Download on GitHub" href="https://github.com/removeif/hexo-theme-amazing"><i class="fab fa-github"></i></a></p></div><div class="sideMusic"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/aplayer/dist/APlayer.min.css"><script src="/js/APlayer.min.js"></script><script src="https://cdn.jsdelivr.net/npm/meting@2/dist/Meting.min.js"></script><meting-js style="width: auto;height: 2000px;" server="netease" type="playlist" id="2364053447" theme="#2980b9" loop="all" autoplay="false" order="list" storageName="aplayer-setting" lrctype="0" list-max-height="400px" fixed="true"></meting-js></div></div></div></div></footer><script src="https://cdnjs.loli.net/ajax/libs/moment.js/2.22.2/moment-with-locales.min.js"></script><script src="https://cdnjs.loli.net/ajax/libs/clipboard.js/2.0.4/clipboard.min.js" async></script><script>moment.locale("zh-CN");</script><script>var IcarusThemeSettings = {
+            article: {
+                highlight: {
+                    clipboard: true,
+                    fold: 'unfolded'
+                }
+            }
+        };</script><script src="/js/column.js"></script><!--!--><script src="/js/animation.js"></script><a id="back-to-top" title="回到顶端" href="javascript:;"><i class="fas fa-chevron-up"></i></a><script src="/js/back_to_top.js" defer></script><!--!--><script src="https://cdnjs.loli.net/ajax/libs/lightgallery/1.6.8/js/lightgallery.min.js" defer></script><script src="https://cdnjs.loli.net/ajax/libs/justifiedGallery/3.7.0/js/jquery.justifiedGallery.min.js" defer></script><script>window.addEventListener("load", () => {
+            if (typeof $.fn.lightGallery === 'function') {
+                $('.article').lightGallery({ selector: '.gallery-item' });
+            }
+            if (typeof $.fn.justifiedGallery === 'function') {
+                if ($('.justified-gallery > p > .gallery-item').length) {
+                    $('.justified-gallery > p > .gallery-item').unwrap();
+                }
+                $('.justified-gallery').justifiedGallery();
+            }
+        });</script><!--!--><!--!--><link rel="stylesheet" href="https://cdnjs.loli.net/ajax/libs/KaTeX/0.11.1/katex.min.css"><script src="https://cdnjs.loli.net/ajax/libs/KaTeX/0.11.1/katex.min.js" defer></script><script src="https://cdnjs.loli.net/ajax/libs/KaTeX/0.11.1/contrib/auto-render.min.js" defer></script><script src="https://cdnjs.loli.net/ajax/libs/KaTeX/0.11.1/contrib/mhchem.js" defer></script><script>window.addEventListener("load", function() {
+            document.querySelectorAll('[role="article"] > .content').forEach(function(element) {
+                renderMathInElement(element);
+            });
+        });</script><script type="text/x-mathjax-config">MathJax.Hub.Config({
+            'HTML-CSS': {
+                matchFontHeight: false
+            },
+            SVG: {
+                matchFontHeight: false
+            },
+            CommonHTML: {
+                matchFontHeight: false
+            },
+            tex2jax: {
+                inlineMath: [
+                    ['$','$'],
+                    ['\\(','\\)']
+                ]
+            }
+        });</script><script src="https://cdnjs.loli.net/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-MML-AM_CHTML" defer></script><div id="outdated"><h6>Your browser is out-of-date!</h6><p>Update your browser to view this website correctly.&amp;npsb;<a id="btnUpdateBrowser" target="_blank" rel="noopener" href="http://outdatedbrowser.com/">Update my browser now </a></p><p class="last"><a href="#" id="btnCloseUpdateBrowser" title="Close">×</a></p></div><script src="https://cdnjs.loli.net/ajax/libs/outdated-browser/1.1.5/outdatedbrowser.min.js" defer></script><script>window.addEventListener("load", function () {
+            outdatedBrowser({
+                bgColor: '#f25648',
+                color: '#ffffff',
+                lowerThan: 'object-fit' // display on IE11 or below
+            });
+        });</script><!--!--><script src="/js/main.js" defer></script><script>$.getScript('/js/comment-issue-data.js',function(){loadIssueData('9fdc9739266d48d5f62e','c1cc33697d099a2197650ec9dadcb16bd4904655','LIRUILONGS','blog_comment',false);})</script><div class="searchbox"><div class="searchbox-container"><div class="searchbox-header"><div class="searchbox-input-container"><input class="searchbox-input" type="text" placeholder="想要查找什么..."></div><a class="searchbox-close" href="javascript:;">×</a></div><div class="searchbox-body"></div></div></div><script src="/js/insight.js" defer></script><script>document.addEventListener('DOMContentLoaded', function () {
+            loadInsight({"contentUrl":"/content.json"}, {"hint":"想要查找什么...","untitled":"(无标题)","posts":"文章","pages":"页面","categories":"分类","tags":"标签"});
+        });</script><script src="https://cdn.jsdelivr.net/npm/pjax@0.2.8/pjax.js"></script><script type="text/javascript">var pjax = new Pjax({
+            elements: "a",//代表点击链接就更新
+            selectors: [  //代表要更新的节点
+                ".section",
+                "title"
+            ],
+            cache: true,
+            cacheBust:false
+        })
+
+        function loadBusuanzi(){
+        $.getScript("//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js", function () {});
+        }
+
+        function loadMathJax() { //加载mathjax
+            $.getScript("//cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.4/MathJax.js?config=TeX-MML-AM_CHTML", function () {
+                MathJax.Hub.Config({ tex2jax: { inlineMath: [['$', '$'], ['\(', '\)']] } });
+                var math = document.getElementsByClassName("entry-content")[0];
+                MathJax.Hub.Queue(["Typeset", MathJax.Hub, math]);
+            });
+        };
+
+        // 开始 PJAX 执行的函数
+        document.addEventListener('pjax:send', function () {
+        });
+        
+        // PJAX 完成之后执行的函数，可以和上面的重载放在一起
+        document.addEventListener('pjax:complete', function () {
+            $(".section").css({opacity:1});
+            if(true){
+                $.getScript('/js/comment-issue-data.js',function(){loadIssueData('9fdc9739266d48d5f62e','c1cc33697d099a2197650ec9dadcb16bd4904655','LIRUILONGS','blog_comment',false);});
+            }
+            if(false){
+                loadMathJax();
+            }
+            loadMainJs(jQuery, window.moment, window.ClipboardJS, window.IcarusThemeSettings);
+            loadBackTop();
+            loadBusuanzi();
+            if(typeof loadBanner == 'function'){
+                loadBanner();
+            }
+        });</script></body></html>

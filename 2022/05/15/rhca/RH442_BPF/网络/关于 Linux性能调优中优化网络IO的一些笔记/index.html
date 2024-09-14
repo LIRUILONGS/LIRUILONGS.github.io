@@ -1,0 +1,618 @@
+<!doctype html>
+<html lang="zh"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"><meta><title>关于Linux性能调优中网络I/O的一些笔记 - 山河已无恙</title><link rel="manifest" href="/manifest.json"><meta name="application-name" content="山河已无恙"><meta name="msapplication-TileImage" content="https://cdn.jsdelivr.net/gh/removeif/removeif-demo@latest/img/favicon.png"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="山河已无恙"><meta name="apple-mobile-web-app-status-bar-style" content="default"><meta description="傍晚时分，你坐在屋檐下，看着天慢慢地黑下去，心里寂寞而凄凉，感到自己的生命被剥夺了。当时我是个年轻人，但我害怕这样生活下去，衰老下去。在我看来，这是比死亡更可怕的事。——–王小波"><meta property="og:type" content="blog"><meta property="og:title" content="山河已无恙"><meta property="og:url" content="https://mp.weixin.qq.com/s?__biz=MzkyNjIxNTYwMw==&amp;mid=2247496480&amp;idx=1&amp;sn=a9971fed3962ef2a1aeda1f0bda65f86&amp;chksm=c2380ffcf54f86eaba8daac6caca72a70f38e61a8d25dc2a66d3a17b87c02530e326dcaea14b#rd"><meta property="og:site_name" content="山河已无恙"><meta property="og:description" content="傍晚时分，你坐在屋檐下，看着天慢慢地黑下去，心里寂寞而凄凉，感到自己的生命被剥夺了。当时我是个年轻人，但我害怕这样生活下去，衰老下去。在我看来，这是比死亡更可怕的事。——–王小波"><meta property="og:locale" content="zh_CN"><meta property="og:image" content="https://mp.weixin.qq.com/img/头像.jpg"><meta property="article:published_time" content="2022-05-14T18:17:43.000Z"><meta property="article:modified_time" content="2024-09-09T05:09:46.892Z"><meta property="article:author" content="LIRUILONGS"><meta property="article:tag" content="Linux"><meta property="twitter:card" content="summary"><meta property="twitter:image" content="/img/头像.jpg"><script type="application/ld+json">{"@context":"https://schema.org","@type":"BlogPosting","mainEntityOfPage":{"@type":"WebPage","@id":"https://liruilongs.github.io/2022/05/15/rhca/RH442_BPF/%E7%BD%91%E7%BB%9C/%E5%85%B3%E4%BA%8E%20Linux%E6%80%A7%E8%83%BD%E8%B0%83%E4%BC%98%E4%B8%AD%E4%BC%98%E5%8C%96%E7%BD%91%E7%BB%9CIO%E7%9A%84%E4%B8%80%E4%BA%9B%E7%AC%94%E8%AE%B0/"},"headline":"山河已无恙","image":["https://img-blog.csdnimg.cn/cbe570fd19624a2da4b82d7fef6fe3f5.png","https://img-blog.csdnimg.cn/c7d4381b389449ac87e056dae9d26084.png","https://img-blog.csdnimg.cn/af5ab4e9a28b4aadb702878a8ae1b1b0.png","https://img-blog.csdnimg.cn/2e936d8771f641e1b9222634fb892c5a.png","https://img-blog.csdnimg.cn/9ce45a73f038434b9ce5668b2decc6c4.png","https://img-blog.csdnimg.cn/fffee8ae8afc4ea8b1d146132ba42760.png","https://img-blog.csdnimg.cn/59ccbb544a9e4d029c0dc446810f8002.png","https://img-blog.csdnimg.cn/87562c56ba8e4455903f1d0613704ded.png"],"datePublished":"2022-05-14T18:17:43.000Z","dateModified":"2024-09-09T05:09:46.892Z","author":{"@type":"Person","name":"山河已无恙"},"description":"傍晚时分，你坐在屋檐下，看着天慢慢地黑下去，心里寂寞而凄凉，感到自己的生命被剥夺了。当时我是个年轻人，但我害怕这样生活下去，衰老下去。在我看来，这是比死亡更可怕的事。——–王小波"}</script><link rel="canonical" href="https://liruilongs.github.io/2022/05/15/rhca/RH442_BPF/%E7%BD%91%E7%BB%9C/%E5%85%B3%E4%BA%8E%20Linux%E6%80%A7%E8%83%BD%E8%B0%83%E4%BC%98%E4%B8%AD%E4%BC%98%E5%8C%96%E7%BD%91%E7%BB%9CIO%E7%9A%84%E4%B8%80%E4%BA%9B%E7%AC%94%E8%AE%B0/"><link rel="alternate" href="/path/to/atom.xml" title="山河已无恙" type="application/atom+xml"><link rel="icon" href="https://cdn.jsdelivr.net/gh/removeif/removeif-demo@latest/img/favicon.png"><meta name="referrer" content="no-referrer-when-downgrade"><link rel="stylesheet" href="https://cdnjs.loli.net/ajax/libs/font-awesome/5.12.0/css/all.min.css"><link rel="stylesheet" href="https://cdnjs.loli.net/ajax/libs/highlight.js/9.12.0/styles/dracula.min.css"><link rel="stylesheet" href="https://fonts.loli.net/css2?family=Ubuntu:wght@400;600&amp;family=Source+Code+Pro"><link rel="stylesheet" href="/css/default.css"><link rel="stylesheet" href="https://cdnjs.loli.net/ajax/libs/font-awesome/5.12.0/css/all.min.css"><link rel="stylesheet" href="https://fonts.loli.net/css?family=Ubuntu:400,600|Source+Code+Pro|Monda:300,300italic,400,400italic,700,700italic|Roboto Slab:300,300italic,400,400italic,700,700italic|Microsoft YaHei:300,300italic,400,400italic,700,700italic|PT Mono:300,300italic,400,400italic,700,700italic&amp;amp;subset=latin,latin-ext|Inconsolata|Itim|Lobster.css"><script src="https://cdnjs.loli.net/ajax/libs/jquery/3.3.1/jquery.min.js"></script><script src="/js/globalUtils.js"></script><script src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js" defer></script><style>body>.footer,body>.navbar,body>.section{opacity:0}</style><!--!--><script>var _hmt = _hmt || [];
+        (function() {
+            var hm = document.createElement("script");
+            hm.src = "//hm.baidu.com/hm.js?3f06f2b732a5b1034c989f74e28d0eea";
+            var s = document.getElementsByTagName("script")[0];
+            s.parentNode.insertBefore(hm, s);
+        })();</script><link rel="stylesheet" href="https://cdnjs.loli.net/ajax/libs/lightgallery/1.6.8/css/lightgallery.min.css"><link rel="stylesheet" href="https://cdnjs.loli.net/ajax/libs/justifiedGallery/3.7.0/css/justifiedGallery.min.css"><!--!--><!--!--><!--!--><!--!--><link rel="stylesheet" href="https://cdnjs.loli.net/ajax/libs/outdated-browser/1.1.5/outdatedbrowser.min.css"><script src="https://cdnjs.loli.net/ajax/libs/pace/1.0.2/pace.min.js"></script><link rel="stylesheet" href="/live2d/waifu.css"><script type="text/javascript" async src="/live2d/autoload.js"></script><meta name="generator" content="Hexo 5.4.2"></head><body class="is-3-column has-navbar-fixed-top"><nav class="navbar navbar-main is-fixed-top"><div class="container"><div class="navbar-brand justify-content-center"><a class="navbar-item navbar-logo" href="/"><img src="/img/logo.png" alt="山河已无恙" height="28"></a></div><div class="navbar-menu"><div class="navbar-start"><a class="navbar-item" href="/">首页</a><a class="navbar-item" href="/archives">归档</a><a class="navbar-item" href="/categories">分类</a><a class="navbar-item" href="/tags">标签</a><a class="navbar-item" href="/media">影音</a><a class="navbar-item" href="/album">相册</a><a class="navbar-item" href="/friend">友链</a><a class="navbar-item" href="/self-talking">生活小记</a><a class="navbar-item" href="/message">留言墙</a><a class="navbar-item" href="/about">关于</a></div><div class="navbar-end"><a class="navbar-item" target="_blank" rel="noopener" title="Gitee" href="https://gitee.com/liruilonger"><i class="fab fa-git-square fa-1x"></i></a><a class="navbar-item" target="_blank" rel="noopener" title="GitHub" href="https://github.com/LIRUILONGS"><i class="fab fa-github fa-1x"></i></a><a class="navbar-item is-hidden-tablet catalogue" title="目录" href="javascript:;"><i class="fas fa-list-ul fa-1x"></i></a><a class="navbar-item search" title="搜索" href="javascript:;"><i class="fas fa-search fa-1x"></i></a><a class="navbar-item" id="night-nav" title="Night Mode" href="javascript:;"><i class="fas fa-moon fa-1x" id="night-icon"></i></a></div></div></div></nav><script type="text/javascript" src="/js/theme-setting.js"></script><section class="section"><div class="container"><div class="columns"><div class="column order-2 column-main is-8-tablet is-8-desktop is-9-widescreen"><!--!--><div class="card"><article class="card-content article" role="article"><div class="article-meta size-small is-uppercase level is-mobile"><div class="level-left"><i class="far fa-calendar-plus"> </i>2022-05-15  <a class="commentCountImg" href="/2022/05/15/rhca/RH442_BPF/%E7%BD%91%E7%BB%9C/%E5%85%B3%E4%BA%8E%20Linux%E6%80%A7%E8%83%BD%E8%B0%83%E4%BC%98%E4%B8%AD%E4%BC%98%E5%8C%96%E7%BD%91%E7%BB%9CIO%E7%9A%84%E4%B8%80%E4%BA%9B%E7%AC%94%E8%AE%B0/#comment-container"><span class="display-none-class">5ed381eaaa693a9d909661790524da33</span><i class="far fa-comment-dots"></i> <span class="commentCount" id="5ed381eaaa693a9d909661790524da33">99+</span>  </a><span class="level-item"><i class="far fa-clock"> </i>1 小时  <i class="fas fa-pencil-alt"> </i>9.3 k</span><span class="level-item" id="busuanzi_container_page_pv"><span id="busuanzi_value_page_pv">0</span>次访问</span></div></div><h1 class="title is-3 is-size-4-mobile">关于Linux性能调优中网络I/O的一些笔记</h1><div class="content"><p><strong><font color="009688"> 傍晚时分，你坐在屋檐下，看着天慢慢地黑下去，心里寂寞而凄凉，感到自己的生命被剥夺了。当时我是个年轻人，但我害怕这样生活下去，衰老下去。在我看来，这是比死亡更可怕的事。——–王小波</strong></font></p>
+<span id="more"></span>
+<h2 id="写在前面"><a href="#写在前面" class="headerlink" title="写在前面"></a>写在前面</h2><hr>
+<ul>
+<li><p>和小伙伴分享一些<code>Linux网络优化</code>的笔记,内容很浅，可以用作入门</p>
+</li>
+<li><p>博文内容结合<code>《Linux性能优化》</code>读书笔记整理</p>
+</li>
+<li><p>涉及内容包括</p>
+<ul>
+<li>常用的优化工具(<code>mii-tool</code>,<code>ethtool</code>,<code>ifconfig</code>,<code>ip</code>,<code>sar</code>,<code>iptraf</code>,<code>netstat</code>)使用Demo及对应的输出解释</li>
+<li>具体的调优策略步骤</li>
+</ul>
+</li>
+<li><p>食用方式：</p>
+<ul>
+<li>需要了解<code>Linux基础</code>，网络分层相关知识</li>
+<li>没有完整的调优Demo，只是提供的一些方向。关于调优工具，你可以学习到</li>
+<li>确定系统内以太网设备的<code>带宽和双工设置</code>(<code>mii-tool、ethtool</code>)。</li>
+<li>确定流经每个<code>以太网接口的网络流量</code>(<code>ifconfig、sar、iptraf、netstat</code>)。</li>
+<li>确定流入和流出系统的<code>IP流量的类型</code>(<code>iptraf、netstat</code>)。</li>
+<li>确定流入和流出系统的<code>每种类型的IP流量</code>(<code>iptraf</code>)。</li>
+<li>确定是哪个<code>应用程序</code>产生了<code>IP流量</code>(<code>netstat -p</code>)。</li>
+</ul>
+</li>
+<li><p>理解不足小伙伴帮忙指正</p>
+</li>
+</ul>
+<p><strong><font color="009688"> 傍晚时分，你坐在屋檐下，看着天慢慢地黑下去，心里寂寞而凄凉，感到自己的生命被剥夺了。当时我是个年轻人，但我害怕这样生活下去，衰老下去。在我看来，这是比死亡更可怕的事。——–王小波</strong></font></p>
+<hr>
+<p>学习网络调优工具之前，简单温习一下网络I&#x2F;O相关的知识</p>
+<h3 id="涉及名词解释"><a href="#涉及名词解释" class="headerlink" title="涉及名词解释"></a>涉及名词解释</h3><p><code>带宽(传输速率)</code>：数据传输的过程中，两个设备之间数据流动的<code>物理速度</code>称为<code>传输速率</code>，单位为<code>bps(Bits Per Second,每秒比特数)</code>，传输速率不是指单位数据流动的速度，而是指单位时间内传输的数据量有多少。<code>传输速率</code>有被称之为<code>带宽(Bandwidth)</code>,带宽越大网络传输能力就越强。</p>
+<p><code>吞吐量</code>:<code>主机之间的实际的传输速率被称为吞吐量</code>，单位与带宽相同，吞吐量还衡量CPU处理能力，网络的拥堵程度，报文中数据字段的占有份额。</p>
+<p><code>网卡</code>：网络接口卡，也称网络适配器，网卡，LAN卡。联网时必须使用。</p>
+<p><code>路由器</code>:在OSI模型的第3层-<code>网络层面</code>上连接两个网络(路由寻址，类似送快递)、并对<code>分组报文进行转发的设备</code>。涉及<code>路由控制表</code>(静态路由，动态路由OSPF，默认路由)</p>
+<p><code>交换机</code>:在OSI模型的第2层-<code>数据链路层</code>上连接局域网的主要设备,交换机能够根据<code>以太网帧中目标地址智能的转发数据</code>,涉及<code>地址转发表</code>(通过MAC地址学习记录实际的MAC地址本身)</p>
+<p><code>包，数据帧，数据报，段，消息</code>：包为全能性术语，帧表示数据链路层中包的单位，而数据报是IP和UDP 等网络层以上的分层中包的单位，段则表示TCP数据中流的信息，消息是指应用协议中数据的单位。</p>
+<h2 id="网络I-x2F-O介绍"><a href="#网络I-x2F-O介绍" class="headerlink" title="网络I&#x2F;O介绍"></a>网络I&#x2F;O介绍</h2><p><code>Linux</code>和其他主流操作系统中的<code>网络流量</code>被抽象(协议分层与OSI参考模型)为一系列的<code>硬件和软件层次</code>。在每个分层上，发送端添加首部包装信息，经过路由器，接受端分离首部恢复数据。当然路由器的传递也涉及网络层和链路层的首部分离和添加。简单回顾下</p>
+<table>
+<thead>
+<tr>
+<th>分层</th>
+<th>描述</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>应用层</td>
+<td>应用层涉及协议比较多<code>TELNET,SSH,HTTP,SMTP,POP,SSL/TLS,FTP,MIME,HTML,SNMP,MIB……</code>,主要负责声明目标地址(请求头)以及写入内容(请求报文)</td>
+</tr>
+<tr>
+<td>表示层</td>
+<td>表示层负责将机器特定的数据格式转化为网络标准的传输格式发送出去</td>
+</tr>
+<tr>
+<td>会话层</td>
+<td>会话层决定采用那种连接方式？同时标记数据包的发送顺序</td>
+</tr>
+<tr>
+<td>传输层</td>
+<td>传输层即进行建立连接或者断开连接，在两个主机之间创建逻辑上的通信连接，确保数据是否到达，没到达重发，保证数据的可靠性，涉及到的协议包括 <code>TCP,UDP,DCDC</code></td>
+</tr>
+<tr>
+<td>网络层</td>
+<td>网络层将数据从发送端主机发送到接收端主机。涉及到的协议包括<code>ARP,IPv4,IPv6，ICMP(ping),IPsec</code>等</td>
+</tr>
+<tr>
+<td>链路层</td>
+<td>包括<code>以太网，无线LAN,PPP</code>,数据链路层负责实现每一个区间内的通信。通信实际上是通过物理的传输介质实现的，数据链路层在传输介质互连的设备进行数据处理。</td>
+</tr>
+<tr>
+<td>物理层</td>
+<td>硬件层，物理层将数据的<code>01转换为电压和脉冲光</code>传输给物理的传输介质，相互直连的<code>设备</code>通过<code>MAC(Media Access Control,介质访问控制)</code>实现传输。物理层将<code>MAC地址信息的首部附加到从网络层转发过来的数据上，将其发送到网络</code>。</td>
+</tr>
+</tbody></table>
+<p>在<code>OSI分层</code>中,<code>链路层</code>包含网络硬件，如<code>以太网设备</code>。在传送网路流量时，这一层并<code>不区分流量类型</code>，而仅仅以尽可能快的速度发送和接收<code>数据包(或帧)。</code></p>
+<p>链路层的上面是<code>网络层</code>。使用<code>互联网协议(IP)</code>和<code>网际控制报文协议(ICMP)</code>在机器间<code>寻址并路由</code>数据包。<code>IP/ICMP</code>尽其最大努力尝试在机器之间传递数据包，但是它们不能保证数据包是否能真正达到其目的地。</p>
+<p><code>网络层</code>的上面是<code>传输层</code>，它定义了<code>传输控制协议(TCP)和用户数据报协议(UDP)</code>。</p>
+<ul>
+<li><code>TCP</code>是一个可靠协议，它可以保证消息通过网络送达，如果消息无法送达它就会产生一个错误。</li>
+<li><code>TCP</code>的同级协议UDP，则是一个不可靠协议，它无法保证信息能够送达(为了获得最高的数据传输速率)。</li>
+</ul>
+<p>UDP和TCP为IP增加了<code>服务</code>的概念。UDP和TCP接收有编号<code>端口</code>的消息。按照惯例，每个类型的网络服务都被分配了不同的编号即端口。</p>
+<ul>
+<li><code>超文本传输协议(HTTP)</code>通常为<code>端口80</code></li>
+<li><code>安全外壳(SSH)</code>通常为<code>端口22</code></li>
+<li><code>文件传输协议(FTP)</code>通常为<code>端口23</code>。</li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">┌──[root@vms81.liruilongs.github.io]-[~]</span><br><span class="line">└─<span class="variable">$cat</span>  /etc/services | grep -E <span class="string">&quot;^http\\s|^ssh\\s|^ftp\\s&quot;</span> | sort</span><br><span class="line">ftp             21/sctp                 <span class="comment"># FTP</span></span><br><span class="line">ftp             21/tcp</span><br><span class="line">ftp             21/udp          fsp fspd</span><br><span class="line">http            80/sctp                         <span class="comment"># HyperText Transfer Protocol</span></span><br><span class="line">http            80/tcp          www www-http    <span class="comment"># WorldWideWeb HTTP</span></span><br><span class="line">http            80/udp          www www-http    <span class="comment"># HyperText Transfer Protocol</span></span><br><span class="line">ssh             22/sctp                 <span class="comment"># SSH</span></span><br><span class="line">ssh             22/tcp                          <span class="comment"># The Secure Shell (SSH) Protocol</span></span><br><span class="line">ssh             22/udp                          <span class="comment"># The Secure Shell (SSH) Protocol</span></span><br><span class="line">┌──[root@vms81.liruilongs.github.io]-[~]</span><br><span class="line">└─$</span><br></pre></td></tr></table></figure>
+
+<p>在<code>Linux</code>系统中，文件<code>/etc/services</code>定义了<code>全部的端口以及它们提供的服务类型</code>。</p>
+<p>传输层层上面为应用层。这一层包含了各种应用程序，它们使用下面各层在网络上传输数据包。</p>
+<p><code>Linux内核实现或控制</code>的是<code>最低三层(链路层、网络层和传输层)</code>。内核可以提供每层的<code>性能统计信息</code>，包括<code>数据流经每一层时的带宽</code>使用情况信息和<code>错误</code>计数信息。</p>
+<h3 id="链路层的网络流量"><a href="#链路层的网络流量" class="headerlink" title="链路层的网络流量"></a>链路层的网络流量</h3><p><code>Linux</code>可以侦测到<code>流经链路层</code>的数据流量的速率。</p>
+<p>链路层，通常是<code>以太网</code>，以<code>帧序列</code>的形式将信息发送到网络上。不管应用层的交互方式是什么，链路层也会将它们分割为<code>帧</code>，再发送到网络上。<code>数据帧的最大尺寸</code>被称为<code>最大传输单位(MTU)</code>。可以使用网络配置工具，如<code>ip或ifconfig</code>来设置<code>MTU</code>。</p>
+<p>k8s集群机器所有有好多Calico虚拟网卡</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">┌──[root@vms81.liruilongs.github.io]-[~]</span><br><span class="line">└─<span class="variable">$ifconfig</span> | grep mtu</span><br><span class="line">cali12cf25006b5: flags=4163&lt;UP,BROADCAST,RUNNING,MULTICAST&gt;  mtu 1480</span><br><span class="line">cali13a4549bf1e: flags=4163&lt;UP,BROADCAST,RUNNING,MULTICAST&gt;  mtu 1480</span><br><span class="line">cali45e02b0b21e: flags=4163&lt;UP,BROADCAST,RUNNING,MULTICAST&gt;  mtu 1480</span><br><span class="line">cali5a282a7bbb0: flags=4163&lt;UP,BROADCAST,RUNNING,MULTICAST&gt;  mtu 1480</span><br><span class="line">cali86e7ca9e9c2: flags=4163&lt;UP,BROADCAST,RUNNING,MULTICAST&gt;  mtu 1480</span><br><span class="line">calicb34164ec79: flags=4163&lt;UP,BROADCAST,RUNNING,MULTICAST&gt;  mtu 1480</span><br><span class="line">docker0: flags=4099&lt;UP,BROADCAST,MULTICAST&gt;  mtu 1500</span><br><span class="line">ens32: flags=4163&lt;UP,BROADCAST,RUNNING,MULTICAST&gt;  mtu 1500</span><br><span class="line">lo: flags=73&lt;UP,LOOPBACK,RUNNING&gt;  mtu 65536</span><br><span class="line">tunl0: flags=193&lt;UP,RUNNING,NOARP&gt;  mtu 1480</span><br><span class="line">┌──[root@vms81.liruilongs.github.io]-[~]</span><br><span class="line">└─$</span><br></pre></td></tr></table></figure>
+
+<p>就以太网而言，最大大小一般为<code>1500字节</code>，虽然有些硬件支持的<code>巨型帧</code>可以高达<code>9000字节</code>。<code>MTU</code>的大小对网络效率有直接影响。</p>
+<p>链路层上的每一个帧都有一个小容量的头部，因此，使用<code>大尺寸的MTU</code>就提高了用户数据对开销(头部)的比例。但是，使用大尺寸的MTU，每个数据帧被损坏或丢弃的几率会更高。</p>
+<p>对单一物理链路来说，大尺寸MTU通常会带来更好的性能，因为它需要的开销更小；反之，对嘈杂的链路(链路聚合)来说，更小的MTU则通常会提升性能，因为，当单个帧被损坏时，它要重传的数据更少。</p>
+<p>在物理层，帧流经物理网络，<code>Linux内核</code>可以收集大量有关<code>帧数量和类型的不同统计数据</code>：</p>
+<ul>
+<li><code>发送/接收</code>：如果一个帧成功地流出或流入机器，那么它就会被计为一个已发送或已接收的帧。</li>
+<li><code>错误</code>:有错误的帧(可能是因为网络电缆坏了，或双工不匹配)。</li>
+<li><code>丢弃</code>:被丢弃帧的(很可能是因为内存或缓冲区容量小)。</li>
+<li><code>溢出</code>:由于内核或网卡有过多的帧，因此被网络丢弃的帧。通常这种情况不应该发生。</li>
+<li><code>帧</code>:由于物理级问题导致被丢弃的帧。其原因可能是循环冗余校验(CRC)错误或其他低级别的问题(这个分类有些搞不懂?)。</li>
+<li><code>多播</code>: 这些帧不直接寻址到当前系统，而是同时广播到一组节点。</li>
+<li><code>压缩</code>:一些底层接口，如<code>点对点协议(PPP)</code>或<code>串行线路网际协议(SLIP)设备</code>在把帧发送到网络上之前，会对其进行压缩。该值表示的就是被压缩帧的数量。</li>
+</ul>
+<p>有些Linux网络性能工具能够显示通过每一个<code>网络设备</code>的每一种<code>类型的帧数</code>。这些工具通常需要<code>设备名</code>，因此，熟悉Linux如何对<code>网络设备命名</code>以便搞清楚哪个名字代表了哪个设备是很重要的。</p>
+<p><code>以太网设备</code>被命名为<code>ethN</code>，正常，<code>eth0</code>指的是第一个设备，<code>ethl</code>指的是第二个设备，以此类推。与以太网设备命名方式相同，PPP设备被命名为<code>pppN</code>。环回设备，用于与本机联网，被命名为<code>lo</code>。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">┌──[root@vms81.liruilongs.github.io]-[~/ansible]</span><br><span class="line">└─<span class="variable">$ifconfig</span> lo</span><br><span class="line">lo: flags=73&lt;UP,LOOPBACK,RUNNING&gt;  mtu 65536</span><br><span class="line">        inet 127.0.0.1  netmask 255.0.0.0</span><br><span class="line">        inet6 ::1  prefixlen 128  scopeid 0x10&lt;host&gt;</span><br><span class="line">        loop  txqueuelen 1  (Local Loopback)</span><br><span class="line">        RX packets 10250705  bytes 2227288333 (2.0 GiB)</span><br><span class="line">        RX errors 0  dropped 0  overruns 0  frame 0</span><br><span class="line">        TX packets 10250705  bytes 2227288333 (2.0 GiB)</span><br><span class="line">        TX errors 0  dropped 0 overruns 0  carrier 0  collisions 0</span><br></pre></td></tr></table></figure>
+
+
+<h3 id="协议层-传输层-网络流量"><a href="#协议层-传输层-网络流量" class="headerlink" title="协议层(传输层)网络流量"></a>协议层(传输层)网络流量</h3><p>对TCP或UDP流量而言，Linux使用套接字&#x2F;端口来抽象两台机器的连接。当与远程机器连接时，本地应用程序用一个网络套接字来打开远程机器上的一个端口。</p>
+<p>Linux网络性能工具可以跟踪流经特定网络端口的数据量。由于每个服务的端口号具有唯一性，因此有可能确定流向特定服务的物理流量。</p>
+<h2 id="网络性能工具"><a href="#网络性能工具" class="headerlink" title="网络性能工具"></a>网络性能工具</h2><h3 id="mii-tool-媒体无关接口工具"><a href="#mii-tool-媒体无关接口工具" class="headerlink" title="mii-tool(媒体无关接口工具)"></a>mii-tool(媒体无关接口工具)</h3><p><code>mii-tool</code>是以太网专用硬件工具，主要用于设置以太网设备，但它也可以提供有关当前设置的信息。诸如<code>链接速度和双工设置</code>，对于追踪性能不佳设备的成因是非常有用。</p>
+<p><code>mii-tool</code>已经过时了，推荐使用<code>ethtool</code>,一般也不会怎么使用，书里有讲，我们简单看下 </p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">┌──[root@vms81.liruilongs.github.io]-[~]</span><br><span class="line">└─<span class="variable">$man</span> mii-tool  | grep obsolete</span><br><span class="line">       This program is obsolete. For replacement check ethtool.</span><br><span class="line">┌──[root@vms81.liruilongs.github.io]-[~]</span><br><span class="line">└─$</span><br></pre></td></tr></table></figure>
+
+<p>我这里是CentOS 7虚机，所以网卡为<code>eth32</code> 系统上eth32的配置信息。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">┌──[root@vms81.liruilongs.github.io]-[~/ansible]</span><br><span class="line">└─<span class="variable">$mii</span>-tool -v ens32</span><br><span class="line">ens32: negotiated 1000baseT-FD flow-control, link ok</span><br><span class="line">  product info: Yukon 88E1011 rev 3</span><br><span class="line">  basic mode:   autonegotiation enabled</span><br><span class="line">  basic status: autonegotiation complete, link ok</span><br><span class="line">  capabilities: 1000baseT-FD 100baseTx-FD 100baseTx-HD 10baseT-FD 10baseT-HD</span><br><span class="line">  advertising:  1000baseT-FD 100baseTx-FD 100baseTx-HD 10baseT-FD 10baseT-HD</span><br><span class="line">  link partner: 1000baseT-HD 1000baseT-FD 100baseTx-FD 100baseTx-HD 10baseT-FD 10baseT-HD</span><br></pre></td></tr></table></figure>
+<p><code>mi-tool</code>提供了关于如何配置以太网设备物理层的底层信息。</p>
+<h3 id="ethtool"><a href="#ethtool" class="headerlink" title="ethtool"></a>ethtool</h3><p>在配置和显示以太网设备统计数据方面，<code>ethtool</code>提供了与<code>mii-tool</code>相似的功能。不过，<code>ethtool</code>更加强大，包含了更多配置选项和设备统计信息。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line">┌──[root@vms81.liruilongs.github.io]-[~/ansible]</span><br><span class="line">└─<span class="variable">$ethtool</span>  ens32</span><br><span class="line">Settings <span class="keyword">for</span> ens32:</span><br><span class="line">        Supported ports: [ TP ]</span><br><span class="line">        Supported link modes:   10baseT/Half 10baseT/Full</span><br><span class="line">                                100baseT/Half 100baseT/Full</span><br><span class="line">                                1000baseT/Full</span><br><span class="line">        Supported pause frame use: No</span><br><span class="line">        Supports auto-negotiation: Yes</span><br><span class="line">        Advertised link modes:  10baseT/Half 10baseT/Full</span><br><span class="line">                                100baseT/Half 100baseT/Full</span><br><span class="line">                                1000baseT/Full</span><br><span class="line">        Advertised pause frame use: No</span><br><span class="line">        Advertised auto-negotiation: Yes</span><br><span class="line">        Speed: 1000Mb/s</span><br><span class="line">        Duplex: Full</span><br><span class="line">        Port: Twisted Pair</span><br><span class="line">        PHYAD: 0</span><br><span class="line">        Transceiver: internal</span><br><span class="line">        Auto-negotiation: on</span><br><span class="line">        MDI-X: off (auto)</span><br><span class="line">        Supports Wake-on: d</span><br><span class="line">        Wake-on: d</span><br><span class="line">        Current message level: 0x00000007 (7)</span><br><span class="line">                               drv probe link</span><br><span class="line">        Link detected: yes</span><br></pre></td></tr></table></figure>
+<p>通过上面的配置我们可以看大，带宽为 <code>Speed: 1000Mb/s</code> 千兆,双工模式为  <code>Duplex: Full</code> 全双工 ,网卡是否连接网线：<code>Link detected: yes</code></p>
+<h3 id="ifconfig-接口配置"><a href="#ifconfig-接口配置" class="headerlink" title="ifconfig(接口配置)"></a>ifconfig(接口配置)</h3><p>ifconfig的主要工作就是在Linux机器上安装和配置网络接口。它还提供了系统中所有网络设备的基本性能统计信息。ifconfig几乎在所有联网的Linux机器上都是可用的。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">┌──[root@vms81.liruilongs.github.io]-[~/ansible]</span><br><span class="line">└─<span class="variable">$ifconfig</span>  ens32</span><br><span class="line">ens32: flags=4163&lt;UP,BROADCAST,RUNNING,MULTICAST&gt;  mtu 1500</span><br><span class="line">        inet 192.168.26.81  netmask 255.255.255.0  broadcast 192.168.26.255</span><br><span class="line">        inet6 fe80::20c:29ff:fead:e393  prefixlen 64  scopeid 0x20&lt;link&gt;</span><br><span class="line">        ether 00:0c:29:ad:e3:93  txqueuelen 1000  (Ethernet)</span><br><span class="line">        RX packets 507331  bytes 69923393 (66.6 MiB)</span><br><span class="line">        RX errors 0  dropped 0  overruns 0  frame 0</span><br><span class="line">        TX packets 556567  bytes 308574743 (294.2 MiB)</span><br><span class="line">        TX errors 0  dropped 0 overruns 0  carrier 0  collisions 0</span><br></pre></td></tr></table></figure>
+<p>关于部分参数的说明</p>
+<table>
+<thead>
+<tr>
+<th>列</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>RX packets</td>
+<td>设备已接收的数据包数</td>
+</tr>
+<tr>
+<td>TX packets</td>
+<td>设备已发送的数据包数</td>
+</tr>
+<tr>
+<td>errors</td>
+<td>发送或接收时的错误数</td>
+</tr>
+<tr>
+<td>dropped</td>
+<td>发送或接收时丢弃的数据包数</td>
+</tr>
+<tr>
+<td>overruns</td>
+<td>网络设备没有足够的缓冲区来发送或接收一个数据包的次数</td>
+</tr>
+<tr>
+<td>frame</td>
+<td>底层以太网帧错误的数量</td>
+</tr>
+<tr>
+<td>carrier</td>
+<td>由于链路介质故障(如故障电缆)而丢弃的数据包数量</td>
+</tr>
+</tbody></table>
+<p><code>ifconfig</code>提供的统计数据显示的是自系统启动开始的累计数值。如果你将一个网络设备下线，之后又让其上线，其统计数据也不会重置。如果你按规律的间隔来运行ifconfig，就可以发现各种统计数据的变化率。这一点可以通过<code>watch命令或shell脚本</code>来自动实现，</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">┌──[root@vms81.liruilongs.github.io]-[~]</span><br><span class="line">└─<span class="variable">$watch</span> -d -n 1 ifconfig ens32</span><br></pre></td></tr></table></figure>
+<p><img src="https://img-blog.csdnimg.cn/cbe570fd19624a2da4b82d7fef6fe3f5.png" alt="在这里插入图片描述"></p>
+<h3 id="ip"><a href="#ip" class="headerlink" title="ip"></a>ip</h3><p>一些网络工具，如ifconfig，正在被淘汰，取而代之的是新的命令：ip，ip不仅可以让你对Linux联网的多个不同方面进行配置，还可以显示每个网络设备的性能统计信息。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">┌──[root@vms81.liruilongs.github.io]-[~]</span><br><span class="line">└─<span class="variable">$ip</span> -s -s link ls ens32</span><br><span class="line">2: ens32: &lt;BROADCAST,MULTICAST,UP,LOWER_UP&gt; mtu 1500 qdisc pfifo_fast state UP mode DEFAULT qlen 1000</span><br><span class="line">    link/ether 00:0c:29:ad:e3:93 brd ff:ff:ff:ff:ff:ff</span><br><span class="line">    RX: bytes  packets  errors  dropped overrun mcast</span><br><span class="line">    127977457  756138   0       0       0       0</span><br><span class="line">    RX errors: length   crc     frame   fifo    missed</span><br><span class="line">               0        0       0       0       0</span><br><span class="line">    TX: bytes  packets  errors  dropped carrier collsns</span><br><span class="line">    438259866  814226   0       0       0       0</span><br><span class="line">    TX errors: aborted  fifo   window heartbeat transns</span><br><span class="line">               0        0       0       0       8</span><br><span class="line">┌──[root@vms81.liruilongs.github.io]-[~]</span><br><span class="line">└─$</span><br></pre></td></tr></table></figure>
+<p>部分字段说明，RX代表接收，TX代表发送。</p>
+<table>
+<thead>
+<tr>
+<th>列</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>bytes</td>
+<td>发送或接收的字节数</td>
+</tr>
+<tr>
+<td>packets</td>
+<td>发送或接收的数据包数</td>
+</tr>
+<tr>
+<td>errors</td>
+<td>发送或接收时发生的错误数</td>
+</tr>
+<tr>
+<td>dropped</td>
+<td>由于网卡缺少资源，导致未发送或接收的数据包数</td>
+</tr>
+<tr>
+<td>overruns</td>
+<td>网络没有足够的缓冲区空间来发送或接收更多数据包的次数</td>
+</tr>
+<tr>
+<td>mcast</td>
+<td>已接收的多播数据包的数量</td>
+</tr>
+<tr>
+<td>carrier</td>
+<td>由于链路介质故障(如故障电缆)而丢弃的数据包数量</td>
+</tr>
+<tr>
+<td>collsns</td>
+<td>传送时设备发生的冲突次数。当多个设备试图同时使用网络时就会发生冲突</td>
+</tr>
+</tbody></table>
+<h3 id="sar"><a href="#sar" class="headerlink" title="sar"></a>sar</h3><p>sar提供了链路级的网络性能数据。但是，它同时还提供了一些关于传输层打开的套接字数量的基本信息。sar使用如下命令行来收集网络统计信息：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sar[-n DEV | EDEV | SOCK | FULL ] [DEVICE] [linterval][count]</span><br></pre></td></tr></table></figure>
+
+<table>
+<thead>
+<tr>
+<th>选项</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>-n DEV</td>
+<td>显示每个设备发送和接收的数据包数和字节数信息</td>
+</tr>
+<tr>
+<td>-n EDEV</td>
+<td>显示每个设备的发送和接收错误信息</td>
+</tr>
+<tr>
+<td>-n SoCK</td>
+<td>显示使用套接字(TCP、UDP和RAW)的总数信息</td>
+</tr>
+<tr>
+<td>-n FULL</td>
+<td>显示所有的网络统计信息</td>
+</tr>
+<tr>
+<td>interval</td>
+<td>采样间隔时长</td>
+</tr>
+<tr>
+<td>count</td>
+<td>采样总数</td>
+</tr>
+</tbody></table>
+<p><strong>显示每个设备发送和接收的数据包数和字节数信息</strong></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line">┌──[root@vms81.liruilongs.github.io]-[~/ansible]</span><br><span class="line">└─<span class="variable">$sar</span> -n DEV 1 1</span><br><span class="line">Linux 3.10.0-693.el7.x86_64 (vms81.liruilongs.github.io)        2022年05月14日  _x86_64_        (2 CPU)</span><br><span class="line"></span><br><span class="line">22时46分16秒     IFACE   rxpck/s   txpck/s    rxkB/s    txkB/s   rxcmp/s   txcmp/s  rxmcst/s</span><br><span class="line">22时46分17秒     ens32      1.00      1.00      0.11      0.09      0.00      0.00      0.00</span><br><span class="line">22时46分17秒 cali86e7ca9e9c2      0.00      0.00      0.00      0.00      0.00      0.00      0.00</span><br><span class="line">22时46分17秒 cali13a4549bf1e      0.00      0.00      0.00      0.00      0.00      0.00      0.00</span><br><span class="line">22时46分17秒 cali5a282a7bbb0      0.00      0.00      0.00      0.00      0.00      0.00      0.00</span><br><span class="line">22时46分17秒 cali12cf25006b5      0.00      0.00      0.00      0.00      0.00      0.00      0.00</span><br><span class="line">22时46分17秒 cali45e02b0b21e      0.00      0.00      0.00      0.00      0.00      0.00      0.00</span><br><span class="line">22时46分17秒        lo    224.00    224.00     27.57     27.57      0.00      0.00      0.00</span><br><span class="line">22时46分17秒 calicb34164ec79      0.00      0.00      0.00      0.00      0.00      0.00      0.00</span><br><span class="line">22时46分17秒     tunl0      0.00      0.00      0.00      0.00      0.00      0.00      0.00</span><br><span class="line">22时46分17秒   docker0      0.00      0.00      0.00      0.00      0.00      0.00      0.00</span><br><span class="line"></span><br><span class="line">平均时间:     IFACE   rxpck/s   txpck/s    rxkB/s    txkB/s   rxcmp/s   txcmp/s  rxmcst/s</span><br><span class="line">平均时间:     ens32      1.00      1.00      0.11      0.09      0.00      0.00      0.00</span><br><span class="line">平均时间: cali86e7ca9e9c2      0.00      0.00      0.00      0.00      0.00      0.00      0.00</span><br><span class="line">平均时间: cali13a4549bf1e      0.00      0.00      0.00      0.00      0.00      0.00      0.00</span><br><span class="line">平均时间: cali5a282a7bbb0      0.00      0.00      0.00      0.00      0.00      0.00      0.00</span><br><span class="line">平均时间: cali12cf25006b5      0.00      0.00      0.00      0.00      0.00      0.00      0.00</span><br><span class="line">平均时间: cali45e02b0b21e      0.00      0.00      0.00      0.00      0.00      0.00      0.00</span><br><span class="line">平均时间:        lo    224.00    224.00     27.57     27.57      0.00      0.00      0.00</span><br><span class="line">平均时间: calicb34164ec79      0.00      0.00      0.00      0.00      0.00      0.00      0.00</span><br><span class="line">平均时间:     tunl0      0.00      0.00      0.00      0.00      0.00      0.00      0.00</span><br><span class="line">平均时间:   docker0      0.00      0.00      0.00      0.00      0.00      0.00      0.00</span><br><span class="line">┌──[root@vms81.liruilongs.github.io]-[~/ansible]</span><br><span class="line">└─$</span><br></pre></td></tr></table></figure>
+<table>
+<thead>
+<tr>
+<th>列</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>rxpck&#x2F;s</td>
+<td>数据包接收速率</td>
+</tr>
+<tr>
+<td>txpck&#x2F;s</td>
+<td>数据包发送速率</td>
+</tr>
+<tr>
+<td>rxkB&#x2F;s</td>
+<td>kb接收速率</td>
+</tr>
+<tr>
+<td>txkB&#x2F;s</td>
+<td>kb发送速率</td>
+</tr>
+<tr>
+<td>rxcmp&#x2F;s</td>
+<td>压缩包接收速率</td>
+</tr>
+<tr>
+<td>txcmp&#x2F;s</td>
+<td>压缩包发送速率</td>
+</tr>
+<tr>
+<td>rxmcst&#x2F;s</td>
+<td>多播包接收速率</td>
+</tr>
+</tbody></table>
+<p><strong>显示每个设备的发送和接收错误信息</strong></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line">┌──[root@vms81.liruilongs.github.io]-[~/ansible]</span><br><span class="line">└─<span class="variable">$sar</span> -n EDEV 1 1</span><br><span class="line">Linux 3.10.0-693.el7.x86_64 (vms81.liruilongs.github.io)        2022年05月14日  _x86_64_        (2 CPU)</span><br><span class="line"></span><br><span class="line">22时53分07秒     IFACE   rxerr/s   txerr/s    coll/s  rxdrop/s  txdrop/s  txcarr/s  rxfram/s  rxfifo/s  txfifo/s</span><br><span class="line">22时53分08秒     ens32      0.00      0.00      0.00      0.00      0.00      0.00      0.00      0.00      0.00</span><br><span class="line">22时53分08秒 cali86e7ca9e9c2      0.00      0.00      0.00      0.00      0.00      0.00      0.00      0.00      0.00</span><br><span class="line">22时53分08秒 cali13a4549bf1e      0.00      0.00      0.00      0.00      0.00      0.00      0.00      0.00      0.00</span><br><span class="line">22时53分08秒 cali5a282a7bbb0      0.00      0.00      0.00      0.00      0.00      0.00      0.00      0.00      0.00</span><br><span class="line">22时53分08秒 cali12cf25006b5      0.00      0.00      0.00      0.00      0.00      0.00      0.00      0.00      0.00</span><br><span class="line">22时53分08秒 cali45e02b0b21e      0.00      0.00      0.00      0.00      0.00      0.00      0.00      0.00      0.00</span><br><span class="line">22时53分08秒        lo      0.00      0.00      0.00      0.00      0.00      0.00      0.00      0.00      0.00</span><br><span class="line">22时53分08秒 calicb34164ec79      0.00      0.00      0.00      0.00      0.00      0.00      0.00      0.00      0.00</span><br><span class="line">22时53分08秒     tunl0      0.00      0.00      0.00      0.00      0.00      0.00      0.00      0.00      0.00</span><br><span class="line">22时53分08秒   docker0      0.00      0.00      0.00      0.00      0.00      0.00      0.00      0.00      0.00</span><br><span class="line"></span><br><span class="line">平均时间:     IFACE   rxerr/s   txerr/s    coll/s  rxdrop/s  txdrop/s  txcarr/s  rxfram/s  rxfifo/s  txfifo/s</span><br><span class="line">平均时间:     ens32      0.00      0.00      0.00      0.00      0.00      0.00      0.00      0.00      0.00</span><br><span class="line">平均时间: cali86e7ca9e9c2      0.00      0.00      0.00      0.00      0.00      0.00      0.00      0.00      0.00</span><br><span class="line">平均时间: cali13a4549bf1e      0.00      0.00      0.00      0.00      0.00      0.00      0.00      0.00      0.00</span><br><span class="line">平均时间: cali5a282a7bbb0      0.00      0.00      0.00      0.00      0.00      0.00      0.00      0.00      0.00</span><br><span class="line">平均时间: cali12cf25006b5      0.00      0.00      0.00      0.00      0.00      0.00      0.00      0.00      0.00</span><br><span class="line">平均时间: cali45e02b0b21e      0.00      0.00      0.00      0.00      0.00      0.00      0.00      0.00      0.00</span><br><span class="line">平均时间:        lo      0.00      0.00      0.00      0.00      0.00      0.00      0.00      0.00      0.00</span><br><span class="line">平均时间: calicb34164ec79      0.00      0.00      0.00      0.00      0.00      0.00      0.00      0.00      0.00</span><br><span class="line">平均时间:     tunl0      0.00      0.00      0.00      0.00      0.00      0.00      0.00      0.00      0.00</span><br><span class="line">平均时间:   docker0      0.00      0.00      0.00      0.00      0.00      0.00      0.00      0.00      0.00</span><br><span class="line">┌──[root@vms81.liruilongs.github.io]-[~/ansible]</span><br><span class="line">└─$</span><br></pre></td></tr></table></figure>
+
+<table>
+<thead>
+<tr>
+<th>列</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>rxerr&#x2F;s</td>
+<td>接收错误率</td>
+</tr>
+<tr>
+<td>txerr&#x2F;s</td>
+<td>发送错误率</td>
+</tr>
+<tr>
+<td>co11&#x2F;s</td>
+<td>发送时的以太网冲突率</td>
+</tr>
+<tr>
+<td>rxdrop&#x2F;s</td>
+<td>由于Linux内核缓冲区不足而导致的接收帧丢弃率</td>
+</tr>
+<tr>
+<td>txdrop&#x2F;s</td>
+<td>由于Linux内核缓冲区不足而导致的发送帧丢弃率</td>
+</tr>
+<tr>
+<td>txcarr&#x2F;s</td>
+<td>由于载波错误而导致的发送帧丢弃率</td>
+</tr>
+<tr>
+<td>rxfram&#x2F;s</td>
+<td>由于帧对齐错误而导致的接收帧丢弃率</td>
+</tr>
+<tr>
+<td>rxfifo&#x2F;s</td>
+<td>由于FIFO错误而导致的接收帧丢弃率</td>
+</tr>
+<tr>
+<td>txfifo&#x2F;s</td>
+<td>由于FIFO错误而导致的发送帧丢弃率</td>
+</tr>
+</tbody></table>
+<p><strong>显示使用套接字(TCP、UDP和RAW)的总数信息</strong></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">┌──[root@vms81.liruilongs.github.io]-[~/ansible]</span><br><span class="line">└─<span class="variable">$sar</span> -n SOCK 1 3</span><br><span class="line">Linux 3.10.0-693.el7.x86_64 (vms81.liruilongs.github.io)        2022年05月14日  _x86_64_        (2 CPU)</span><br><span class="line"></span><br><span class="line">22时56分23秒    totsck    tcpsck    udpsck    rawsck   ip-frag    tcp-tw</span><br><span class="line">22时56分24秒      3487       245         9         0         0       163</span><br><span class="line">22时56分25秒      3487       245         9         0         0       165</span><br><span class="line">22时56分26秒      3487       245         9         0         0       167</span><br><span class="line">平均时间:      3487       245         9         0         0       165</span><br><span class="line">┌──[root@vms81.liruilongs.github.io]-[~/ansible]</span><br><span class="line">└─$</span><br></pre></td></tr></table></figure>
+
+<table>
+<thead>
+<tr>
+<th>列</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>totsck</td>
+<td>当前正在被使用的套接字总数</td>
+</tr>
+<tr>
+<td>tcpsck</td>
+<td>当前正在被使用的TCP套接字总数</td>
+</tr>
+<tr>
+<td>udpsck</td>
+<td>当前正在被使用的UDP套接字总数</td>
+</tr>
+<tr>
+<td>rawsck</td>
+<td>当前正在被使用的RAW套接字总数</td>
+</tr>
+<tr>
+<td>ip-frag</td>
+<td>IP分片的总数</td>
+</tr>
+</tbody></table>
+<h3 id="iptraf"><a href="#iptraf" class="headerlink" title="iptraf"></a>iptraf</h3><p><code>iptraf</code>是一个<code>实时网络监控工具</code>。它提供了相当多的模式来监控网络接口和流量。<code>iptraf</code>是一种控制台应用程序，但其用户界面则是基于光标的一组菜单和窗口。</p>
+<p><code>iptraf</code>可以提供有关<code>每个网络设备发送帧速率的信息</code>。同时，它还能够显示<code>TCP/IP数据包的类型和大小信息</code>，以及·。</p>
+<p>需要装包</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">┌──[root@vms81.liruilongs.github.io]-[~/ansible]</span><br><span class="line">└─<span class="variable">$yum</span> -y install iptraf</span><br><span class="line">................</span><br><span class="line">Running transaction</span><br><span class="line">  正在安装    : iptraf-ng-1.1.4-7.el7.x86_64                                                               1/1</span><br><span class="line">  验证中      : iptraf-ng-1.1.4-7.el7.x86_64                                                               1/1</span><br><span class="line"></span><br><span class="line">已安装:</span><br><span class="line">  iptraf-ng.x86_64 0:1.1.4-7.el7</span><br><span class="line"></span><br><span class="line">完毕！</span><br></pre></td></tr></table></figure>
+<p><code>iptraf</code>用如下命令行调用：</p>
+<p><code>iptraf[-d interface][-s interface][-t &lt;minutes&gt;]</code></p>
+<p>如果调用<code>iptraf</code>时不带参数，就会显示一个菜单，让你选择监控界面以及想要监控的信息类型。这些选项用于观察特定接口或网络服务上的网络流量。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">┌──[root@vms81.liruilongs.github.io]-[~/ansible]</span><br><span class="line">└─<span class="variable">$iptraf</span>-ng</span><br></pre></td></tr></table></figure>
+<p><img src="https://img-blog.csdnimg.cn/c7d4381b389449ac87e056dae9d26084.png" alt="在这里插入图片描述"></p>
+<p>观察所有接口的网络流量信息</p>
+<p><img src="https://img-blog.csdnimg.cn/af5ab4e9a28b4aadb702878a8ae1b1b0.png" alt="在这里插入图片描述"></p>
+<table>
+<thead>
+<tr>
+<th>选项</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>-d interface</td>
+<td>接口的详细统计信息，包括：接收信息、发送信息以及错误率信息</td>
+</tr>
+<tr>
+<td>-s interface</td>
+<td>关于接口上哪些IP端口正在被使用，以及有多少字节流经它们的统计信息</td>
+</tr>
+<tr>
+<td>-t<minutes></td>
+<td>iptraf退出前运行的分钟数</td>
+</tr>
+</tbody></table>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">┌──[root@vms81.liruilongs.github.io]-[~/ansible]</span><br><span class="line">└─<span class="variable">$iptraf</span>-ng -d ens32 -t 1</span><br></pre></td></tr></table></figure>
+<p>这条命令指定iptraf显示以太网设备ets32 的详细信息并在运行1分钟后退出。我们可以看到，当前网络设备接收速率为6.13kbps，发送速率为42.81kbps</p>
+<p><img src="https://img-blog.csdnimg.cn/2e936d8771f641e1b9222634fb892c5a.png" alt="在这里插入图片描述"></p>
+<p><code>iptraf</code>显示每个<code>UDP和TCP</code>端口上的网络流量信息。通过端口我们可以看到每个端口对应的服务处理了多少流量，下图我们可以看到，有278kb的流量被22端口接收，有362kb的ssh数据从当前网卡发送出去</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">┌──[root@vms81.liruilongs.github.io]-[~/ansible]</span><br><span class="line">└─<span class="variable">$iptraf</span>-ng -s ens32 -t 10</span><br></pre></td></tr></table></figure>
+<p><img src="https://img-blog.csdnimg.cn/9ce45a73f038434b9ce5668b2decc6c4.png" alt="在这里插入图片描述"></p>
+<h3 id="netstat"><a href="#netstat" class="headerlink" title="netstat"></a>netstat</h3><p><code>netstat</code>是一种基本的网络性能工具，它几乎出现在每一个联网的Linux机器上(当然我们也可以使用<code>ss</code>命令)，可以用它抽取的信息包括：</p>
+<ul>
+<li>当前正在使用的网络套接字的数量和类型，</li>
+<li>有关流入和流出当前系统的UDP和TCP数据包数量的特定接口统计数据。</li>
+<li>能将一个套接字回溯到其特定进程或PID，这在试图确定哪个应用程序要对网络流量负责时是很有用的。</li>
+</ul>
+<p><code>netstat [-p][-c] [-interfaces=cname&gt;][-s][-t][-u] I-w]</code></p>
+<p>如果<code>netstat </code>调用时不带任何参数，它将显示系统范围内的套接字使用情况以及<code>Internet域</code>和<code>UNIX域套接字</code>的信息。(UNIX域套接字用于本机的进程通信。)为了能检索所有其可以显示的统计信息，需要从根目录运行<code>netstat</code>。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">┌──[root@vms81.liruilongs.github.io]-[~/ansible]</span><br><span class="line">└─<span class="variable">$netstat</span>  | sed -n  <span class="string">&#x27;20,30p&#x27;</span></span><br><span class="line">tcp        0      0 localhost:2379          localhost:51396         ESTABLISHED</span><br><span class="line">tcp        0      0 localhost:2379          localhost:33432         ESTABLISHED</span><br><span class="line">tcp        0      0 localhost:2379          localhost:33392         ESTABLISHED</span><br><span class="line">tcp        0      0 localhost:35008         localhost:9099          TIME_WAIT</span><br><span class="line">tcp        0      0 localhost:51154         localhost:2379          ESTABLISHED</span><br><span class="line">tcp        0      0 localhost:51390         localhost:2379          ESTABLISHED</span><br><span class="line">tcp        0      0 vms81.liruilongs.:53982 10.96.0.1:https         ESTABLISHED</span><br><span class="line">tcp        0      0 localhost:51266         localhost:2379          ESTABLISHED</span><br><span class="line">tcp        0      0 localhost:51482         localhost:2379          ESTABLISHED</span><br><span class="line">tcp        0      0 localhost:2379          localhost:52920         ESTABLISHED</span><br><span class="line">tcp        0      0 localhost:2379          localhost:traceroute    ESTABLISHED</span><br></pre></td></tr></table></figure>
+
+<table>
+<thead>
+<tr>
+<th>选项</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>-p</td>
+<td>给出打开每个被显示套接字的PID&#x2F;程序名</td>
+</tr>
+<tr>
+<td>-c</td>
+<td>每秒持续更新显示信息</td>
+</tr>
+<tr>
+<td>–interfaces&#x3D;<name></td>
+<td>显示指定接口的网络统计信息</td>
+</tr>
+<tr>
+<td>-statistics&#x2F; -s</td>
+<td>IP&#x2F;UDP&#x2F;ICMP&#x2F;TCP统计信息</td>
+</tr>
+<tr>
+<td>–tcp &#x2F; -t</td>
+<td>仅显示TCP套接字相关信息</td>
+</tr>
+<tr>
+<td>–udp &#x2F; -u</td>
+<td>仅显示UDP套接字相关信息</td>
+</tr>
+<tr>
+<td>-raw  &#x2F; -w</td>
+<td>仅显示RAW套接字相关信息(IP和ICMP)</td>
+</tr>
+</tbody></table>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">┌──[root@vms81.liruilongs.github.io]-[~/ansible]</span><br><span class="line">└─<span class="variable">$netstat</span> -p  | sed -n  <span class="string">&#x27;20,30p&#x27;</span></span><br><span class="line">tcp        0      0 localhost:2379          localhost:51396         ESTABLISHED 2025/etcd</span><br><span class="line">tcp        0      0 localhost:2379          localhost:33432         ESTABLISHED 2025/etcd</span><br><span class="line">tcp        0      0 localhost:2379          localhost:33392         ESTABLISHED 2025/etcd</span><br><span class="line">tcp        0      0 localhost:35008         localhost:9099          TIME_WAIT   -</span><br><span class="line">tcp        0      0 localhost:51154         localhost:2379          ESTABLISHED 14196/kube-apiserve</span><br><span class="line">tcp        0      0 localhost:51390         localhost:2379          ESTABLISHED 14196/kube-apiserve</span><br><span class="line">tcp        0      0 vms81.liruilongs.:53982 10.96.0.1:https         ESTABLISHED 108260/calico-node</span><br><span class="line">tcp        0      0 localhost:51266         localhost:2379          ESTABLISHED 14196/kube-apiserve</span><br><span class="line">tcp        0      0 localhost:51482         localhost:2379          ESTABLISHED 14196/kube-apiserve</span><br><span class="line">tcp        0      0 localhost:2379          localhost:52920         ESTABLISHED 2025/etcd</span><br><span class="line">tcp        0      0 localhost:2379          localhost:traceroute    ESTABLISHED 2025/etcd</span><br></pre></td></tr></table></figure>
+
+<p>然后我们看一个日常的运维脚本</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">function</span> <span class="function"><span class="title">network</span></span>() &#123;</span><br><span class="line">    <span class="comment">#获取网卡流量信息,接收|发送的数据流量,单位为字节(bytes)</span></span><br><span class="line">    net_monitor=$(cat /proc/net/dev | tail -n +3 | awk <span class="string">&#x27;BEGIN&#123; print &quot;网卡名称 入站数据流量(bytes) 出站数据流量(bytes)&quot;&#125; &#123;print $1,$2,$10&#125;&#x27;</span> | column -t)</span><br><span class="line">    <span class="comment">#获取暴露端口信息</span></span><br><span class="line">    ip_port=$(ss -ntulpa)</span><br><span class="line"></span><br><span class="line">     <span class="comment">#本地IP地址列表</span></span><br><span class="line">    localip=$(ip a s | awk <span class="string">&#x27;/inet /&#123;print $2&#125;&#x27;</span> )</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">    <span class="built_in">echo</span> -e <span class="string">&quot;\n\033[32m################## 网络 相关 ############\033[0m\n&quot;</span></span><br><span class="line">    <span class="built_in">echo</span> -e <span class="string">&quot;|本地IP地址列表:&quot;</span></span><br><span class="line">    <span class="built_in">echo</span> -e <span class="string">&quot;\033[31m<span class="variable">$localip</span>    \033[0m&quot;</span></span><br><span class="line">    <span class="built_in">echo</span> -e <span class="string">&quot;\033[32m------------------------------------\033[0m&quot;</span></span><br><span class="line">    <span class="built_in">echo</span> -e <span class="string">&quot;|获取网卡流量信息:&quot;</span></span><br><span class="line">    <span class="built_in">echo</span> -e <span class="string">&quot;\033[31m<span class="variable">$net_monitor</span>           \033[0m&quot;</span></span><br><span class="line">    <span class="built_in">echo</span> -e <span class="string">&quot;\033[32m------------------------------------\033[0m&quot;</span></span><br><span class="line">    <span class="built_in">echo</span> -e <span class="string">&quot;|获取暴露端口信息:&quot;</span></span><br><span class="line">    <span class="built_in">echo</span> -e <span class="string">&quot;\033[31m<span class="variable">$ip_port</span>           \033[0m&quot;</span></span><br><span class="line">    <span class="built_in">echo</span> -e <span class="string">&quot;\033[32m------------------------------------\033[0m&quot;</span></span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><img src="https://img-blog.csdnimg.cn/fffee8ae8afc4ea8b1d146132ba42760.png" alt="输出截图"></p>
+<h2 id="优化网络IO使用情况"><a href="#优化网络IO使用情况" class="headerlink" title="优化网络IO使用情况"></a>优化网络IO使用情况</h2><p>当知道网络发生了问题时，Linux提供了一组工具来确定哪些应用程序涉及其中。但是，在与外部机器连接时，对网络问题的修复就不完全由你控制了。</p>
+<p><img src="https://img-blog.csdnimg.cn/59ccbb544a9e4d029c0dc446810f8002.png" alt="在这里插入图片描述"></p>
+<h3 id="网络设备发送-x2F-接收量接近理论极限了吗？"><a href="#网络设备发送-x2F-接收量接近理论极限了吗？" class="headerlink" title="网络设备发送&#x2F;接收量接近理论极限了吗？"></a>网络设备发送&#x2F;接收量接近理论极限了吗？</h3><p>要做的第一件事就是用<code>ethtool</code>来确定每个<code>Ethernet</code>设备设置的硬件速度是多少。通过下面的配置文件我们可以看到，设置当前网卡带宽为<code>1000Mb/s</code></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line">┌──[root@vms81.liruilongs.github.io]-[~/ansible]</span><br><span class="line">└─<span class="variable">$ethtool</span> ens32</span><br><span class="line">Settings <span class="keyword">for</span> ens32:</span><br><span class="line">        Supported ports: [ TP ]</span><br><span class="line">        Supported link modes:   10baseT/Half 10baseT/Full</span><br><span class="line">                                100baseT/Half 100baseT/Full</span><br><span class="line">                                1000baseT/Full</span><br><span class="line">        Supported pause frame use: No</span><br><span class="line">        Supports auto-negotiation: Yes</span><br><span class="line">        Advertised link modes:  10baseT/Half 10baseT/Full</span><br><span class="line">                                100baseT/Half 100baseT/Full</span><br><span class="line">                                1000baseT/Full</span><br><span class="line">        Advertised pause frame use: No</span><br><span class="line">        Advertised auto-negotiation: Yes</span><br><span class="line">        Speed: 1000Mb/s</span><br><span class="line">        Duplex: Full</span><br><span class="line">        Port: Twisted Pair</span><br><span class="line">        PHYAD: 0</span><br><span class="line">        Transceiver: internal</span><br><span class="line">        Auto-negotiation: on</span><br><span class="line">        MDI-X: off (auto)</span><br><span class="line">        Supports Wake-on: d</span><br><span class="line">        Wake-on: d</span><br><span class="line">        Current message level: 0x00000007 (7)</span><br><span class="line">                               drv probe link</span><br><span class="line">        Link detected: yes</span><br></pre></td></tr></table></figure>
+<p>如果有这些信息的记录，就可以调查是否有网络设备处于饱和状态。Ethernet设备和&#x2F;或交换机容易<code>被误配置</code>，<code>ethtool显示每个设备认为其应运行的速度</code>。在确定了<code>每个Ethernet设备的理论极限后</code>，使用<code>iptraf(甚至是ifconfig)来明确流经每个接口的流量</code>。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">┌──[root@vms81.liruilongs.github.io]-[~/ansible]</span><br><span class="line">└─<span class="variable">$ifconfig</span> ens32</span><br><span class="line">ens32: flags=4163&lt;UP,BROADCAST,RUNNING,MULTICAST&gt;  mtu 1500</span><br><span class="line">        inet 192.168.26.81  netmask 255.255.255.0  broadcast 192.168.26.255</span><br><span class="line">        inet6 fe80::20c:29ff:fead:e393  prefixlen 64  scopeid 0x20&lt;link&gt;</span><br><span class="line">        ether 00:0c:29:ad:e3:93  txqueuelen 1000  (Ethernet)</span><br><span class="line">        RX packets 628172  bytes 109448643 (104.3 MiB)</span><br><span class="line">        RX errors 0  dropped 0  overruns 0  frame 0</span><br><span class="line">        TX packets 674109  bytes 362438519 (345.6 MiB)</span><br><span class="line">        TX errors 0  dropped 0 overruns 0  carrier 0  collisions 0</span><br></pre></td></tr></table></figure>
+<p>如果有任何网络设备表现出饱和，转到下面两个节点。我们可以看到当前网卡接收的数据量为104M,发送的数据量为345M。这里我们可以通过watch监听的方式看计算每秒的流量数据。</p>
+<p>也可以使用<code>iptraf</code>来实现，下面的命令统计流量的进出速率</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">┌──[root@vms81.liruilongs.github.io]-[~/ansible]</span><br><span class="line">└─<span class="variable">$iptraf</span>-ng -d ens32 -t 1</span><br><span class="line">````</span><br><span class="line">![在这里插入图片描述](https://img-blog.csdnimg.cn/71e2f6a1f89543aabf979cbf6481b2c8.png)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="comment">### 网络设备产生了大量错误吗？</span></span><br><span class="line"></span><br><span class="line">网络流量减缓的原因也可能是大量的网络错误。用`ifconfig`来确定是否有接口产生了大量的错误。大量错误可能是不匹配的`Ethernet卡/Ethernet交换机`设置的结果。</span><br><span class="line"></span><br><span class="line">```bash</span><br><span class="line">┌──[root@vms81.liruilongs.github.io]-[~/ansible]</span><br><span class="line">└─<span class="variable">$ifconfig</span> ens32 | grep err</span><br><span class="line">        RX errors 0  dropped 0  overruns 0  frame 0</span><br><span class="line">        TX errors 0  dropped 0 overruns 0  carrier 0  collisions 0</span><br><span class="line">┌──[root@vms81.liruilongs.github.io]-[~/ansible]</span><br><span class="line">└─$</span><br></pre></td></tr></table></figure>
+
+<h4 id="设备上流量的类型是什么？"><a href="#设备上流量的类型是什么？" class="headerlink" title="设备上流量的类型是什么？"></a>设备上流量的类型是什么？</h4><p>如果特定设备正在服务大量的数据，使用<code>iptraf</code>可以跟踪该设备发送和接收的流量类型。当知道了设备处理的流量类型后，转到下面的节点</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">┌──[root@vms81.liruilongs.github.io]-[~/ansible]</span><br><span class="line">└─<span class="variable">$iptraf</span>-ng -s ens32 -t 10</span><br></pre></td></tr></table></figure>
+<p><img src="https://img-blog.csdnimg.cn/87562c56ba8e4455903f1d0613704ded.png" alt="在这里插入图片描述"></p>
+<h4 id="特定进程要为流量负责吗？"><a href="#特定进程要为流量负责吗？" class="headerlink" title="特定进程要为流量负责吗？"></a>特定进程要为流量负责吗？</h4><p>接下来，我们想要确定是否有特定进程要为这个流量负责。使用<code>netstat的 -p 选项</code>来查看是否有进程在处理流经网络端口的类型流量。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">┌──[root@vms81.liruilongs.github.io]-[~/ansible]</span><br><span class="line">└─<span class="variable">$netstat</span> -p | grep 2379</span><br><span class="line">tcp        0      0 localhost:33354         localhost:2379          ESTABLISHED 14196/kube-apiserve</span><br><span class="line">tcp        0      0 localhost:33416         localhost:2379          ESTABLISHED 14196/kube-apiserve</span><br><span class="line">tcp        0      0 localhost:51498         localhost:2379          ESTABLISHED 14196/kube-apiserve</span><br><span class="line">tcp        0      0 localhost:53062         localhost:2379          ESTABLISHED 14196/kube-apiserve</span><br><span class="line">tcp        0      0 localhost:2379          localhost:52520         ESTABLISHED 2025/etcd</span><br></pre></td></tr></table></figure>
+<p>如果有应用程序要对此负责，转到<code>[流量是哪个远程系统发送的]</code>节点。如果没有这样的程序，则转到<code>[哪个应用程序套接字要为流量负责]</code>。</p>
+<h4 id="流量是哪个远程系统发送的？"><a href="#流量是哪个远程系统发送的？" class="headerlink" title="流量是哪个远程系统发送的？"></a>流量是哪个远程系统发送的？</h4><p>如果没有应用程序应对这个流量负责，那么就可能是网络上的某些系统用无用的流量攻击了你的系统。要确定是哪些系统发送了这些流量，要使用<code>iptraf或etherape</code>。</p>
+<p>如果可能的话，请与系统所有者联系，并尝试找出发生这种情况的原因。如果所有者无法联系上，可以在Linux内核中设置ipfilters，永久丢弃这个特定的流量，或者是在远程机与本地机之间建立防火墙来拦截该流量。</p>
+<h4 id="哪个应用程序套接字要为流量负责？"><a href="#哪个应用程序套接字要为流量负责？" class="headerlink" title="哪个应用程序套接字要为流量负责？"></a>哪个应用程序套接字要为流量负责？</h4><p>确定使用了哪个套接字要分两步。这部分完全看不懂，先记录下，</p>
+<ul>
+<li>第一步，用<code>strace -e trace=file</code>跟踪应用程序所有的<code>I/0系统</code>调用。这能显示进程是从哪些文件描述符进行读写的。<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">┌──[root@vms81.liruilongs.github.io]-[~/ansible]</span><br><span class="line">└─<span class="variable">$yum</span> -y install strace</span><br></pre></td></tr></table></figure>
+跟踪执行<code>kubectl get nodes</code>涉及到的文件读写<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line">┌──[root@vms81.liruilongs.github.io]-[~/ansible]</span><br><span class="line">└─<span class="variable">$kubectl</span> get nodes</span><br><span class="line">NAME                         STATUS     ROLES                  AGE    VERSION</span><br><span class="line">vms81.liruilongs.github.io   Ready      control-plane,master   153d   v1.22.2</span><br><span class="line">vms82.liruilongs.github.io   Ready      &lt;none&gt;                 153d   v1.22.2</span><br><span class="line">vms83.liruilongs.github.io   NotReady   &lt;none&gt;                 153d   v1.22.2</span><br><span class="line">┌──[root@vms81.liruilongs.github.io]-[~/ansible]</span><br><span class="line">└─<span class="variable">$strace</span> -e trace=file  kubectl get nodes</span><br><span class="line">execve(<span class="string">&quot;/usr/bin/kubectl&quot;</span>, [<span class="string">&quot;kubectl&quot;</span>, <span class="string">&quot;get&quot;</span>, <span class="string">&quot;nodes&quot;</span>], 0x7ffc888b4e40 /* 22 vars */) = 0</span><br><span class="line">openat(AT_FDCWD, <span class="string">&quot;/sys/kernel/mm/transparent_hugepage/hpage_pmd_size&quot;</span>, O_RDONLY) = -1 ENOENT (没有那个文件或目 录)</span><br><span class="line">readlinkat(AT_FDCWD, <span class="string">&quot;/proc/self/exe&quot;</span>, <span class="string">&quot;/usr/bin/kubectl&quot;</span>, 128) = 16</span><br><span class="line">openat(AT_FDCWD, <span class="string">&quot;/usr/bin/kubectl&quot;</span>, O_RDONLY|O_CLOEXEC) = 6</span><br><span class="line">--- SIGURG &#123;si_signo=SIGURG, si_code=SI_TKILL, si_pid=22013, si_uid=0&#125; ---</span><br><span class="line">--- SIGURG &#123;si_signo=SIGURG, si_code=SI_TKILL, si_pid=22013, si_uid=0&#125; ---</span><br><span class="line">--- SIGURG &#123;si_signo=SIGURG, si_code=SI_TKILL, si_pid=22013, si_uid=0&#125; ---</span><br><span class="line">--- SIGURG &#123;si_signo=SIGURG, si_code=SI_TKILL, si_pid=22013, si_uid=0&#125; ---</span><br><span class="line">--- SIGURG &#123;si_signo=SIGURG, si_code=SI_TKILL, si_pid=22013, si_uid=0&#125; ---</span><br><span class="line">--- SIGURG &#123;si_signo=SIGURG, si_code=SI_TKILL, si_pid=22013, si_uid=0&#125; ---</span><br><span class="line">--- SIGURG &#123;si_signo=SIGURG, si_code=SI_TKILL, si_pid=22013, si_uid=0&#125; ---</span><br><span class="line">--- SIGURG &#123;si_signo=SIGURG, si_code=SI_TKILL, si_pid=22013, si_uid=0&#125; ---</span><br><span class="line">--- SIGURG &#123;si_signo=SIGURG, si_code=SI_TKILL, si_pid=22013, si_uid=0&#125; ---</span><br><span class="line">--- SIGURG &#123;si_signo=SIGURG, si_code=SI_TKILL, si_pid=22013, si_uid=0&#125; ---</span><br><span class="line">--- SIGURG &#123;si_signo=SIGURG, si_code=SI_TKILL, si_pid=22013, si_uid=0&#125; ---</span><br><span class="line">--- SIGURG &#123;si_signo=SIGURG, si_code=SI_TKILL, si_pid=22013, si_uid=0&#125; ---</span><br><span class="line">--- SIGURG &#123;si_signo=SIGURG, si_code=SI_TKILL, si_pid=22013, si_uid=0&#125; ---</span><br><span class="line">openat(AT_FDCWD, <span class="string">&quot;/root/.kube/cache/discovery/192.168.26.81_6443/policy/v1beta1/serverresources.json&quot;</span>, O_RDONLY|O_CLOEXEC) = 6</span><br><span class="line">..........</span><br></pre></td></tr></table></figure></li>
+<li>第二步，通过查看proc文件系统，将这些文件描述符映射回套接字。<code>/proc/&lt;pid&gt;/fd/</code>中的文件是从文件描述符到实际文件或套接字的符号链接。该目录下的<code>1s-1a</code>会显示特定进程全部的文件描述符。名字中带有socket的是网络套接字。之后就可以利用这些信息来确定程序中的哪个套接字产生了这些通信。</li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">┌──[root@vms81.liruilongs.github.io]-[~/ansible]</span><br><span class="line">└─<span class="variable">$ps</span> -elF | grep etcd</span><br><span class="line">4 S root       2025   2004  2  80   0 - 2803899 futex_ 96656 1 5月14 ?       00:33:14 etcd --advertise-client-urls=https://192.168.26.81:2379 --cert-file=/etc/kubernetes/pki/etcd/server.crt --client-cert-auth=<span class="literal">true</span> --data-dir=/var/lib/etcd --initial-advertise-peer-urls=https://192.168.26.81:2380 --initial-cluster=vms81.liruilongs.github.io=https://192.168.26.81:2380 --key-file=/etc/kubernetes/pki/etcd/server.key --listen-client-urls=https://127.0.0.1:2379,https://192.168.26.81:2379 --listen-metrics-urls=http://127.0.0.1:2381 --listen-peer-urls=https://192.168.26.81:2380 --name=vms81.liruilongs.github.io --peer-cert-file=/etc/kubernetes/pki/etcd/peer.crt --peer-client-cert-auth=<span class="literal">true</span> --peer-key-file=/etc/kubernetes/pki/etcd/peer.key --peer-trusted-ca-file=/etc/kubernetes/pki/etcd/ca.crt --snapshot-count=10000 --trusted-ca-file=/etc/kubernetes/pki/etcd/ca.crt</span><br><span class="line">4 S root      14196  14020 10  80   0 - 311578 futex_ 445044 0 5月14 ?       01:54:30 kube-apiserver --advertise-address=192.168.26.81 --allow-privileged=<span class="literal">true</span> --token-auth-file=/etc/kubernetes/pki/liruilong.csv --authorization-mode=Node,RBAC --client-ca-file=/etc/kubernetes/pki/ca.crt --enable-admission-plugins=NodeRestriction --enable-bootstrap-token-auth=<span class="literal">true</span> --etcd-cafile=/etc/kubernetes/pki/etcd/ca.crt --etcd-certfile=/etc/kubernetes/pki/apiserver-etcd-client.crt --etcd-keyfile=/etc/kubernetes/pki/apiserver-etcd-client.key --etcd-servers=https://127.0.0.1:2379 --kubelet-client-certificate=/etc/kubernetes/pki/apiserver-kubelet-client.crt --kubelet-client-key=/etc/kubernetes/pki/apiserver-kubelet-client.key --kubelet-preferred-address-types=InternalIP,ExternalIP,Hostname --proxy-client-cert-file=/etc/kubernetes/pki/front-proxy-client.crt --proxy-client-key-file=/etc/kubernetes/pki/front-proxy-client.key --requestheader-allowed-names=front-proxy-client --requestheader-client-ca-file=/etc/kubernetes/pki/front-proxy-ca.crt --requestheader-extra-headers-prefix=X-Remote-Extra- --requestheader-group-headers=X-Remote-Group --requestheader-username-headers=X-Remote-User --secure-port=6443 --service-account-issuer=https://kubernetes.default.svc.cluster.local --service-account-key-file=/etc/kubernetes/pki/sa.pub --service-account-signing-key-file=/etc/kubernetes/pki/sa.key --service-cluster-ip-range=10.96.0.0/12 --tls-cert-file=/etc/kubernetes/pki/apiserver.crt --tls-private-key-file=/etc/kubernetes/pki/apiserver.key</span><br><span class="line">0 S root      24735  24319  0  80   0 - 28170 pipe_w   980   0 02:08 pts/1    00:00:00 grep --color=auto etcd</span><br><span class="line">┌──[root@vms81.liruilongs.github.io]-[~/ansible]</span><br><span class="line">└─$</span><br></pre></td></tr></table></figure>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">┌──[root@vms81.liruilongs.github.io]-[~/ansible]</span><br><span class="line">└─<span class="variable">$cd</span>  /proc/2025/fd/</span><br><span class="line">┌──[root@vms81.liruilongs.github.io]-[/proc/2025/fd]</span><br><span class="line">└─<span class="variable">$ls</span></span><br><span class="line">0    102  109  116  121  126  131  136  18  22  27  31  36  40  45  5   54  59  64  71  78  83  9   95</span><br><span class="line">1    103  11   117  122  127  132  14   19  23  28  32  37  41  46  50  55  6   65  73  79  84  90  97</span><br><span class="line">.......</span><br></pre></td></tr></table></figure>
+
+<h4 id="最后的手段"><a href="#最后的手段" class="headerlink" title="最后的手段"></a>最后的手段</h4><p>当你看到这里的时候，你的问题可能得到也可能没有得到解决，但是，你会获取大量描述它的信息。在搜索引擎上看看他们是如何解决问题的。尝试一个解决方案，并观察系统或应用程序的行为是否发生了变化。每次尝试新方案时，请转到流程最开始重新开始系统诊断，因为，每一个修复都可能会让应用程序的行为发生变化。</p>
+<hr>
+<p>如果涉及到网络配置，也可用个通过<code>NetworkManager</code>服务来配置网络相关的管理，网卡方面，可以通过<code>nmcli dev status</code>命令用来查看所有网络设备的当前状态。感兴趣小伙伴可以看看我之前的博文</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">┌──[root@liruilongs.github.io]-[~]</span><br><span class="line">└─<span class="variable">$nmcli</span> dev status</span><br><span class="line">DEVICE      TYPE      STATE      CONNECTION</span><br><span class="line">privbr0     bridge    connected  privbr0</span><br><span class="line">virbr0      bridge    connected  virbr0</span><br><span class="line">eth0        ethernet  connected  eth0</span><br><span class="line">vnet0       tun       connected  vnet0</span><br><span class="line">vnet1       tun       connected  vnet1</span><br><span class="line">lo          loopback  unmanaged  --</span><br><span class="line">virbr0-nic  tun       unmanaged  --</span><br></pre></td></tr></table></figure>
+<p>通过<code>show</code>命令 <code>nmcli device show eth0</code>可以查看网卡详细信息</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line">┌──[root@servera.lab.example.com]-[~]</span><br><span class="line">└─<span class="variable">$nmcli</span> device show eth0</span><br><span class="line">GENERAL.DEVICE:                         eth0</span><br><span class="line">GENERAL.TYPE:                           ethernet</span><br><span class="line">GENERAL.HWADDR:                         52:54:00:00:FA:0A</span><br><span class="line">GENERAL.MTU:                            1500</span><br><span class="line">GENERAL.STATE:                          100 (connected)</span><br><span class="line">GENERAL.CONNECTION:                     Wired connection 1</span><br><span class="line">GENERAL.CON-PATH:                       /org/freedesktop/NetworkManager/ActiveConnection/1</span><br><span class="line">WIRED-PROPERTIES.CARRIER:               on</span><br><span class="line">IP4.ADDRESS[1]:                         172.25.250.10/24</span><br><span class="line">IP4.GATEWAY:                            172.25.250.254</span><br><span class="line">IP4.ROUTE[1]:                           dst = 172.25.250.0/24, nh = 0.0.0.0, mt = 100</span><br><span class="line">IP4.ROUTE[2]:                           dst = 0.0.0.0/0, nh = 172.25.250.254, mt = 100</span><br><span class="line">IP4.DNS[1]:                             172.25.250.254</span><br><span class="line">IP6.ADDRESS[1]:                         fe80::984:87d2:dba7:1007/64</span><br><span class="line">IP6.GATEWAY:                            --</span><br><span class="line">IP6.ROUTE[1]:                           dst = fe80::/64, nh = ::, mt = 100</span><br><span class="line">IP6.ROUTE[2]:                           dst = ff00::/8, nh = ::, mt = 256, table=255</span><br><span class="line">┌──[root@servera.lab.example.com]-[~]</span><br><span class="line">└─$</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<p>相关的命令</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">┌──[root@servera.lab.example.com]-[~]</span><br><span class="line">└─<span class="variable">$nmcli</span> device</span><br><span class="line">connect     disconnect  lldp        monitor     <span class="built_in">set</span>         status</span><br><span class="line">delete      <span class="built_in">help</span>        modify      reapply     show        wifi</span><br></pre></td></tr></table></figure>
+<p>man 帮助文档</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br></pre></td><td class="code"><pre><span class="line">DEVICE MANAGEMENT COMMANDS</span><br><span class="line">       nmcli device &#123;status | show | <span class="built_in">set</span> | connect | reapply | modify | disconnect | delete | monitor | wifi</span><br><span class="line">                    | lldp&#125; [ARGUMENTS...]</span><br><span class="line"></span><br><span class="line">       Show and manage network interfaces.</span><br><span class="line"></span><br><span class="line">       status</span><br><span class="line">           Print status of devices.</span><br><span class="line"></span><br><span class="line">           This is the default action <span class="keyword">if</span> no <span class="built_in">command</span> is specified to nmcli device.</span><br><span class="line"></span><br><span class="line">       show [ifname]</span><br><span class="line">           Show detailed information about devices. Without an argument, all devices are examined. To get</span><br><span class="line">           information <span class="keyword">for</span> a specific device, the interface name has to be provided.</span><br><span class="line"></span><br><span class="line">       <span class="built_in">set</span> [ifname] ifname [autoconnect &#123;yes | no&#125;] [managed &#123;yes | no&#125;]</span><br><span class="line">           Set device properties.</span><br><span class="line"></span><br><span class="line">       connect ifname</span><br><span class="line">           Connect the device. NetworkManager will try to find a suitable connection that will be activated.</span><br><span class="line">           It will also consider connections that are not <span class="built_in">set</span> to auto connect.</span><br><span class="line"></span><br><span class="line">           If no compatible connection exists, a new profile with default settings will be created and</span><br><span class="line">           activated. This differentiates nmcli connection up ifname <span class="string">&quot;<span class="variable">$DEVICE</span>&quot;</span> from nmcli device connect</span><br><span class="line">           <span class="string">&quot;<span class="variable">$DEVICE</span>&quot;</span></span><br><span class="line"></span><br><span class="line">           If --<span class="built_in">wait</span> option is not specified, the default timeout will be 90 seconds.</span><br><span class="line"></span><br><span class="line">       reapply ifname</span><br><span class="line">           Attempt to update device with changes to the currently active connection made since it was last</span><br><span class="line">           applied.</span><br><span class="line"></span><br><span class="line">       modify ifname &#123;option value | [+|-]setting.property value&#125;...</span><br><span class="line">           Modify the settings currently active on the device.</span><br><span class="line"></span><br><span class="line">           This <span class="built_in">command</span> lets you <span class="keyword">do</span> temporary changes to a configuration active on a particular device. The</span><br><span class="line">           changes are not preserved <span class="keyword">in</span> the connection profile.</span><br><span class="line"></span><br><span class="line">           See nm-settings(5) <span class="keyword">for</span> the list of available properties. Please note that some properties can t</span><br><span class="line">           be changed on an already connected device.</span><br><span class="line"></span><br><span class="line">           You can also use the aliases described <span class="keyword">in</span> PROPERTY ALIASES section. The syntax is the same as of</span><br><span class="line">           the nmcli connection modify <span class="built_in">command</span>.</span><br><span class="line"></span><br><span class="line">       disconnect ifname...</span><br><span class="line">           Disconnect a device and prevent the device from automatically activating further connections</span><br><span class="line">           without user/manual intervention. Note that disconnecting software devices may mean that the</span><br><span class="line">           devices will disappear.</span><br><span class="line"></span><br><span class="line">           If --<span class="built_in">wait</span> option is not specified, the default timeout will be 10 seconds.</span><br><span class="line"></span><br><span class="line">       delete ifname...</span><br><span class="line">           Delete a device. The <span class="built_in">command</span> removes the interface from the system. Note that this only works <span class="keyword">for</span></span><br><span class="line">           software devices like bonds, bridges, teams, etc. Hardware devices (like Ethernet) cannot be</span><br></pre></td></tr></table></figure>
+
+
+</div><div class="article-licensing box"><div class="licensing-title"><p>关于Linux性能调优中网络I/O的一些笔记</p><p><a href="https://liruilongs.github.io/2022/05/15/rhca/RH442_BPF/网络/关于 Linux性能调优中优化网络IO的一些笔记/">https://liruilongs.github.io/2022/05/15/rhca/RH442_BPF/网络/关于 Linux性能调优中优化网络IO的一些笔记/</a></p></div><div class="licensing-meta level is-mobile"><div class="level-left"><div class="level-item is-narrow"><div><h6>作者</h6><a href="https://liruilongs.github.io"><p>山河已无恙</p></a></div></div><div class="level-item is-narrow"><div><h6>发布于</h6><p>2022-05-15</p></div></div><div class="level-item is-narrow"><div><h6>更新于</h6><p>2024-09-09</p></div></div><div class="level-item is-narrow"><div><h6>许可协议</h6><p><a class="icon" rel="noopener" target="_blank" title="Creative Commons" href="https://creativecommons.org/"><i class="fab fa-creative-commons"></i></a><a class="icon" rel="noopener" target="_blank" title="Attribution" href="https://creativecommons.org/licenses/by/4.0/"><i class="fab fa-creative-commons-by"></i></a><a class="icon" rel="noopener" target="_blank" title="Noncommercial" href="https://creativecommons.org/licenses/by-nc/4.0/"><i class="fab fa-creative-commons-nc"></i></a></p></div></div></div></div></div><div class="recommend-area"><div class="recommend-post"><span class="is-size-6 has-text-grey has-mr-7"># 相关文章</span><br><span>  1.<a class="is-size-6" href="/2024/09/05/%E5%BE%85%E5%8F%91%E5%B8%83/Linux-%E6%80%A7%E8%83%BD%E8%B0%83%E4%BC%98%E4%B9%8BCPU%E4%B8%8A%E4%B8%8B%E6%96%87%E5%88%87%E6%8D%A2/" target="_blank">Linux 性能观测之CPU上下文切换</a><br></span><span>  2.<a class="is-size-6" href="/2024/08/23/%E5%BE%85%E5%8F%91%E5%B8%83/Linux%20%E6%80%A7%E8%83%BD%E8%A7%82%E6%B5%8B%E4%B9%8B%E5%B9%B3%E5%9D%87%E8%B4%9F%E8%BD%BD/" target="_blank">Linux 性能观测之平均负载</a><br></span><span>  3.<a class="is-size-6" href="/2024/05/10/%E5%BE%85%E5%8F%91%E5%B8%83/Linux-%E6%80%A7%E8%83%BD%E8%B0%83%E4%BC%98%E4%B9%8B%E6%9C%8D%E5%8A%A1CPU%E6%97%B6%E9%97%B4%E5%88%86%E5%B8%83%E9%85%8D%E7%BD%AE/" target="_blank">Linux-性能调优之服务CPU时间分布(亲和性、带宽、权重)配置Demo</a><br></span><span>  4.<a class="is-size-6" href="/2024/05/04/rhca/RH442_BPF/CPU/Linux-%E6%80%A7%E8%83%BD%E8%B0%83%E4%BC%98%E4%B9%8B%E6%9C%8D%E5%8A%A1%20CPU%20%E4%BA%B2%E5%92%8C%E6%80%A7%E9%85%8D%E7%BD%AE/" target="_blank">Linux 性能调优之 CPU 亲和性配置</a><br></span><span>  5.<a class="is-size-6" href="/2024/04/01/rhca/RH442_BPF/BPF/Linux-BPF%E6%80%A7%E8%83%BD%E5%88%86%E6%9E%90%E4%B9%8B%E5%9F%BA%E4%BA%8EBCC%E5%B7%A5%E5%85%B7%E6%B8%85%E5%8D%95%E6%A3%80%E6%9F%A5/" target="_blank">Linux BPF性能分析之基于BCC工具清单检查</a><br></span><span>  6.<a class="is-size-6" href="/2024/03/30/rhca/RH442_BPF/BPF/Linux-%E6%80%A7%E8%83%BD%E5%88%86%E6%9E%90%E6%96%B9%E6%B3%95%E8%AE%BA%E4%BB%8B%E7%BB%8D-%E4%B8%9A%E5%8A%A1%E8%B4%9F%E8%BD%BD%E7%94%BB%E5%83%8F%E3%80%81%E4%B8%8B%E9%92%BB%E5%88%86%E6%9E%90%E3%80%81USE%E6%96%B9%E6%B3%95%E8%AE%BA%EF%BC%8C%E6%A3%80%E6%9F%A5%E6%B8%85%E5%8D%95/" target="_blank">Linux 常见性能分析方法论介绍(业务负载画像、下钻分析、USE方法论，检查清单)</a><br></span><span>  7.<a class="is-size-6" href="/2024/03/08/Linux/Linux%E7%BD%91%E7%BB%9C/Linux%20%E7%BD%91%E7%BB%9C%E9%9A%A7%E9%81%93%E6%8A%80%E6%9C%AF%20VXLAN%20%E8%AE%A4%E7%9F%A5/" target="_blank">Linux 网络隧道技术 VXLAN 认知</a><br></span><span>  8.<a class="is-size-6" href="/2024/03/03/Linux/Linux%E7%BD%91%E7%BB%9C/Linux-%E7%BD%91%E7%BB%9C%E6%8E%A5%E5%8F%A3%E7%9A%84%E6%B7%B7%E6%9D%82%E6%A8%A1%E5%BC%8F-Promiscuous-mode-%E8%AE%A4%E7%9F%A5/" target="_blank">Linux 网络接口的混杂模式(Promiscuous  mode)认知</a><br></span></div><div class="recommend-post"><span class="is-size-6 has-text-grey has-mr-7"># 推荐文章</span><br><span>  1.<a class="is-size-6" href="/2021/08/27/K8s/%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/%E3%80%8AKubernetes%E6%9D%83%E5%A8%81%E6%8C%87%E5%8D%97-%E4%BB%8EDocker%E5%88%B0Kubernetes%E5%AE%9E%E8%B7%B5%E5%85%A8%E6%8E%A5%E8%A7%A6%E3%80%8B%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/" target="_blank">《Kubernetes权威指南:从Docker到Kubernetes实践全接触》读书笔记</a><br></span><span>  2.<a class="is-size-6" href="/2022/11/19/Git/%E5%85%B3%E4%BA%8E-Git-%E9%87%8D%E5%86%99%E5%8E%86%E5%8F%B2%E7%9A%84%E4%B8%80%E4%BA%9B%E7%AC%94%E8%AE%B0/" target="_blank">关于 Git 重写历史的一些笔记</a><br></span><span>  3.<a class="is-size-6" href="/2022/08/02/Git/%E5%85%B3%E4%BA%8EGit%E5%88%86%E6%94%AF%E5%8F%98%E5%9F%BA%E6%93%8D%E4%BD%9C%E7%9A%84%E4%B8%80%E4%BA%9B%E7%AC%94%E8%AE%B0/" target="_blank">关于Git分支变基操作的一些笔记</a><br></span><span>  4.<a class="is-size-6" href="/2022/07/26/Git/%E5%85%B3%E4%BA%8EGit%E5%88%86%E6%94%AF%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86%E7%9A%84%E4%B8%80%E4%BA%9B%E7%AC%94%E8%AE%B0/" target="_blank">关于Git分支基础知识的一些笔记</a><br></span><span>  5.<a class="is-size-6" href="/2022/08/02/Git/%E5%85%B3%E4%BA%8EGit%E5%88%86%E6%94%AF%E5%B7%A5%E4%BD%9C%E6%B5%81%E7%9A%84%E4%B8%80%E4%BA%9B%E7%AC%94%E8%AE%B0/" target="_blank">关于Git分支工作流的一些笔记</a><br></span><span>  6.<a class="is-size-6" href="/2023/02/19/Git/%E5%85%B3%E4%BA%8EGit%E9%AB%98%E7%BA%A7%E5%90%88%E5%B9%B6%E7%9A%84%E4%B8%80%E4%BA%9B%E7%AC%94%E8%AE%B0%E6%95%B4%E7%90%86/" target="_blank">关于Git分支高级合并的一些笔记整理</a><br></span></div></div><link rel="stylesheet" href="https://cdnjs.loli.net/ajax/libs/social-share.js/1.0.16/css/share.min.css"><div class="social-share"></div><script src="https://cdnjs.loli.net/ajax/libs/social-share.js/1.0.16/js/social-share.min.js"></script></article></div><div class="card"><div class="card-content"><h3 class="menu-label has-text-centered">喜欢这篇文章？打赏一下作者吧</h3><div class="buttons is-centered"><a class="button donate" data-type="alipay"><span class="icon is-small"><i class="fab fa-alipay"></i></span><span>支付宝</span><span class="qrcode"><img src="/img/alipay%EF%BF%A5.png" alt="支付宝"></span></a><a class="button donate" data-type="wechat"><span class="icon is-small"><i class="fab fa-weixin"></i></span><span>微信</span><span class="qrcode"><img src="/img/wechat%EF%BF%A5.png" alt="微信"></span></a></div></div></div><nav class="post-navigation mt-4 level is-mobile"><div class="level-start"><a class="article-nav-prev level level-item link-muted" href="/2022/05/17/rhca/DO447/Ansible%E6%9C%80%E4%BD%B3%E5%AE%9E%E8%B7%B5%E4%B9%8BPlaybook%E4%BD%BF%E7%94%A8lookup%E6%A8%A1%E6%9D%BF%E5%92%8C%E8%BF%87%E6%BB%A4%E5%99%A8%E5%AE%9E%E7%8E%B0%E9%AB%98%E7%BA%A7%E5%BE%AA%E7%8E%AF%E4%BB%BB%E5%8A%A1/"><i class="level-item fas fa-chevron-left"></i><span class="level-item">Ansible最佳实践之Playbook高级循环任务如何操作</span></a></div><div class="level-end"><a class="article-nav-next level level-item link-muted" href="/2022/05/14/rhca/DO447/Ansible%E6%9C%80%E4%BD%B3%E5%AE%9E%E8%B7%B5%E4%B9%8B%E4%BD%BF%E7%94%A8lookup%E6%8F%92%E4%BB%B6%E6%A8%A1%E6%9D%BF%E5%8C%96%E5%A4%96%E9%83%A8%E6%95%B0%E6%8D%AE/"><span class="level-item">Ansible最佳实践之使用lookup插件模板化外部数据</span><i class="level-item fas fa-chevron-right"></i></a></div></nav><!--!--><div class="card"><div class="card-content"><div class="title is-5">评论</div><div id="comment-container"></div><link rel="stylesheet" href="https://cdnjs.loli.net/ajax/libs/gitalk/1.6.0/gitalk.css"><script> $.getScript('/js/gitalk.min.js', function () { 
+            var gitalk = new Gitalk({
+            language:'zh-CN',
+            id: '5ed381eaaa693a9d909661790524da33',
+            repo: 'blog_comment',
+            owner: 'LIRUILONGS',
+            clientID: '9fdc9739266d48d5f62e',
+            clientSecret: 'c1cc33697d099a2197650ec9dadcb16bd4904655',
+            admin: ["LIRUILONGS"],
+            createIssueManually: true,
+            distractionFreeMode: true,
+            perPage: 10,
+            pagerDirection: 'last',
+            proxy: 'https://cors-anywhere.azm.workers.dev/https://github.com/login/oauth/access_token',
+            
+            enableHotKey: true,
+            isLocked: false
+        })
+        gitalk.render('comment-container')});</script></div></div></div><div class="column column-left is-4-tablet is-4-desktop is-3-widescreen  order-1 is-sticky"><div class="card widget" id="toc" data-type="toc"><div class="card-content"><div class="menu"><h3 class="menu-label">目录</h3><ul class="menu-list"><li><a class="is-flex is-mobile" href="#写在前面"><span class="mr-2">1</span><span>写在前面</span></a><ul class="menu-list"><li><a class="is-flex is-mobile" href="#涉及名词解释"><span class="mr-2">1.1</span><span>涉及名词解释</span></a></li></ul></li><li><a class="is-flex is-mobile" href="#网络I-x2F-O介绍"><span class="mr-2">2</span><span>网络I/O介绍</span></a><ul class="menu-list"><li><a class="is-flex is-mobile" href="#链路层的网络流量"><span class="mr-2">2.1</span><span>链路层的网络流量</span></a></li><li><a class="is-flex is-mobile" href="#协议层-传输层-网络流量"><span class="mr-2">2.2</span><span>协议层(传输层)网络流量</span></a></li></ul></li><li><a class="is-flex is-mobile" href="#网络性能工具"><span class="mr-2">3</span><span>网络性能工具</span></a><ul class="menu-list"><li><a class="is-flex is-mobile" href="#mii-tool-媒体无关接口工具"><span class="mr-2">3.1</span><span>mii-tool(媒体无关接口工具)</span></a></li><li><a class="is-flex is-mobile" href="#ethtool"><span class="mr-2">3.2</span><span>ethtool</span></a></li><li><a class="is-flex is-mobile" href="#ifconfig-接口配置"><span class="mr-2">3.3</span><span>ifconfig(接口配置)</span></a></li><li><a class="is-flex is-mobile" href="#ip"><span class="mr-2">3.4</span><span>ip</span></a></li><li><a class="is-flex is-mobile" href="#sar"><span class="mr-2">3.5</span><span>sar</span></a></li><li><a class="is-flex is-mobile" href="#iptraf"><span class="mr-2">3.6</span><span>iptraf</span></a></li><li><a class="is-flex is-mobile" href="#netstat"><span class="mr-2">3.7</span><span>netstat</span></a></li></ul></li><li><a class="is-flex is-mobile" href="#优化网络IO使用情况"><span class="mr-2">4</span><span>优化网络IO使用情况</span></a><ul class="menu-list"><li><a class="is-flex is-mobile" href="#网络设备发送-x2F-接收量接近理论极限了吗？"><span class="mr-2">4.1</span><span>网络设备发送/接收量接近理论极限了吗？</span></a><ul class="menu-list"><li><a class="is-flex is-mobile" href="#设备上流量的类型是什么？"><span class="mr-2">4.1.1</span><span>设备上流量的类型是什么？</span></a></li><li><a class="is-flex is-mobile" href="#特定进程要为流量负责吗？"><span class="mr-2">4.1.2</span><span>特定进程要为流量负责吗？</span></a></li><li><a class="is-flex is-mobile" href="#流量是哪个远程系统发送的？"><span class="mr-2">4.1.3</span><span>流量是哪个远程系统发送的？</span></a></li><li><a class="is-flex is-mobile" href="#哪个应用程序套接字要为流量负责？"><span class="mr-2">4.1.4</span><span>哪个应用程序套接字要为流量负责？</span></a></li><li><a class="is-flex is-mobile" href="#最后的手段"><span class="mr-2">4.1.5</span><span>最后的手段</span></a></li></ul></li></ul></li></ul></div></div><style>.menu-list > li > a.is-active + .menu-list { display: block; }.menu-list > li > a + .menu-list { display: none; }</style><script src="/js/toc.js" defer></script></div><div class="card widget" data-type="profile"><div class="card-content"><nav class=""><div class="level-item has-text-centered flex-shrink-1"><div><figure class="image is-128x128 mx-auto mb-2"><img class="avatar" src="/img/%E5%BE%AE%E4%BF%A1%E5%85%AC%E4%BC%97%E5%8F%B7.jpg" alt="山河已无恙"></figure><p class="title is-size-4 is-block" style="line-height:inherit;">山河已无恙</p><p class="is-size-6 is-block">爱自己，是终生浪漫的开始</p><p class="is-size-6 is-flex justify-content-center"><i class="fas fa-map-marker-alt mr-1"></i><span>中国·呼和浩特</span></p></div></div></nav><nav class="level is-mobile"><div class="level-item has-text-centered is-marginless"><div><p class="heading">文章</p><a href="/archives"><p class="title">388</p></a></div></div><div class="level-item has-text-centered is-marginless"><div><p class="heading">分类</p><a href="/categories"><p class="title">123</p></a></div></div><div class="level-item has-text-centered is-marginless"><div><p class="heading">标签</p><a href="/tags"><p class="title">173</p></a></div></div></nav><div class="level"><a class="level-item button is-primary is-rounded" href="https://mp.weixin.qq.com/s?__biz=MzkyNjIxNTYwMw==&amp;mid=2247496480&amp;idx=1&amp;sn=a9971fed3962ef2a1aeda1f0bda65f86&amp;chksm=c2380ffcf54f86eaba8daac6caca72a70f38e61a8d25dc2a66d3a17b87c02530e326dcaea14b#rd" target="_blank" rel="noopener">关注我</a></div><div class="level is-mobile"><a class="level-item button is-transparent is-marginless" target="_blank" rel="noopener" title="Github" href="https://github.com/LIRUILONGS"><i class="fab fa-github"></i></a><a class="level-item button is-transparent is-marginless" target="_blank" rel="noopener" title="CSDN" href="https://liruilong.blog.csdn.net/"><i class="fa fa-code"></i></a><a class="level-item button is-transparent is-marginless" target="_blank" rel="noopener" title="Email" href="mailto:1224965096@qq.com"><i class="fa fa-envelope"></i></a></div></div></div><div class="card widget" data-type="links"><div class="card-content"><div class="menu"><h3 class="menu-label">链接</h3><ul class="menu-list"><li><a class="level is-mobile" href="https://liruilong.blog.csdn.net/?t=1&amp;type=blog" target="_blank" rel="noopener"><span class="level-left"><span class="level-item">CSDN</span></span><span class="level-right"><span class="level-item tag">liruilong.blog.csdn.net</span></span></a></li><li><a class="level is-mobile" href="https://www.cnblogs.com/liruilong/" target="_blank" rel="noopener"><span class="level-left"><span class="level-item">博客园</span></span><span class="level-right"><span class="level-item tag">www.cnblogs.com</span></span></a></li><li><a class="level is-mobile" href="https://github.com/LIRUILONGS" target="_blank" rel="noopener"><span class="level-left"><span class="level-item">Githup</span></span><span class="level-right"><span class="level-item tag">github.com</span></span></a></li><li><a class="level is-mobile" href="https://gitee.com/liruilonger" target="_blank" rel="noopener"><span class="level-left"><span class="level-item">码云</span></span><span class="level-right"><span class="level-item tag">gitee.com</span></span></a></li></ul></div></div></div><div class="card widget"><div class="card-content"><h3 class="menu-label">最新评论</h3><span class="body_hot_comment">加载中，最新评论有1分钟缓存...</span></div></div><div class="card widget"><div class="card-content"><h3 class="menu-label">最新文章</h3><article class="media"><div class="media-content"><p class="date"><time dateTime="2024-09-05T01:32:25.000Z">2024-09-05</time></p><p class="title"><a href="/2024/09/05/%E5%BE%85%E5%8F%91%E5%B8%83/Linux-%E6%80%A7%E8%83%BD%E8%B0%83%E4%BC%98%E4%B9%8BCPU%E4%B8%8A%E4%B8%8B%E6%96%87%E5%88%87%E6%8D%A2/">Linux 性能观测之CPU上下文切换</a></p><p class="categories"><a href="/categories/Linux/">Linux</a></p></div></article><article class="media"><div class="media-content"><p class="date"><time dateTime="2024-09-02T06:36:12.000Z">2024-09-02</time></p><p class="title"><a href="/2024/09/02/%E5%BE%85%E5%8F%91%E5%B8%83/%E6%97%A0%E4%BA%BA%E6%9C%BA%EF%BC%9A%E7%BA%AA%E5%BD%95%E7%89%87%E8%88%AA%E6%8B%8D%E8%AE%A4%E7%9F%A5/">无人机：纪录片航拍认知</a></p><p class="categories"><a href="/categories/%E6%97%A0%E4%BA%BA%E6%9C%BA/">无人机</a></p></div></article><article class="media"><div class="media-content"><p class="date"><time dateTime="2024-08-23T07:33:37.000Z">2024-08-23</time></p><p class="title"><a href="/2024/08/23/%E5%BE%85%E5%8F%91%E5%B8%83/Linux%20%E6%80%A7%E8%83%BD%E8%A7%82%E6%B5%8B%E4%B9%8B%E5%B9%B3%E5%9D%87%E8%B4%9F%E8%BD%BD/">Linux 性能观测之平均负载</a></p><p class="categories"><a href="/categories/Linux/">Linux</a></p></div></article><article class="media"><div class="media-content"><p class="date"><time dateTime="2024-08-16T01:54:42.538Z">2024-08-16</time></p><p class="title"><a href="/2024/08/16/rhca/RH442_BPF/CPU/Linux-%E6%80%A7%E8%83%BD%E8%B0%83%E4%BC%98%E4%B9%8B%E9%85%8D%E7%BD%AECPU%E8%B0%83%E5%BA%A6%E7%AD%96%E7%95%A5%E5%92%8C%E5%8F%AF%E8%B0%83%E5%8F%82%E6%95%B0/"> </a></p></div></article><article class="media"><div class="media-content"><p class="date"><time dateTime="2024-08-14T06:00:42.000Z">2024-08-14</time></p><p class="title"><a href="/2024/08/14/%E5%BE%85%E5%8F%91%E5%B8%83/%E6%97%A0%E4%BA%BA%E6%9C%BA%EF%BC%9A%E8%88%AA%E6%8B%8D%E4%B9%A6%E7%B1%8D%E6%8E%A8%E8%8D%90/">无人机：航拍书籍推荐</a></p><p class="categories"><a href="/categories/%E6%97%A0%E4%BA%BA%E6%9C%BA/">无人机</a></p></div></article></div></div><div class="card widget"><div class="card-content"><div class="menu"><h3 class="menu-label">分类</h3><ul class="menu-list"><li><a class="level is-mobile is-marginless" href="/categories/AIGC/"><span class="level-start"><span class="level-item">AIGC</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/AdaFace/"><span class="level-start"><span class="level-item">AdaFace</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/Ajax/"><span class="level-start"><span class="level-item">Ajax</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/Ansible/"><span class="level-start"><span class="level-item">Ansible</span></span><span class="level-end"><span class="level-item tag">23</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/AppCube/"><span class="level-start"><span class="level-item">AppCube</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/BPF/"><span class="level-start"><span class="level-item">BPF</span></span><span class="level-end"><span class="level-item tag">4</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/Bind9/"><span class="level-start"><span class="level-item">Bind9</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/CI-CD/"><span class="level-start"><span class="level-item">CI/CD</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/CSS/"><span class="level-start"><span class="level-item">CSS</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/Ceph/"><span class="level-start"><span class="level-item">Ceph</span></span><span class="level-end"><span class="level-item tag">11</span></span></a></li><a class="level is-mobile is-marginless" href="/categories/"><span class="level-start"><span class="level-item">查看全部&gt;&gt;</span></span></a></ul></div></div></div><div class="card widget"><div class="card-content"><div class="menu"><h3 class="menu-label">归档</h3><ul class="menu-list"><li><a class="level is-mobile is-marginless" href="/archives/2024/09/"><span class="level-start"><span class="level-item">九月 2024</span></span><span class="level-end"><span class="level-item tag">2</span></span></a></li><li><a class="level is-mobile is-marginless" href="/archives/2024/08/"><span class="level-start"><span class="level-item">八月 2024</span></span><span class="level-end"><span class="level-item tag">6</span></span></a></li><li><a class="level is-mobile is-marginless" href="/archives/2024/07/"><span class="level-start"><span class="level-item">七月 2024</span></span><span class="level-end"><span class="level-item tag">4</span></span></a></li><li><a class="level is-mobile is-marginless" href="/archives/2024/06/"><span class="level-start"><span class="level-item">六月 2024</span></span><span class="level-end"><span class="level-item tag">11</span></span></a></li><li><a class="level is-mobile is-marginless" href="/archives/2024/05/"><span class="level-start"><span class="level-item">五月 2024</span></span><span class="level-end"><span class="level-item tag">3</span></span></a></li><a class="level is-mobile is-marginless" href="/archives/"><span class="level-start"><span class="level-item">查看全部&gt;&gt;</span></span></a></ul></div></div></div><div class="card widget"><div class="card-content"><div class="menu"><h3 class="menu-label">标签</h3><div class="field is-grouped is-grouped-multiline"><div class="control"><a class="tags has-addons" href="/tags/Kubernetes/"><span class="tag">Kubernetes</span><span class="tag is-grey-lightest">97</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Linux/"><span class="tag">Linux</span><span class="tag is-grey-lightest">48</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Ansible/"><span class="tag">Ansible</span><span class="tag is-grey-lightest">25</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Python/"><span class="tag">Python</span><span class="tag is-grey-lightest">15</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Ceph/"><span class="tag">Ceph</span><span class="tag is-grey-lightest">11</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Docker/"><span class="tag">Docker</span><span class="tag is-grey-lightest">9</span></a></div><div class="control"><a class="tags has-addons" href="/tags/JAVA/"><span class="tag">JAVA</span><span class="tag is-grey-lightest">8</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%E5%8D%8E%E4%B8%BA%E4%BA%91/"><span class="tag">华为云</span><span class="tag is-grey-lightest">8</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Git/"><span class="tag">Git</span><span class="tag is-grey-lightest">7</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Go/"><span class="tag">Go</span><span class="tag is-grey-lightest">6</span></a></div><div class="control"><a class="tags has-addons" href="/tags/OpenShift/"><span class="tag">OpenShift</span><span class="tag is-grey-lightest">6</span></a></div><div class="control"><a class="tags has-addons" href="/tags/BPF/"><span class="tag">BPF</span><span class="tag is-grey-lightest">5</span></a></div><div class="control"><a class="tags has-addons" href="/tags/DNS/"><span class="tag">DNS</span><span class="tag is-grey-lightest">5</span></a></div><div class="control"><a class="tags has-addons" href="/tags/OKD/"><span class="tag">OKD</span><span class="tag is-grey-lightest">5</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%E6%91%84%E5%BD%B1%E6%9B%9D%E5%85%89/"><span class="tag">摄影曝光</span><span class="tag is-grey-lightest">5</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%E7%A8%8B%E5%BA%8F%E4%BA%BA%E7%94%9F/"><span class="tag">程序人生</span><span class="tag is-grey-lightest">5</span></a></div><div class="control"><a class="tags has-addons" href="/tags/selenium/"><span class="tag">selenium</span><span class="tag is-grey-lightest">4</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%E5%AE%B9%E5%99%A8/"><span class="tag">容器</span><span class="tag is-grey-lightest">4</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%E6%91%84%E5%BD%B1%E6%9E%84%E5%9B%BE/"><span class="tag">摄影构图</span><span class="tag is-grey-lightest">4</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%E7%BD%91%E7%BB%9C/"><span class="tag">网络</span><span class="tag is-grey-lightest">4</span></a></div></div><div class="field is-grouped is-grouped-multiline"><a class="tags has-addons" href="/tags/"><span class="tag">查看全部&gt;&gt;</span></a></div></div></div></div><div class="card widget" data-type="subscribe-email"><div class="card-content"><div class="menu"><h3 class="menu-label">订阅更新</h3><form action="https://feedburner.google.com/fb/a/mailverify" method="post" target="popupwindow" onsubmit="window.open(&#039;https://feedburner.google.com/fb/a/mailverify?uri=&#039;,&#039;popupwindow&#039;,&#039;scrollbars=yes,width=550,height=520&#039;);return true"><input type="hidden" value="" name="uri"><input type="hidden" name="loc" value="en_US"><div class="field has-addons"><div class="control has-icons-left is-expanded"><input class="input" name="email" type="email" placeholder="Email"><span class="icon is-small is-left"><i class="fas fa-envelope"></i></span></div><div class="control"><input class="button" type="submit" value="订阅"></div></div></form></div></div></div><!--!--><div class="column-right-shadow is-hidden-widescreen is-sticky"></div></div></div></div></section><footer class="footer"><div class="container"><div class="level"><div class="level-start"><a class="footer-logo is-block mb-2" href="/"><img src="/img/logo.png" alt="山河已无恙" height="28"></a><p class="size-small"><span>&copy; 2024 山河已无恙</span>  Powered by <a href="https://hexo.io/" target="_blank">Hexo</a> &amp; <a href="https://github.com/ppoffice/hexo-theme-icarus" target="_blank">Icarus</a> &amp; <a href="https://github.com/removeif/hexo-theme-amazing" target="_blank">Amazing</a> <br><span>© <a href="http://www.beian.miit.gov.cn/" target="_blank">备案中</a><br></span><span>© 版权说明：[本网站所有内容均收集于互联网或自己创作,<br />&nbsp;&nbsp;&nbsp;&nbsp;方便于网友与自己学习交流，如有侵权，请<a href="/message" target="_blank">留言</a>，立即处理]<br /></span><span><span id="statistic-times">loading...</span><script>function createTime(time) {
+            var n = new Date(time);
+            now.setTime(now.getTime() + 250),
+                days = (now - n) / 1e3 / 60 / 60 / 24,
+                dnum = Math.floor(days),
+                hours = (now - n) / 1e3 / 60 / 60 - 24 * dnum,
+                hnum = Math.floor(hours),
+            1 == String(hnum).length && (hnum = "0" + hnum),
+                minutes = (now - n) / 1e3 / 60 - 1440 * dnum - 60 * hnum,
+                mnum = Math.floor(minutes),
+            1 == String(mnum).length && (mnum = "0" + mnum),
+                seconds = (now - n) / 1e3 - 86400 * dnum - 3600 * hnum - 60 * mnum,
+                snum = Math.round(seconds),
+            1 == String(snum).length && (snum = "0" + snum),
+                document.getElementById("statistic-times").innerHTML = "❤️本站自 <strong>"+time.split(" ")[0].replace(/\//g,".")+"</strong> 已运行 <strong>" + dnum + "</strong> 天 <strong>" + hnum + "</strong> 小时 <strong>" + mnum + "</strong> 分 <strong>" + snum + "</strong> 秒！❤️";
+        }var now = new Date();setInterval("createTime('2021/6/26 21:27:00')", 250,"");</script><br></span><div class="size-small"><span>❤️感谢 <strong><span id="busuanzi_value_site_uv">99+</span></strong> 小伙伴的 <strong><span id="busuanzi_value_site_pv">99+</span></strong> 次光临！❤️</span></div></p></div><div class="level-end"><div class="field has-addons"><p class="control"><a class="button is-transparent is-large" target="_blank" rel="noopener" title="Creative Commons" href="https://creativecommons.org/"><i class="fab fa-creative-commons"></i></a></p><p class="control"><a class="button is-transparent is-large" target="_blank" rel="noopener" title="Attribution 4.0 International" href="https://creativecommons.org/licenses/by/4.0/"><i class="fab fa-creative-commons-by"></i></a></p><p class="control"><a class="button is-transparent is-large" target="_blank" rel="noopener" title="Download on GitHub" href="https://github.com/removeif/hexo-theme-amazing"><i class="fab fa-github"></i></a></p></div><div class="sideMusic"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/aplayer/dist/APlayer.min.css"><script src="/js/APlayer.min.js"></script><script src="https://cdn.jsdelivr.net/npm/meting@2/dist/Meting.min.js"></script><meting-js style="width: auto;height: 2000px;" server="netease" type="playlist" id="2364053447" theme="#2980b9" loop="all" autoplay="false" order="list" storageName="aplayer-setting" lrctype="0" list-max-height="400px" fixed="true"></meting-js></div></div></div></div></footer><script src="https://cdnjs.loli.net/ajax/libs/moment.js/2.22.2/moment-with-locales.min.js"></script><script src="https://cdnjs.loli.net/ajax/libs/clipboard.js/2.0.4/clipboard.min.js" async></script><script>moment.locale("zh-CN");</script><script>var IcarusThemeSettings = {
+            article: {
+                highlight: {
+                    clipboard: true,
+                    fold: 'unfolded'
+                }
+            }
+        };</script><script src="/js/column.js"></script><!--!--><script src="/js/animation.js"></script><a id="back-to-top" title="回到顶端" href="javascript:;"><i class="fas fa-chevron-up"></i></a><script src="/js/back_to_top.js" defer></script><!--!--><script src="https://cdnjs.loli.net/ajax/libs/lightgallery/1.6.8/js/lightgallery.min.js" defer></script><script src="https://cdnjs.loli.net/ajax/libs/justifiedGallery/3.7.0/js/jquery.justifiedGallery.min.js" defer></script><script>window.addEventListener("load", () => {
+            if (typeof $.fn.lightGallery === 'function') {
+                $('.article').lightGallery({ selector: '.gallery-item' });
+            }
+            if (typeof $.fn.justifiedGallery === 'function') {
+                if ($('.justified-gallery > p > .gallery-item').length) {
+                    $('.justified-gallery > p > .gallery-item').unwrap();
+                }
+                $('.justified-gallery').justifiedGallery();
+            }
+        });</script><!--!--><!--!--><link rel="stylesheet" href="https://cdnjs.loli.net/ajax/libs/KaTeX/0.11.1/katex.min.css"><script src="https://cdnjs.loli.net/ajax/libs/KaTeX/0.11.1/katex.min.js" defer></script><script src="https://cdnjs.loli.net/ajax/libs/KaTeX/0.11.1/contrib/auto-render.min.js" defer></script><script src="https://cdnjs.loli.net/ajax/libs/KaTeX/0.11.1/contrib/mhchem.js" defer></script><script>window.addEventListener("load", function() {
+            document.querySelectorAll('[role="article"] > .content').forEach(function(element) {
+                renderMathInElement(element);
+            });
+        });</script><script type="text/x-mathjax-config">MathJax.Hub.Config({
+            'HTML-CSS': {
+                matchFontHeight: false
+            },
+            SVG: {
+                matchFontHeight: false
+            },
+            CommonHTML: {
+                matchFontHeight: false
+            },
+            tex2jax: {
+                inlineMath: [
+                    ['$','$'],
+                    ['\\(','\\)']
+                ]
+            }
+        });</script><script src="https://cdnjs.loli.net/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-MML-AM_CHTML" defer></script><div id="outdated"><h6>Your browser is out-of-date!</h6><p>Update your browser to view this website correctly.&amp;npsb;<a id="btnUpdateBrowser" target="_blank" rel="noopener" href="http://outdatedbrowser.com/">Update my browser now </a></p><p class="last"><a href="#" id="btnCloseUpdateBrowser" title="Close">×</a></p></div><script src="https://cdnjs.loli.net/ajax/libs/outdated-browser/1.1.5/outdatedbrowser.min.js" defer></script><script>window.addEventListener("load", function () {
+            outdatedBrowser({
+                bgColor: '#f25648',
+                color: '#ffffff',
+                lowerThan: 'object-fit' // display on IE11 or below
+            });
+        });</script><!--!--><script src="/js/main.js" defer></script><script>$.getScript('/js/comment-issue-data.js',function(){loadIssueData('9fdc9739266d48d5f62e','c1cc33697d099a2197650ec9dadcb16bd4904655','LIRUILONGS','blog_comment',false);})</script><div class="searchbox"><div class="searchbox-container"><div class="searchbox-header"><div class="searchbox-input-container"><input class="searchbox-input" type="text" placeholder="想要查找什么..."></div><a class="searchbox-close" href="javascript:;">×</a></div><div class="searchbox-body"></div></div></div><script src="/js/insight.js" defer></script><script>document.addEventListener('DOMContentLoaded', function () {
+            loadInsight({"contentUrl":"/content.json"}, {"hint":"想要查找什么...","untitled":"(无标题)","posts":"文章","pages":"页面","categories":"分类","tags":"标签"});
+        });</script><script src="https://cdn.jsdelivr.net/npm/pjax@0.2.8/pjax.js"></script><script type="text/javascript">var pjax = new Pjax({
+            elements: "a",//代表点击链接就更新
+            selectors: [  //代表要更新的节点
+                ".section",
+                "title"
+            ],
+            cache: true,
+            cacheBust:false
+        })
+
+        function loadBusuanzi(){
+        $.getScript("//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js", function () {});
+        }
+
+        function loadMathJax() { //加载mathjax
+            $.getScript("//cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.4/MathJax.js?config=TeX-MML-AM_CHTML", function () {
+                MathJax.Hub.Config({ tex2jax: { inlineMath: [['$', '$'], ['\(', '\)']] } });
+                var math = document.getElementsByClassName("entry-content")[0];
+                MathJax.Hub.Queue(["Typeset", MathJax.Hub, math]);
+            });
+        };
+
+        // 开始 PJAX 执行的函数
+        document.addEventListener('pjax:send', function () {
+        });
+        
+        // PJAX 完成之后执行的函数，可以和上面的重载放在一起
+        document.addEventListener('pjax:complete', function () {
+            $(".section").css({opacity:1});
+            if(true){
+                $.getScript('/js/comment-issue-data.js',function(){loadIssueData('9fdc9739266d48d5f62e','c1cc33697d099a2197650ec9dadcb16bd4904655','LIRUILONGS','blog_comment',false);});
+            }
+            if(false){
+                loadMathJax();
+            }
+            loadMainJs(jQuery, window.moment, window.ClipboardJS, window.IcarusThemeSettings);
+            loadBackTop();
+            loadBusuanzi();
+            if(typeof loadBanner == 'function'){
+                loadBanner();
+            }
+        });</script></body></html>
