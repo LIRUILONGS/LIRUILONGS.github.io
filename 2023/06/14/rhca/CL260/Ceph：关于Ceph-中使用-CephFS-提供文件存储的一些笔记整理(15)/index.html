@@ -1,0 +1,580 @@
+<!doctype html>
+<html lang="zh"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"><meta><title>Ceph:关于Ceph 中使用 CephFS 提供文件存储 - 山河已无恙</title><link rel="manifest" href="/manifest.json"><meta name="application-name" content="山河已无恙"><meta name="msapplication-TileImage" content="https://cdn.jsdelivr.net/gh/removeif/removeif-demo@latest/img/favicon.png"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="山河已无恙"><meta name="apple-mobile-web-app-status-bar-style" content="default"><meta description="对每个人而言，真正的职责只有一个：找到自我。然后在心中坚守其一生，全心全意，永不停息。所有其它的路都是不完整的，是人的逃避方式，是对大众理想的懦弱回归，是随波逐流，是对内心的恐惧 ——赫尔曼·黑塞《德米安》"><meta property="og:type" content="blog"><meta property="og:title" content="山河已无恙"><meta property="og:url" content="https://mp.weixin.qq.com/s?__biz=MzkyNjIxNTYwMw==&amp;mid=2247496480&amp;idx=1&amp;sn=a9971fed3962ef2a1aeda1f0bda65f86&amp;chksm=c2380ffcf54f86eaba8daac6caca72a70f38e61a8d25dc2a66d3a17b87c02530e326dcaea14b#rd"><meta property="og:site_name" content="山河已无恙"><meta property="og:description" content="对每个人而言，真正的职责只有一个：找到自我。然后在心中坚守其一生，全心全意，永不停息。所有其它的路都是不完整的，是人的逃避方式，是对大众理想的懦弱回归，是随波逐流，是对内心的恐惧 ——赫尔曼·黑塞《德米安》"><meta property="og:locale" content="zh_CN"><meta property="og:image" content="https://mp.weixin.qq.com/img/头像.jpg"><meta property="article:published_time" content="2023-06-14T06:46:28.000Z"><meta property="article:modified_time" content="2025-02-04T02:43:58.560Z"><meta property="article:author" content="LIRUILONGS"><meta property="article:tag" content="Ceph"><meta property="twitter:card" content="summary"><meta property="twitter:image" content="/img/头像.jpg"><script type="application/ld+json">{"@context":"https://schema.org","@type":"BlogPosting","mainEntityOfPage":{"@type":"WebPage","@id":"https://liruilongs.github.io/2023/06/14/rhca/CL260/Ceph%EF%BC%9A%E5%85%B3%E4%BA%8ECeph-%E4%B8%AD%E4%BD%BF%E7%94%A8-CephFS-%E6%8F%90%E4%BE%9B%E6%96%87%E4%BB%B6%E5%AD%98%E5%82%A8%E7%9A%84%E4%B8%80%E4%BA%9B%E7%AC%94%E8%AE%B0%E6%95%B4%E7%90%86(15)/"},"headline":"山河已无恙","image":["https://liruilongs.github.io/img/og_image.png"],"datePublished":"2023-06-14T06:46:28.000Z","dateModified":"2025-02-04T02:43:58.560Z","author":{"@type":"Person","name":"山河已无恙"},"description":"对每个人而言，真正的职责只有一个：找到自我。然后在心中坚守其一生，全心全意，永不停息。所有其它的路都是不完整的，是人的逃避方式，是对大众理想的懦弱回归，是随波逐流，是对内心的恐惧 ——赫尔曼·黑塞《德米安》"}</script><link rel="canonical" href="https://liruilongs.github.io/2023/06/14/rhca/CL260/Ceph%EF%BC%9A%E5%85%B3%E4%BA%8ECeph-%E4%B8%AD%E4%BD%BF%E7%94%A8-CephFS-%E6%8F%90%E4%BE%9B%E6%96%87%E4%BB%B6%E5%AD%98%E5%82%A8%E7%9A%84%E4%B8%80%E4%BA%9B%E7%AC%94%E8%AE%B0%E6%95%B4%E7%90%86(15)/"><link rel="alternate" href="/path/to/atom.xml" title="山河已无恙" type="application/atom+xml"><link rel="icon" href="https://cdn.jsdelivr.net/gh/removeif/removeif-demo@latest/img/favicon.png"><meta name="referrer" content="no-referrer-when-downgrade"><link rel="stylesheet" href="https://cdnjs.loli.net/ajax/libs/font-awesome/5.12.0/css/all.min.css"><link rel="stylesheet" href="https://cdnjs.loli.net/ajax/libs/highlight.js/9.12.0/styles/dracula.min.css"><link rel="stylesheet" href="https://fonts.loli.net/css2?family=Ubuntu:wght@400;600&amp;family=Source+Code+Pro"><link rel="stylesheet" href="/css/default.css"><link rel="stylesheet" href="https://cdnjs.loli.net/ajax/libs/font-awesome/5.12.0/css/all.min.css"><link rel="stylesheet" href="https://fonts.loli.net/css?family=Ubuntu:400,600|Source+Code+Pro|Monda:300,300italic,400,400italic,700,700italic|Roboto Slab:300,300italic,400,400italic,700,700italic|Microsoft YaHei:300,300italic,400,400italic,700,700italic|PT Mono:300,300italic,400,400italic,700,700italic&amp;amp;subset=latin,latin-ext|Inconsolata|Itim|Lobster.css"><script src="https://cdnjs.loli.net/ajax/libs/jquery/3.3.1/jquery.min.js"></script><script src="/js/globalUtils.js"></script><script src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js" defer></script><style>body>.footer,body>.navbar,body>.section{opacity:0}</style><!--!--><script>var _hmt = _hmt || [];
+        (function() {
+            var hm = document.createElement("script");
+            hm.src = "//hm.baidu.com/hm.js?3f06f2b732a5b1034c989f74e28d0eea";
+            var s = document.getElementsByTagName("script")[0];
+            s.parentNode.insertBefore(hm, s);
+        })();</script><link rel="stylesheet" href="https://cdnjs.loli.net/ajax/libs/lightgallery/1.6.8/css/lightgallery.min.css"><link rel="stylesheet" href="https://cdnjs.loli.net/ajax/libs/justifiedGallery/3.7.0/css/justifiedGallery.min.css"><!--!--><!--!--><!--!--><!--!--><link rel="stylesheet" href="https://cdnjs.loli.net/ajax/libs/outdated-browser/1.1.5/outdatedbrowser.min.css"><script src="https://cdnjs.loli.net/ajax/libs/pace/1.0.2/pace.min.js"></script><link rel="stylesheet" href="/live2d/waifu.css"><script type="text/javascript" async src="/live2d/autoload.js"></script><meta name="generator" content="Hexo 5.4.2"></head><body class="is-3-column has-navbar-fixed-top"><nav class="navbar navbar-main is-fixed-top"><div class="container"><div class="navbar-brand justify-content-center"><a class="navbar-item navbar-logo" href="/"><img src="/img/logo.png" alt="山河已无恙" height="28"></a></div><div class="navbar-menu"><div class="navbar-start"><a class="navbar-item" href="/">首页</a><a class="navbar-item" href="/archives">归档</a><a class="navbar-item" href="/categories">分类</a><a class="navbar-item" href="/tags">标签</a><a class="navbar-item" href="/media">影音</a><a class="navbar-item" href="/album">相册</a><a class="navbar-item" href="/friend">友链</a><a class="navbar-item" href="/self-talking">生活小记</a><a class="navbar-item" href="/message">留言墙</a><a class="navbar-item" href="/about">关于</a></div><div class="navbar-end"><a class="navbar-item" target="_blank" rel="noopener" title="Gitee" href="https://gitee.com/liruilonger"><i class="fab fa-git-square fa-1x"></i></a><a class="navbar-item" target="_blank" rel="noopener" title="GitHub" href="https://github.com/LIRUILONGS"><i class="fab fa-github fa-1x"></i></a><a class="navbar-item is-hidden-tablet catalogue" title="目录" href="javascript:;"><i class="fas fa-list-ul fa-1x"></i></a><a class="navbar-item search" title="搜索" href="javascript:;"><i class="fas fa-search fa-1x"></i></a><a class="navbar-item" id="night-nav" title="Night Mode" href="javascript:;"><i class="fas fa-moon fa-1x" id="night-icon"></i></a></div></div></div></nav><script type="text/javascript" src="/js/theme-setting.js"></script><section class="section"><div class="container"><div class="columns"><div class="column order-2 column-main is-8-tablet is-8-desktop is-9-widescreen"><!--!--><div class="card"><article class="card-content article" role="article"><div class="article-meta size-small is-uppercase level is-mobile"><div class="level-left"><i class="far fa-calendar-plus"> </i>2023-06-14  <a class="commentCountImg" href="/2023/06/14/rhca/CL260/Ceph%EF%BC%9A%E5%85%B3%E4%BA%8ECeph-%E4%B8%AD%E4%BD%BF%E7%94%A8-CephFS-%E6%8F%90%E4%BE%9B%E6%96%87%E4%BB%B6%E5%AD%98%E5%82%A8%E7%9A%84%E4%B8%80%E4%BA%9B%E7%AC%94%E8%AE%B0%E6%95%B4%E7%90%86(15)/#comment-container"><span class="display-none-class">5da9e5335015c917cc6621a499e848e7</span><i class="far fa-comment-dots"></i> <span class="commentCount" id="5da9e5335015c917cc6621a499e848e7">99+</span>  </a><span class="level-item"><i class="far fa-clock"> </i>1 小时  <i class="fas fa-pencil-alt"> </i>7.6 k</span><span class="level-item" id="busuanzi_container_page_pv"><span id="busuanzi_value_page_pv">0</span>次访问</span></div></div><h1 class="title is-3 is-size-4-mobile">Ceph:关于Ceph 中使用 CephFS 提供文件存储</h1><div class="content"><p><strong><font color="009688"> 对每个人而言，真正的职责只有一个：找到自我。然后在心中坚守其一生，全心全意，永不停息。所有其它的路都是不完整的，是人的逃避方式，是对大众理想的懦弱回归，是随波逐流，是对内心的恐惧 ——赫尔曼·黑塞《德米安》</strong></font></p>
+<span id="more"></span>
+<h2 id="写在前面"><a href="#写在前面" class="headerlink" title="写在前面"></a>写在前面</h2><hr>
+<p>+ </p>
+<ul>
+<li>理解不足小伙伴帮忙指正</li>
+</ul>
+<p><strong><font color="009688"> 对每个人而言，真正的职责只有一个：找到自我。然后在心中坚守其一生，全心全意，永不停息。所有其它的路都是不完整的，是人的逃避方式，是对大众理想的懦弱回归，是随波逐流，是对内心的恐惧 ——赫尔曼·黑塞《德米安》</strong></font></p>
+<hr>
+<h1 id="使用-CephFS-提供文件存储"><a href="#使用-CephFS-提供文件存储" class="headerlink" title="使用 CephFS 提供文件存储"></a>使用 CephFS 提供文件存储</h1><h2 id="部署共享文件存储"><a href="#部署共享文件存储" class="headerlink" title="部署共享文件存储"></a>部署共享文件存储</h2><h3 id="Ceph文件系统和MDS"><a href="#Ceph文件系统和MDS" class="headerlink" title="Ceph文件系统和MDS"></a>Ceph文件系统和MDS</h3><p><code>Ceph文件系统(cepphfs)</code>是一个<code>posix</code>兼容的文件系统，构建在RADOS (Ceph的分布式对象存储)之上。</p>
+<p>基于文件的存储像传统的文件系统一样组织数据，具有目录树层次结构。Ceph文件系统的实现需要一个运行的<code>Ceph存储集群</code>和至少一个<code>MDS (Ceph Metadata Server)</code>来管理<code>Ceph文件系统的元数据</code>，与文件数据分开管理，降低了复杂性，提高了可靠性。</p>
+<p>与<code>RBD和RGW</code>类似，CephFS守护进程是作为<code>librados</code>的本地接口实现的</p>
+<h4 id="文件、块和对象存储"><a href="#文件、块和对象存储" class="headerlink" title="文件、块和对象存储"></a>文件、块和对象存储</h4><p><code>基于文件的存储</code>像传统的文件系统一样组织数据。数据保存为具有<code>名称和相关元数据(如修改时间戳、所有者和访问权限)的文件</code>。基于文件的存储使用<code>目录树层次结构</code>来组织文件的存储方式</p>
+<p><code>基于块的存储</code>提供了一个<code>存储卷</code>，它的操作类似于磁盘设备，组织成大小相同的块。通常，基于块的存储卷要么用<code>文件系统格式化</code>，要么由<code>数据库等应用程序直接访问和写入</code></p>
+<p>使用<code>基于对象的存储</code>，可以将任意数据和元数据作为一个单元存储在平面存储池中，该单元使用惟一标识符进行标记。与以块或文件系统层次结构访问数据不同，您使用API存储和检索对象。基本上，Red Hat Ceph Storage RADOS集群是一个对象存储</p>
+<h5 id="元数据服务器"><a href="#元数据服务器" class="headerlink" title="元数据服务器"></a>元数据服务器</h5><p>元数据服务器(MDS)为CephFS客户端管理元数据。这个守护进程提供cepphfs客户端访问RADOS对象所需的信息，例如提供文件系统树中的文件位置。MDS用于在RADOS集群中管理目录层次结构，存储文件元数据，如所有者、时间戳、权限模式等。MDS还负责访问缓存和管理客户端缓存，以保持缓存一致性。</p>
+<p>MDS进程有主备两种运行模式。一个主MDS管理cepphfs文件系统的元数据。备MDS作为备份，当主MDS无响应时切换为主MDS。CephFS共享文件系统需要主MDS服务。应该在集群中至少部署一个备MDS，以确保高可用性</p>
+<p>如果没有创建足够的MDS池来匹配配置的备用守护进程的数量，那么Ceph集群将显示WARN健康状态。推荐的解决方案是创建更多的MDS池，为每个守护进程提供一个池。但是，一个临时的解决方案是将备用池的数量设置为0，通过Ceph fs set fs-name standby_count_wanted 0命令禁用Ceph MDS备用检查</p>
+<p>CephFS客户端首先联系一个MON来验证和检索集群映射。然后客户端向一个主MDS查询文件元数据。客户端使用元数据通过直接与osd通信来访问组成请求文件或目录的对象。</p>
+<p>MDS的特性和配置项说明如下:</p>
+<p><strong>MDS Ranks</strong></p>
+<p>MDS级别定义如何在MDS守护进程上分布元数据工作负载。rank的数量由max_mds配置设置定义，它是一次可以活动的mds守护进程的最大数量。MDS守护进程启动时没有级别，MON守护进程负责为它们分配级别</p>
+<p><strong>Subvolume和Subvolume group</strong></p>
+<p>CephFS子卷是独立的CephFS文件系统目录树的抽象。在创建子卷时，可以指定更细粒度的权限管理，如UID、GID、文件模式、大小和子卷组。子卷组是跨一组子卷的目录级别的抽象</p>
+<p>可以创建子卷的快照，但Red Hat Ceph $torage 5不支持创建子卷组的快照。可以列出和删除子卷组的现有快照</p>
+<p><strong>文件系统的亲和力</strong></p>
+<p>将CephFS文件系统配置为使用一个MDS而不是另一个MDS。例如，可以配置为更喜欢运行在更快的服务器上的MDS，而不是运行在旧服务器上的另一个MDS。这个文件系统亲和性是通过mds_join_fs选项配置的</p>
+<p><strong>MDS缓存大小限制</strong></p>
+<p>通过MDS_cache_ memory_limit选项来限制可以使用的最大内存，或者通过mds_cache_size选项定义最大索引节点数来限制MDS缓存的大小</p>
+<p><strong>配额</strong></p>
+<p>配置cepphfs文件系统，通过使用配额来限制存储的字节或文件的数量。FUSE和内核客户机都支持在挂载cepphfs文件系统时检查配额。当用户达到配额限制时，这些客户端还负责停止向CephFS文件系统写入数据。使用setfatr命令的ceph.quota.max_bytes和ceph.quota.max_files选项设置限制。</p>
+<h5 id="新的CephFS能力"><a href="#新的CephFS能力" class="headerlink" title="新的CephFS能力"></a>新的CephFS能力</h5><p>Red Hat Ceph Storage 5消除了早期版本的限制。</p>
+<p>Red Hat Ceph Storage 5支持集群内多个主MDS，提升元数据性能。为了保持高可用性，您可以配置额外的备MDS，当主MDS出现故障时，可以接管其工作。Red Hat Ceph Storage 5支持在集群中创建多个cepphfs文件系统。部署多个cepphfs文件系统需要运行更多的MDS守护进程。</p>
+<h4 id="10-1-2-部署CephFS"><a href="#10-1-2-部署CephFS" class="headerlink" title="10.1.2 部署CephFS"></a>10.1.2 部署CephFS</h4><p>要实现cepphfs文件系统，需要创建所需的池、创建cepphfs文件系统、部署MDS守护进程，然后挂载文件系统。可以手动创建池，创建ceph fs文件系统，并部署MDS守护进程，或者使用ceph fs卷创建命令，它自动执行所有这些步骤。第一个选项为系统管理员提供了对进程的更多控制，但是比更简单的ceph fs卷创建命令有更多的步骤</p>
+<h5 id="使用Volume方法创建CephFS"><a href="#使用Volume方法创建CephFS" class="headerlink" title="使用Volume方法创建CephFS"></a>使用Volume方法创建CephFS</h5><p>使用ceph fs卷直接创建ceph fs卷。该命令创建与CephFS相关联的池，创建CephFS卷，并在主机上启动MDS服务</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">[ceph: root@server /]<span class="comment"># ceph fs volume create fs-name \</span></span><br><span class="line">	--placement=<span class="string">&quot;number-of-hosts list-of-hosts&quot;</span></span><br></pre></td></tr></table></figure>
+
+<h5 id="创建带有放置规范的CephFS"><a href="#创建带有放置规范的CephFS" class="headerlink" title="创建带有放置规范的CephFS"></a>创建带有放置规范的CephFS</h5><p>要对部署过程进行更多控制，请手动创建与CephFS关联的池，在主机上启动MDS服务，并创建CephFS文件系统</p>
+<h5 id="创建数据池和元数据池"><a href="#创建数据池和元数据池" class="headerlink" title="创建数据池和元数据池"></a>创建数据池和元数据池</h5><p>一个cepphfs文件系统至少需要两个池，一个存储cepphfs数据，另一个存储cepphfs元数据。这两个池的默认名称是cephfs_data和cephfs_metadata。要创建cepphfs文件系统，首先创建两个池</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">[ceph: root@server /]<span class="comment"># ceph osd pool create cephfs_data </span></span><br><span class="line">[ceph: root@server /]<span class="comment"># ceph osd pool create cephfs_metadata </span></span><br></pre></td></tr></table></figure>
+
+<p>这个例子创建了两个带有标准参数的池。由于元数据池存储文件位置信息，因此请考虑为该池设置更高的复制级别，以避免导致数据不可访问的数据错误。</p>
+<p>默认情况下，Ceph使用复制的数据池。但是，cepphfs文件系统现在也支持erasure-coded的数据池。使用ceph osd pool命令创建一个erasure-coded池</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[ceph: root@server /]<span class="comment"># ceph osd pool create pool-name erasure</span></span><br></pre></td></tr></table></figure>
+
+<h5 id="创建CephFS和部署MDS服务"><a href="#创建CephFS和部署MDS服务" class="headerlink" title="创建CephFS和部署MDS服务"></a>创建CephFS和部署MDS服务</h5><p>当有可用的数据池和元数据池时，使用ceph fs new命令创建文件系统，如下所示</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[ceph: root@server /]<span class="comment"># ceph fs new fs-name metadata-pool data-pool</span></span><br></pre></td></tr></table></figure>
+
+<p>要在ceph fs文件系统中添加一个现有的erasure pool作为数据池，请使用ceph fs add_data_pool</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[ceph: root@server /]<span class="comment"># ceph fs add_data_pool fs-name data-pool</span></span><br></pre></td></tr></table></figure>
+
+<p>然后可以部署MDS服务</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">[ceph: root@server /]<span class="comment"># ceph orch apply mds fs-name \</span></span><br><span class="line">	--placement=<span class="string">&quot;number-of-hosts list-of-hosts&quot;</span></span><br></pre></td></tr></table></figure>
+
+<h5 id="使用服务规范创建CephFS"><a href="#使用服务规范创建CephFS" class="headerlink" title="使用服务规范创建CephFS"></a>使用服务规范创建CephFS</h5><p>使用Ceph Orchestrator来使用服务规范部署MDS服务。首先，手动创建两个所需的池。然后，创建一个包含服务细节的YAML文件:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">service_type:</span> <span class="string">mds</span> </span><br><span class="line"><span class="attr">service_id:</span> <span class="string">fs-name</span> </span><br><span class="line"><span class="attr">placements:</span> </span><br><span class="line">  <span class="attr">hosts:</span> </span><br><span class="line">    <span class="bullet">-</span> <span class="string">host-name-1</span> </span><br><span class="line">    <span class="bullet">-</span> <span class="string">host-name-2</span></span><br><span class="line">    <span class="bullet">-</span> <span class="string">...</span></span><br></pre></td></tr></table></figure>
+
+<p>使用YAML服务规范和ceph orch apply命令部署MDS服务</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[ceph: root@server /]<span class="comment"># ceph orch apply -i file-name.yml </span></span><br></pre></td></tr></table></figure>
+
+<p>最后，使用ceph fs new命令创建ceph fs文件系统</p>
+<h4 id="10-1-3-使用CephFS挂载文件系统"><a href="#10-1-3-使用CephFS挂载文件系统" class="headerlink" title="10.1.3 使用CephFS挂载文件系统"></a>10.1.3 使用CephFS挂载文件系统</h4><p>可以使用任一可用的客户机挂载CephFS文件系统:</p>
+<ol>
+<li><p>核心客户端</p>
+</li>
+<li><p>FUSE客户机</p>
+</li>
+</ol>
+<p>内核客户端需要Linux内核版本4或更高版本，从RHEL 8开始就可以使用，对于以前的内核版本，应该使用FUSE客户机</p>
+<p>这两个客户端各有优缺点。并不是两个客户机都支持所有特性。<br>例如，内核客户机不支持配额，但是可以更快。<br>FUSE客户端支持配额和ACLs。必须允许acl与FUSE客户机挂载的CephFS文件系统一起使用它们</p>
+<h5 id="通用CephFS客户端配置"><a href="#通用CephFS客户端配置" class="headerlink" title="通用CephFS客户端配置"></a>通用CephFS客户端配置</h5><p>要在任意客户机上挂载基于cephfs的文件系统，请在客户机主机上验证以下先决条件：</p>
+<ol>
+<li><p>在客户端主机安装&#x3D;&#x3D;ceph-common&#x3D;&#x3D;包，对于FUSE客户端，还需要安装&#x3D;&#x3D;ceph-fuse&#x3D;&#x3D;包</p>
+</li>
+<li><p>检查Ceph配置文件是否存在(&#x2F;etc&#x2F;ceph&#x2F;ceph.cfg)</p>
+</li>
+<li><p>授权客户端访问cepphfs文件系统</p>
+</li>
+<li><p>使用<a href="">ceph auth get</a>命令提取新的授权密钥，并将其复制到客户端主机上的&#x2F;etc&#x2F;ceph文件夹</p>
+</li>
+<li><p>当使用FUSE客户端为非root用户时，需要在&#x2F;etc&#x2F;fuse.conf中添加user_allow_other</p>
+</li>
+</ol>
+<h5 id="使用FUSE客户端挂载cephfs"><a href="#使用FUSE客户端挂载cephfs" class="headerlink" title="使用FUSE客户端挂载cephfs"></a>使用FUSE客户端挂载cephfs</h5><p>在满足前提条件的情况下，使用FUSE客户端挂载和卸载cephfs文件系统:</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[root@node -]<span class="comment"># ceph-fuse [mount-point] [options] </span></span><br></pre></td></tr></table></figure>
+
+<p>要为特定用户提供密匙环，可以使用–id选项</p>
+<p>需要授权客户端访问ceph fs文件系统，使用ceph fs authorize命令</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[ceph: root@server /]<span class="comment"># ceph fs authorize fs-name client-name path permissions </span></span><br></pre></td></tr></table></figure>
+
+<p>使用ceph fs authorize命令，可以为cepphfs文件系统中的不同用户和文件夹提供细粒度的访问控制。可以为cepphfs文件系统中的文件夹设置不同的选项:</p>
+<p><strong>r:</strong> 指定文件夹的读访问权限。如果没有指定其他限制，则还将对子文件夹授予读访问权限</p>
+<p><strong>w:</strong> 指定文件夹的写访问权限。如果没有指定其他限制，则对子文件夹也授予写访问权限</p>
+<p><strong>p:</strong> 除了r和w功能之外，客户端还需要p选项来使用布局或配额</p>
+<p><strong>s:</strong> 除了r和w功能外，客户端还需要s选项来创建快照</p>
+<p>此示例允许一个用户读取根文件夹，并提供对&#x2F;directory文件夹的读、写和快照权限</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">[ceph: root@server /]<span class="comment"># ceph fs authorize mycephfs \</span></span><br><span class="line">	client.user \</span><br><span class="line">		/ r \</span><br><span class="line">		/directory rws</span><br></pre></td></tr></table></figure>
+
+<p>默认情况下，CephFS FUSE客户端挂载所访问文件系统的根目录(&#x2F;)。可以使用ceph-fuse - r directory命令挂载特定的目录</p>
+<p>在挂载指定目录时，如果该目录在CephFS卷中不存在，则该操作将失败</p>
+<p>当配置多个CephFS文件系统时，CephFS FUSE客户端将挂载缺省的CephFS文件系统。要使用不同的文件系统，请使用- -client_fs选项</p>
+<p>要使用FUSE客户机准确地挂载CephFS文件系统，可以在&#x2F;etc&#x2F;fstab文件中添加以下条目</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">host-name:_port_mount-point fuse.ceph ceph.id=myuser,ceph.client_mountpoint=mountpoint,_netdev 0 0</span><br></pre></td></tr></table></figure>
+
+<p>使用umount命令卸载文件系统</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[root@node -]<span class="comment"># umount mount-point</span></span><br></pre></td></tr></table></figure>
+
+<h5 id="用内核客户端安装CephFS"><a href="#用内核客户端安装CephFS" class="headerlink" title="用内核客户端安装CephFS"></a>用内核客户端安装CephFS</h5><p>在使用CephFS内核客户机时，使用以下命令挂载文件系统</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[root@node -)<span class="comment"># mount -t ceph [device]:[path] [mount-point] -o [key-value] [other-options] </span></span><br></pre></td></tr></table></figure>
+
+<p>需要使用ceph fs authorize命令授权客户端访问ceph fs文件系统。使用ceph auth get命令提取客户端密钥，然后将密钥复制到客户端主机的&#x2F;etc&#x2F;ceph文件夹</p>
+<p>使用CephFS内核客户机，可以从CephFS文件系统挂载特定的子目录</p>
+<p>这个示例从CephFS文件系统的根目录挂载一个名为&#x2F;dir&#x2F;dir2的目录</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[root@node ~]<span class="comment"># mount -t ceph mon1:/dir1/dir2 mount-point</span></span><br></pre></td></tr></table></figure>
+
+<p>可以指定一个由多个以逗号分隔的MONs组成的列表来挂载设备。标准端口(6789)是默认的，或者可以在每个MON的名称后面添加一个冒号和一个非标准的端口号。建议的做法是指定多个MON，以防在挂载文件系统时有些MON处于离线状态</p>
+<p>当使用CephFS内核客户端时，其他选项是可用的:</p>
+<p>cepphfs内核客户端挂载选项如下：</p>
+<table>
+<thead>
+<tr>
+<th align="center">选项</th>
+<th>描述</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center">&#x3D;&#x3D;name&#x3D;name&#x3D;&#x3D;</td>
+<td>要使用的Cephx客户机ID。默认为guest</td>
+</tr>
+<tr>
+<td align="center">&#x3D;&#x3D;fs&#x3D;fs-name&#x3D;&#x3D;</td>
+<td>挂载的cepphfs文件系统的名称。如果不提供值，则使用默认文件系统</td>
+</tr>
+<tr>
+<td align="center">secret&#x3D;secret_value</td>
+<td>此客户端密钥的值</td>
+</tr>
+<tr>
+<td align="center">secretfile&#x3D;secret_key_file</td>
+<td>这个客户机的带有秘钥的文件的路径</td>
+</tr>
+<tr>
+<td align="center">rsize&#x3D;bytes</td>
+<td>以字节为单位指定最大读取大小</td>
+</tr>
+<tr>
+<td align="center">wsize&#x3D;bytes</td>
+<td>以字节为单位指定最大写大小。默认为none</td>
+</tr>
+</tbody></table>
+<p>要使用内核客户端持久化挂载CephFS文件系统，可以在&#x2F;etc&#x2F;fstab文件中添加以下条目</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mon1,mon2:/ mount_point ceph name=user1,secretfile=/root/secret,_netdev 0 0</span><br></pre></td></tr></table></figure>
+
+<p>使用umount命令卸载文件系统</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[root@node ~]<span class="comment"># umount mount_point </span></span><br></pre></td></tr></table></figure>
+
+<h5 id="删除CephFS"><a href="#删除CephFS" class="headerlink" title="删除CephFS"></a>删除CephFS</h5><p>如果需要，可以删除CephFS。但是，首先要备份所有数据，因为删除CephFS文件系统会破坏该文件系统上存储的所有数据。</p>
+<p>删除cepphfs的步骤首先是将其标记为down，如下所示</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[ceph: root@server /]<span class="comment"># ceph fs set fs-name down true </span></span><br></pre></td></tr></table></figure>
+
+<p>然后，可以使用下一个命令删除它</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">[ceph: root@server /]<span class="comment"># ceph fs rm fs-name \</span></span><br><span class="line">	--yes-i-really-mean-it</span><br></pre></td></tr></table></figure>
+
+<h5 id="NFS服务器的用户空间实现"><a href="#NFS服务器的用户空间实现" class="headerlink" title="NFS服务器的用户空间实现"></a>NFS服务器的用户空间实现</h5><p>Red Hat Ceph Storage 5通过NFS Ganesha从NFS客户端提供对Ceph存储的访问</p>
+<p>NFS Ganesha是一个用户空间NFS文件服务器，支持多种协议，如NFSv3、NFSv4.0、NFSv4.1和pNFS。NFS Ganesha使用文件系统抽象层(FSAL)架构，来支持和共享来自多个文件系统或较低级别存储的文件，例如Ceph、Samba、Gluster和Linux文件系统，如XFS</p>
+<p>在Red Hat Ceph Storage中，NFS Ganesha使用NFS 4.0或更高协议共享文件。对于cepphfs客户端、OpenStack Manila文件共享服务和其他配置为访问NFS Ganesha服务的Red Hat产品，这个需求是必要的</p>
+<p>以下列出了用户空间NFS服务器的优点:</p>
+<ol>
+<li><p>服务器不实现系统调用</p>
+</li>
+<li><p>更有效地定义和使用缓存</p>
+</li>
+<li><p>服务故障转移和重新启动更快更容易实现</p>
+</li>
+<li><p>可以轻松地对用户空间服务进行集群，以获得高可用性</p>
+</li>
+<li><p>可以使用分布式锁管理(DLM)来支持多个客户机协议</p>
+</li>
+<li><p>服务器问题的调试更简单，因此不需要创建内核转储</p>
+</li>
+<li><p>资源管理和性能监控更加简单</p>
+</li>
+</ol>
+<p>可以通过入口服务在现有的cepphfs文件系统上以active-active配置部署NFS Ganesha。这种active-active配置的主要目标是实现负载平衡，并扩展到许多处理更高负载的实例。因此，如果一个节点发生故障，那么集群将所有工作负载重定向到其他节点</p>
+<p>系统管理员可以通过CLI部署NFS Ganesha守护进程，或者在启用Cephadm或Rook协调器的情况下自动管理它们</p>
+<p>下面列出了在现有NFS服务之上拥有入口服务的优点:</p>
+<ol>
+<li><p>用于访问NFS服务器的虚拟IP</p>
+</li>
+<li><p>当一个节点故障时，将NFS服务迁移到其他节点，以缩短故障切换时间</p>
+</li>
+<li><p>NFS节点间负载均衡</p>
+</li>
+</ol>
+<p>ingress 实现还没有完全开发完成。它可以部署多个Ganesha实例，并在它们之间平衡负载，但主机之间的故障转移尚未完全实现。这个特性有望在未来的版本中使用</p>
+<p>可以使用多个双活NFS Ganesha服务与Pacemaker的高可用性。Pacemaker组件负责所有与集群相关的活动，比如监控集群成员关系、管理服务和资源以及保护集群成员</p>
+<p>前提条件是，创建一个ceph文件系统，并在ceph MGR节点上安装nfs-ganesha、nfs-ganesha-ceph、nfs-ganesha-rados-grace和nfs-ganesha-rados-urls</p>
+<p>满足先决条件后，启用Ceph MGR NFS模块</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[ceph: root@server /]<span class="comment"># ceph mgr module enable nfs </span></span><br></pre></td></tr></table></figure>
+
+<p>然后，创建NFS Ganesha集群</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[ceph: root@server /]<span class="comment"># ceph nfs cluster create cluster-name &quot;node-list&quot; </span></span><br></pre></td></tr></table></figure>
+
+<p>节点列表是一个以逗号分隔的列表，其中部署了守护进程容器。</p>
+<p>接下来，导出cephfs文件系统</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[ceph: root@server /]<span class="comment"># ceph nfs export create cephfs fs-name cluster-name pseudo-path </span></span><br></pre></td></tr></table></figure>
+
+<p>伪路径参数是伪根路径</p>
+<p>最后，在客户机节点上挂载导出的CephFS文件系统</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[root@node -]<span class="comment"># mount -t nfs -o port=ganesha-port node-name:_pseudo-path_path</span></span><br></pre></td></tr></table></figure>
+
+<h5 id="MDS自动扩容"><a href="#MDS自动扩容" class="headerlink" title="MDS自动扩容"></a>MDS自动扩容</h5><p>CephFS共享文件系统需要至少一个主MDS服务才能正常运行，需要至少一个备MDS服务才能保证高可用性。MDS自动扩展模块可以确保有足够的MDS守护进程可用</p>
+<p>此模块监视级别的数量和备用守护进程的数量，并调整协调器生成的MDS守护进程的数量</p>
+<p>使用实例启用MDS自动扩展模块</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[ceph: root@server /]<span class="comment"># ceph mgr module enable mds_autoscaler</span></span><br></pre></td></tr></table></figure>
+
+<h5 id="在另一个Ceph集群上复制CephFS"><a href="#在另一个Ceph集群上复制CephFS" class="headerlink" title="在另一个Ceph集群上复制CephFS"></a>在另一个Ceph集群上复制CephFS</h5><p>Red Hat Ceph Storage 5支持cepphfs多站点配置，用于两地三中心复制。因此，可以在另一个Red Hat Ceph存储集群上复制cepphfs文件系统。有了这个特性，可以故障转移到辅助CephFS文件系统，并重新启动使用它的应用程序。CephFS文件系统镜像特性需要使用cephfs-mirror</p>
+<p>源集群和目标集群都必须使用Red Hat Ceph Storage版本5或更高版本</p>
+<p>CephFS镜像特性是基于快照的。第一次快照同步需要将数据从源集群批量传输到远程集群。然后，对于下面的同步，镜像守护进程识别本地快照之间修改的文件，并在远程集群中同步这些文件。这种同步方式不需要查询远端集群(根据本地快照计算文件差异)，只需要将更新后的文件传输到远端集群，比其他需要批量向远端集群传输数据的同步方式速度更快。默认禁用CephFS镜像模块。要配置CephFS的快照镜像，必须在源集群和远程集群上启用mirroring模块:</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[ceph: root@server /]<span class="comment"># ceph mgr module enable mirroring </span></span><br></pre></td></tr></table></figure>
+
+<p>然后，可以在源集群上部署CephFS镜像守护进程:</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[ceph: root@<span class="built_in">source</span> /]<span class="comment"># ceph orch apply cephfs-mirror [node-name]</span></span><br></pre></td></tr></table></figure>
+
+<p>前面的命令在节点名称上部署CephFS镜像守护进程，并创建Ceph用户CephFS -mir镜像。对于每个CephFS对等体，必须在目标集群上创建一个用户</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[ceph: root@target /]<span class="comment"># ceph fs authorize fs-name client_ / rwps</span></span><br></pre></td></tr></table></figure>
+
+<p>此时，可以在源集群上启用镜像。指定文件系统必须启用镜像</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[ceph: root@<span class="built_in">source</span> /]<span class="comment"># ceph fs snapshot mirror enable fs-name</span></span><br></pre></td></tr></table></figure>
+
+<p>下一步是准备目标peer。可以使用下一个命令在目标节点中创建对等引导程序</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[ceph: root@target /]<span class="comment"># ceph fs snapshot mirror peer_bootstrap create fs-name peer-name site-name</span></span><br></pre></td></tr></table></figure>
+
+<p>可以使用site-name字符串来标识目标存储集群。当目标peer被创建时，你必须从在目标集群上创建对等体导入引导令牌到源集群</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">[ceph: root@<span class="built_in">source</span> /]<span class="comment"># ceph fs snapshot mirror peer_bootstrap import fs-name bootstrap-token </span></span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>最后，使用如下命令在源集群上配置一个快照镜像目录:</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[ceph: root@<span class="built_in">source</span> /]<span class="comment"># ceph fs snapshot mirror add fs-name path </span></span><br></pre></td></tr></table></figure>
+
+<h3 id="10-2-管理共享文件存储"><a href="#10-2-管理共享文件存储" class="headerlink" title="10.2 管理共享文件存储"></a>10.2 管理共享文件存储</h3><h4 id="10-2-1-CephFS管理"><a href="#10-2-1-CephFS管理" class="headerlink" title="10.2.1 CephFS管理"></a>10.2.1 CephFS管理</h4><p>使用以下命令管理CephFS文件系统</p>
+<table>
+<thead>
+<tr>
+<th align="center">动作</th>
+<th>命令</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center">创建文件系统</td>
+<td><a href="">ceph fs new fs-name meta-pool data-pool</a></td>
+</tr>
+<tr>
+<td align="center">列出现有的文件系统</td>
+<td><a href="">ceph fs ls</a></td>
+</tr>
+<tr>
+<td align="center">删除文件系统</td>
+<td><a href="">ceph fs rm fs-name [ - -yes -i- really-mean -it]</a></td>
+</tr>
+<tr>
+<td align="center">强制MDS进入故障状态</td>
+<td><a href="">ceph mds fail gid&#x2F;name&#x2F;role</a></td>
+</tr>
+<tr>
+<td align="center">声明MDS修复，触发failback</td>
+<td><a href="">ceph mds repaired role</a></td>
+</tr>
+</tbody></table>
+<p>CephFS提供了检查和修复MDS日志(cephfs-journal-tool)或MDS表(cephfs-table-tool)的工具，以及检查和重建元数据(cephfs-data-scan)的工具</p>
+<h4 id="10-2-2-将文件映射到对象"><a href="#10-2-2-将文件映射到对象" class="headerlink" title="10.2.2 将文件映射到对象"></a>10.2.2 将文件映射到对象</h4><p>对于故障排除来说，确定存储文件对象的osd是很有用的。目录或0 长度的文件可能在数据池中有任何关联的对象。</p>
+<p>这个例子为Ceph中的一个文件检索对象映射信息:</p>
+<p>检索文件的inode编号</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">[ceph: root@server /]<span class="comment"># stat -c %i filepath </span></span><br><span class="line">1099511627776</span><br></pre></td></tr></table></figure>
+
+<p>将索引节点数转换为十六进制数。使用printf命令的%x格式化输出</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">[ceph: root@server /]<span class="comment"># printf &#x27;%x\n&#x27; 1099511627776 </span></span><br><span class="line">10000000000 </span><br></pre></td></tr></table></figure>
+
+<p>这个示例结合了前两个步骤</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[ceph: root@server /]<span class="comment"># printf &#x27;%x\n&#x27; $(stat -c %i filepath) </span></span><br></pre></td></tr></table></figure>
+
+<p>在RADOS对象列表中搜索十六进制ID。一个大文件可能返回多个对象</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">[ceph: root@server /]<span class="comment"># rados -p cephfs_data ls | grep 10000000000 </span></span><br><span class="line">10000000000.00000000</span><br></pre></td></tr></table></figure>
+
+<p>检索返回对象的映射信息</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">[ceph: root@server /]<span class="comment"># ceph osd map cephfs_data 10000000000.00000000 </span></span><br><span class="line">osdmap e95 pool <span class="string">&#x27; cephfs_data &#x27;</span> &#123;3) object <span class="string">&#x27; 10000000000.00000000 &#x27;</span> -&gt; pg 3.f0b56f30 </span><br><span class="line">(3.30) -&gt; up ( [1,2], pl) acting ( [1,2], pl)</span><br></pre></td></tr></table></figure>
+
+<p>将这个输出解释为cephfs_data池(ID 3)的OSD映射的e95映射epoch映射了10000000000.00000000对象放置组3.30，在OSD 1和OSD 2上，OSD 1为主。如果处于up和acting状态的osd不相同，那么这意味着集群正在重新平衡或存在其他问题</p>
+<h4 id="10-2-3-控制RADOS文件布局"><a href="#10-2-3-控制RADOS文件布局" class="headerlink" title="10.2.3 控制RADOS文件布局"></a>10.2.3 控制RADOS文件布局</h4><p>RADOS布局控制文件如何映射到对象。这些设置存储在CephFS中的虚拟扩展属性(xattrs)中。可以调整设置来控制使用对象的大小和存储它们的位置</p>
+<p>布局属性最初是在CephFS文件系统顶部的目录中设置的。您可以手动设置其他目录或文件的布局属性。创建文件时，它会从父目录继承布局属性。如果没有在其父目录中设置布局属性，则使用最近的具有布局属性的祖先目录</p>
+<p>文件的布局属性(比如这些例子)使用ceph.file.layout前缀</p>
+<p>文件布局属性</p>
+<table>
+<thead>
+<tr>
+<th align="center">属性</th>
+<th>描述</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center">ceph.file.layout.pool</td>
+<td>Ceph存储文件数据对象的池(通常是cephfs_data)</td>
+</tr>
+<tr>
+<td align="center">ceph.file.layout.stripe_unit</td>
+<td>用于文件RAID 0分布的数据块的大小(以字节为单位)</td>
+</tr>
+<tr>
+<td align="center">ceph.file.layout.stripe_count</td>
+<td>文件数据组成RAID 0“分条”的连续分条单元的个数</td>
+</tr>
+<tr>
+<td align="center">ceph.file.layout.object_size</td>
+<td>文件数据以字节为单位分割成RADOS对象(默认为4194304字节，即4mib)</td>
+</tr>
+<tr>
+<td align="center">ceph.file.layout.pool_namespace</td>
+<td>使用的名称空间(如果有的话)</td>
+</tr>
+</tbody></table>
+<p>ceph.dir.layout前缀标识目录的布局属性</p>
+<p>目录布局属性</p>
+<table>
+<thead>
+<tr>
+<th align="center">属性</th>
+<th>描述</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center">ceph.di.layout.pool</td>
+<td>此属性指定Ceph存储目录数据对象的池(通常为cephfs_data)</td>
+</tr>
+<tr>
+<td align="center">ceph.dir.layout.stripe_unit</td>
+<td>此属性指定一个目录的RAID 0分布数据块的大小(以字节为单位)</td>
+</tr>
+<tr>
+<td align="center">ceph.dir.layout.stripe_count</td>
+<td>该属性指定目录数据组成RAID 0分条的连续分条单元的个数</td>
+</tr>
+<tr>
+<td align="center">ceph.dir.layout.object_size</td>
+<td>目录数据拆分为RADOS对象，默认为4194304字节，即4mib</td>
+</tr>
+<tr>
+<td align="center">ceph.dir.layout.pool_namespace</td>
+<td>这个属性指定使用的名称空间(如果有的话)</td>
+</tr>
+</tbody></table>
+<p>getfattr命令显示文件或目录的布局属性</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">[ceph: root@server /]<span class="comment"># getfattr </span></span><br><span class="line">	-n ceph.file.layout file-path </span><br><span class="line"><span class="comment"># file: file-path ceph.file.layout=&quot;stripe unit=4194304 stripe count=1 object size=4194304 pool=cephfs_ data&quot;</span></span><br><span class="line"></span><br><span class="line">[ceph: root@server /]<span class="comment"># getfattr \</span></span><br><span class="line">	-n ceph.dir.layout directory-path </span><br><span class="line"><span class="comment"># file : directory-path ceph.dir.layout=&quot;stripe unit=4194304 stripe count=1 object_size=4194304 pool=cephfs_data&quot;</span></span><br></pre></td></tr></table></figure>
+
+<p>setfattr命令修改布局属性:</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">[ceph: root@server /]<span class="comment"># setfattr \</span></span><br><span class="line">	-n ceph.file.layout.attribute -v value file </span><br><span class="line">[ceph: root@server /]<span class="comment"># setfattr \</span></span><br><span class="line">	-n ceph.dir.layout.attribute -v value directory </span><br></pre></td></tr></table></figure>
+
+<p>布局属性在数据最初保存到文件时设置。如果父目录的布局属性在文件创建后改变，那么文件的布局属性不会改变。此外，只有当文件为空时，才能更改文件的布局属性</p>
+<h5 id="使用情况和统计数据"><a href="#使用情况和统计数据" class="headerlink" title="使用情况和统计数据"></a>使用情况和统计数据</h5><p>可以使用虚拟扩展属性来获取有关CephFS文件系统使用的信息。当与目录上的ceph属性名称空间一起使用getfattr命令时，将返回该目录的递归统计信息列表</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">[ceph: root@server /]<span class="comment"># getfattr -d -m ceph.dir.* directory-path </span></span><br><span class="line">file: directory-path </span><br><span class="line">ceph .dir.entries=<span class="string">&quot;l&quot;</span> </span><br><span class="line">ceph.dir.files=<span class="string">&quot;0&quot;</span> </span><br><span class="line">ceph.dir.rbytes=<span class="string">&quot;424617209&quot;</span> </span><br><span class="line">ceph.dir. rctime=<span class="string">&quot;1341146808.804098000&quot;</span> </span><br><span class="line">ceph.dir.rentries=<span class="string">&quot;39623&quot;</span> </span><br><span class="line">ceph.dir. rfiles=<span class="string">&quot;37362&quot;</span> </span><br><span class="line">ceph.dir.rsubdirs=<span class="string">&quot;2261&quot;</span> </span><br><span class="line">ceph .dir. subdirs=<span class="string">&quot;l&quot;</span> </span><br></pre></td></tr></table></figure>
+
+<p>统计数据提供了详细的信息</p>
+<p>CephFS统计:</p>
+<table>
+<thead>
+<tr>
+<th align="center">属性</th>
+<th>描述</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center">ceph.dir.entries</td>
+<td>直接分支的数量</td>
+</tr>
+<tr>
+<td align="center">ceph.dir.files</td>
+<td>目录中常规文件的数量</td>
+</tr>
+<tr>
+<td align="center">ceph.dir.rbytes</td>
+<td>子树中的总文件大小(目录及其所有子目录)</td>
+</tr>
+<tr>
+<td align="center">ceph.dir.rctime</td>
+<td>子树中最近的创建时间(从epoch开始的秒数，1970-01-01 00:00:00 UTC)</td>
+</tr>
+<tr>
+<td align="center">ceph.dir.rentries</td>
+<td>子树的后代数</td>
+</tr>
+<tr>
+<td align="center">ceph.dir.rfiles</td>
+<td>子树中常规文件的数量</td>
+</tr>
+<tr>
+<td align="center">ceph.dir.rsubdirs</td>
+<td>子树中的目录数</td>
+</tr>
+<tr>
+<td align="center">ceph.dir.subdirs</td>
+<td>目录中的目录数</td>
+</tr>
+</tbody></table>
+<h4 id="10-2-4-管理快照"><a href="#10-2-4-管理快照" class="headerlink" title="10.2.4 管理快照"></a>10.2.4 管理快照</h4><p>部署Red Hat Ceph Storage 5时，CephFS默认启用异步快照。这些快照存储在一个名为.snap。在早期的Red Hat Ceph Storage版本中，快照是默认禁用的，因为它们是一个实验特性</p>
+<h5 id="创建快照"><a href="#创建快照" class="headerlink" title="创建快照"></a>创建快照</h5><p>使用cephfs set为已有的cephfs文件系统创建快照</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[ceph: root@server /]<span class="comment"># ceph fs set fs-name allow_new_snaps true </span></span><br></pre></td></tr></table></figure>
+
+<p>要创建快照，首先在客户机节点上挂载CephFS文件系统。当有多个cepfs文件系统时，使用-o fs&#x3D;_f s- name选项挂载一个cepfs文件系统。然后，在.snap目录。快照名称为新的子目录名称。该快照包含cepphfs文件系统中所有当前文件的副本</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">[root@node -]<span class="comment"># mount.ceph server.example.com:/ /mnt/mycephfs </span></span><br><span class="line">[root@node -]<span class="comment"># mkdir /mnt/mycephfs/.snap/snap-name</span></span><br></pre></td></tr></table></figure>
+
+<p>使用s选项授权客户端为CephFS文件系统创建快照</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[ceph: root@target /)<span class="comment"># ceph fs authorize fs-name client path rws</span></span><br></pre></td></tr></table></figure>
+
+<p>如果需要恢复一个文件，请将该文件从快照目录复制到另一个正常目录</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[root@node -]<span class="comment"># cp -a .snap/snap-name/file-name .</span></span><br></pre></td></tr></table></figure>
+
+<p>完全恢复快照。快照目录树，将普通条目替换为所选快照的副本</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">[root@node -]<span class="comment"># rm -rf * </span></span><br><span class="line">[root@node -]<span class="comment"># cp -a .snap/snap-name/* .</span></span><br></pre></td></tr></table></figure>
+
+<p>如果要丢弃一个快照，请删除对应的目录.snap。即使快照目录不为空，执行rmdir命令也会成功，无需递归执行rm命令</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[root@node -)<span class="comment"># rmdir .snap/snap-name</span></span><br></pre></td></tr></table></figure>
+
+<h5 id="调度快照"><a href="#调度快照" class="headerlink" title="调度快照"></a>调度快照</h5><p>可以使用CephFS调度快照。nap_schedule模块管理定时快照。可以使用此模块创建和删除快照计划。快照时间表信息存储在cepphfs元数据池中。要创建快照计划，首先在MGR节点上启用快照计划模块</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[ceph: root@server /]<span class="comment"># ceph mgr module enable snap_schedule</span></span><br></pre></td></tr></table></figure>
+
+<p>然后，添加新的快照时间表</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[ceph: root@server /)<span class="comment"># ceph fs snap-schedule add fs-path time-period [start-time] </span></span><br></pre></td></tr></table></figure>
+
+<p>如果安装的版本低于Python 3.7，则开始时间字符串必须使用格式%Y-%m -%dT%H: %m: %S。对于Python 3.7或更高版本，可以使用更灵活的日期解析。为使用实例为“&#x2F;volume”文件夹创建定时快照，使用ceph fs snap- schedule add命令，定时快照的时间间隔为每小时</p>
+<p>在客户机节点上，查看.snap文件夹在安装的CephFS</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">[root@node -]<span class="comment"># ls /mnt/mycephfs/.snap </span></span><br><span class="line">scheduled-2021-10-06-08_00_00 </span><br><span class="line">scheduled-2021-10-06-09_00_00 </span><br><span class="line">scheduled-2021-10-06-10_00_00</span><br></pre></td></tr></table></figure>
+
+<p>可以使用list选项列出某个路径的快照时间表:</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[ceph: root@server /]<span class="comment"># ceph fs snap-schedule list fs-path</span></span><br></pre></td></tr></table></figure>
+
+<p>使用status选项来验证快照计划的详细信息</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[ceph: root@server /]<span class="comment"># ceph fs snap-schedule status fs-path </span></span><br></pre></td></tr></table></figure>
+
+<p>通过指定路径删除快照计划</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[ceph: root@server /]<span class="comment"># ceph fs snap-schedule remove fs-path </span></span><br></pre></td></tr></table></figure>
+
+<p>通过激活和禁用选项可以激活和禁用快照调度。当添加快照时间表时，如果路径存在，则默认激活快照时间表。但是，如果该路径不存在，则将其设置为不活动的，以便稍后在创建该路径时激活它</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[ceph: root@server /]<span class="comment"># ceph fs snap-schedule activate/deactivate </span></span><br></pre></td></tr></table></figure>
+
+
+
+
+
+
+
+
+<h2 id="博文部分内容参考"><a href="#博文部分内容参考" class="headerlink" title="博文部分内容参考"></a>博文部分内容参考</h2><p>© 文中涉及参考链接内容版权归原作者所有，如有侵权请告知，这是一个开源项目，如果你认可它，不要吝啬星星哦 :)</p>
+<hr>
+<hr>
+<p>© 2018-至今 <a href="mailto:&#108;&#105;&#x72;&#x75;&#105;&#x6c;&#x6f;&#110;&#x67;&#101;&#114;&#64;&#103;&#x6d;&#x61;&#105;&#x6c;&#46;&#99;&#111;&#x6d;">&#108;&#105;&#x72;&#x75;&#105;&#x6c;&#x6f;&#110;&#x67;&#101;&#114;&#64;&#103;&#x6d;&#x61;&#105;&#x6c;&#46;&#99;&#111;&#x6d;</a>, All rights reserved. 保持署名-非商用-相同方式共享(CC BY-NC-SA 4.0)</p>
+</div><div class="article-licensing box"><div class="licensing-title"><p>Ceph:关于Ceph 中使用 CephFS 提供文件存储</p><p><a href="https://liruilongs.github.io/2023/06/14/rhca/CL260/Ceph：关于Ceph-中使用-CephFS-提供文件存储的一些笔记整理(15)/">https://liruilongs.github.io/2023/06/14/rhca/CL260/Ceph：关于Ceph-中使用-CephFS-提供文件存储的一些笔记整理(15)/</a></p></div><div class="licensing-meta level is-mobile"><div class="level-left"><div class="level-item is-narrow"><div><h6>作者</h6><a href="https://liruilongs.github.io"><p>山河已无恙</p></a></div></div><div class="level-item is-narrow"><div><h6>发布于</h6><p>2023-06-14</p></div></div><div class="level-item is-narrow"><div><h6>更新于</h6><p>2025-02-04</p></div></div><div class="level-item is-narrow"><div><h6>许可协议</h6><p><a class="icon" rel="noopener" target="_blank" title="Creative Commons" href="https://creativecommons.org/"><i class="fab fa-creative-commons"></i></a><a class="icon" rel="noopener" target="_blank" title="Attribution" href="https://creativecommons.org/licenses/by/4.0/"><i class="fab fa-creative-commons-by"></i></a><a class="icon" rel="noopener" target="_blank" title="Noncommercial" href="https://creativecommons.org/licenses/by-nc/4.0/"><i class="fab fa-creative-commons-nc"></i></a></p></div></div></div></div></div><div class="recommend-area"><div class="recommend-post"><span class="is-size-6 has-text-grey has-mr-7"># 相关文章</span><br><span>  1.<a class="is-size-6" href="/2023/10/16/rhca/CL260/Ceph%EF%BC%9A%E5%85%B3%E4%BA%8ECeph%20%E4%B8%AD%E5%88%9B%E5%BB%BA%E5%92%8C%E7%AE%A1%E7%90%86%E8%87%AA%E5%AE%9A%E4%B9%89%20CRUSH%20map%E7%9A%84%E4%B8%80%E4%BA%9B%E7%AC%94%E8%AE%B0%E6%95%B4%E7%90%86(11)/" target="_blank">Ceph：关于Ceph 中创建和管理自定义 CRUSH map的一些笔记整理(11)</a><br></span><span>  2.<a class="is-size-6" href="/2023/06/25/rhca/CL260/Ceph%EF%BC%9A%E5%85%B3%E4%BA%8ECeph%20%E9%9B%86%E7%BE%A4%E4%B8%AD%E6%95%B0%E6%8D%AE%E5%88%86%E5%B8%83%E5%92%8C%E5%AE%B9%E7%81%BE%E6%95%B4%E7%90%86%E7%9A%84%E4%B8%80%E4%BA%9B%E7%AC%94%E8%AE%B0(4)/" target="_blank">Ceph：关于Ceph 集群中数据分布和容灾整理的一些笔记(4)</a><br></span><span>  3.<a class="is-size-6" href="/2023/06/24/rhca/CL260/Ceph%EF%BC%9A%20Ceph%20%E5%AF%B9%E8%B1%A1%E5%AD%98%E5%82%A8%E9%9B%86%E7%BE%A4%E6%80%A7%E8%83%BD%E8%B0%83%E4%BC%98(17)/" target="_blank">Ceph： Ceph 对象存储集群性能调优(17)</a><br></span><span>  4.<a class="is-size-6" href="/2023/06/14/rhca/CL260/Ceph-%E5%85%B3%E4%BA%8ECeph-%E4%B8%AD%E4%BD%BF%E7%94%A8%E7%BA%A2%E5%B8%BD-Ceph-%E5%AD%98%E5%82%A8%E7%AE%A1%E7%90%86%E4%BA%91%E5%B9%B3%E5%8F%B0(19)/" target="_blank">Ceph:关于Ceph 中使用红帽 Ceph 存储管理云平台(19)</a><br></span><span>  5.<a class="is-size-6" href="/2023/06/14/rhca/CL260/Ceph%EF%BC%9A%E5%85%B3%E4%BA%8ECeph%20%E4%B8%AD%E5%A6%82%E4%BD%95%E4%BC%98%E5%8C%96%E5%AD%98%E5%82%A8%E6%80%A7%E8%83%BD%E7%9A%84%E4%B8%80%E4%BA%9B%E7%AC%94%E8%AE%B0%E6%95%B4%E7%90%86(16)/" target="_blank">Ceph：关于Ceph 中如何优化存储性能的一些笔记整理(16)</a><br></span><span>  6.<a class="is-size-6" href="/2023/06/14/rhca/CL260/Ceph-%E5%85%B3%E4%BA%8ECeph-%E4%B8%AD%E7%AE%A1%E7%90%86%E7%BA%A2%E5%B8%BD-Ceph-%E5%AD%98%E5%82%A8%E9%9B%86%E7%BE%A4(16)/" target="_blank">Ceph:关于Ceph 中管理红帽 Ceph 存储集群(16)</a><br></span><span>  7.<a class="is-size-6" href="/2023/06/13/rhca/CL260/%E5%85%B3%E4%BA%8ECeph-%E4%B8%ADRBD-%E5%9D%97%E5%AD%98%E5%82%A8%E6%89%A9%E5%B1%95%E6%93%8D%E4%BD%9C-%E8%B7%A8%E9%9B%86%E7%BE%A4RBD%E9%95%9C%E5%83%8F%E3%80%81%E5%A4%9A%E6%A8%A1%E5%BC%8F%E3%80%81iSCSI%E5%9D%97%E5%AD%98%E5%82%A8%E7%AD%89(12)/" target="_blank">关于Ceph 中RBD 块存储扩展操作(跨集群RBD镜像、多模式、iSCSI块存储等)</a><br></span><span>  8.<a class="is-size-6" href="/2023/05/29/rhca/CL260/Ceph%EF%BC%9A%E5%85%B3%E4%BA%8E%20Ceph%20%E4%B8%AD%20BlueStore%20%E6%9E%B6%E6%9E%84%E4%BB%A5%E5%8F%8A%20OSD%20%E5%88%9B%E5%BB%BA%E7%9A%84%E4%B8%80%E4%BA%9B%E7%AC%94%E8%AE%B0(8)/" target="_blank">Ceph：关于 Ceph 中 BlueStore 架构以及 OSD 创建的一些笔记(8)</a><br></span></div><div class="recommend-post"><span class="is-size-6 has-text-grey has-mr-7"># 推荐文章</span><br><span>  1.<a class="is-size-6" href="/2021/08/27/K8s/%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/%E3%80%8AKubernetes%E6%9D%83%E5%A8%81%E6%8C%87%E5%8D%97-%E4%BB%8EDocker%E5%88%B0Kubernetes%E5%AE%9E%E8%B7%B5%E5%85%A8%E6%8E%A5%E8%A7%A6%E3%80%8B%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/" target="_blank">《Kubernetes权威指南:从Docker到Kubernetes实践全接触》读书笔记</a><br></span><span>  2.<a class="is-size-6" href="/2022/11/19/Git/%E5%85%B3%E4%BA%8E-Git-%E9%87%8D%E5%86%99%E5%8E%86%E5%8F%B2%E7%9A%84%E4%B8%80%E4%BA%9B%E7%AC%94%E8%AE%B0/" target="_blank">关于 Git 重写历史的一些笔记</a><br></span><span>  3.<a class="is-size-6" href="/2022/08/02/Git/%E5%85%B3%E4%BA%8EGit%E5%88%86%E6%94%AF%E5%8F%98%E5%9F%BA%E6%93%8D%E4%BD%9C%E7%9A%84%E4%B8%80%E4%BA%9B%E7%AC%94%E8%AE%B0/" target="_blank">关于Git分支变基操作的一些笔记</a><br></span><span>  4.<a class="is-size-6" href="/2022/07/26/Git/%E5%85%B3%E4%BA%8EGit%E5%88%86%E6%94%AF%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86%E7%9A%84%E4%B8%80%E4%BA%9B%E7%AC%94%E8%AE%B0/" target="_blank">关于Git分支基础知识的一些笔记</a><br></span><span>  5.<a class="is-size-6" href="/2022/08/02/Git/%E5%85%B3%E4%BA%8EGit%E5%88%86%E6%94%AF%E5%B7%A5%E4%BD%9C%E6%B5%81%E7%9A%84%E4%B8%80%E4%BA%9B%E7%AC%94%E8%AE%B0/" target="_blank">关于Git分支工作流的一些笔记</a><br></span><span>  6.<a class="is-size-6" href="/2023/02/19/Git/%E5%85%B3%E4%BA%8EGit%E9%AB%98%E7%BA%A7%E5%90%88%E5%B9%B6%E7%9A%84%E4%B8%80%E4%BA%9B%E7%AC%94%E8%AE%B0%E6%95%B4%E7%90%86/" target="_blank">关于Git分支高级合并的一些笔记整理</a><br></span></div></div><link rel="stylesheet" href="https://cdnjs.loli.net/ajax/libs/social-share.js/1.0.16/css/share.min.css"><div class="social-share"></div><script src="https://cdnjs.loli.net/ajax/libs/social-share.js/1.0.16/js/social-share.min.js"></script></article></div><div class="card"><div class="card-content"><h3 class="menu-label has-text-centered">喜欢这篇文章？打赏一下作者吧</h3><div class="buttons is-centered"><a class="button donate" data-type="alipay"><span class="icon is-small"><i class="fab fa-alipay"></i></span><span>支付宝</span><span class="qrcode"><img src="/img/alipay%EF%BF%A5.png" alt="支付宝"></span></a><a class="button donate" data-type="wechat"><span class="icon is-small"><i class="fab fa-weixin"></i></span><span>微信</span><span class="qrcode"><img src="/img/wechat%EF%BF%A5.png" alt="微信"></span></a></div></div></div><nav class="post-navigation mt-4 level is-mobile"><div class="level-start"><a class="article-nav-prev level level-item link-muted" href="/2023/06/14/rhca/CL260/Ceph-%E5%85%B3%E4%BA%8ECeph-%E4%B8%AD%E7%AE%A1%E7%90%86%E7%BA%A2%E5%B8%BD-Ceph-%E5%AD%98%E5%82%A8%E9%9B%86%E7%BE%A4(16)/"><i class="level-item fas fa-chevron-left"></i><span class="level-item">Ceph:关于Ceph 中管理红帽 Ceph 存储集群(16)</span></a></div><div class="level-end"><a class="article-nav-next level level-item link-muted" href="/2023/06/14/rhca/CL260/Ceph-%E5%85%B3%E4%BA%8ECeph-%E4%B8%ADRADOS%E7%BD%91%E5%85%B3%E5%A4%9A%E7%AB%99%E7%82%B9%E9%83%A8%E7%BD%B2(13)/"><span class="level-item">Ceph:关于Ceph 中RADOS网关多站点部署</span><i class="level-item fas fa-chevron-right"></i></a></div></nav><!--!--><div class="card"><div class="card-content"><div class="title is-5">评论</div><div id="comment-container"></div><link rel="stylesheet" href="https://cdnjs.loli.net/ajax/libs/gitalk/1.6.0/gitalk.css"><script> $.getScript('/js/gitalk.min.js', function () { 
+            var gitalk = new Gitalk({
+            language:'zh-CN',
+            id: '5da9e5335015c917cc6621a499e848e7',
+            repo: 'blog_comment',
+            owner: 'LIRUILONGS',
+            clientID: '9fdc9739266d48d5f62e',
+            clientSecret: 'c1cc33697d099a2197650ec9dadcb16bd4904655',
+            admin: ["LIRUILONGS"],
+            createIssueManually: true,
+            distractionFreeMode: true,
+            perPage: 10,
+            pagerDirection: 'last',
+            proxy: 'https://cors-anywhere.azm.workers.dev/https://github.com/login/oauth/access_token',
+            
+            enableHotKey: true,
+            isLocked: false
+        })
+        gitalk.render('comment-container')});</script></div></div></div><div class="column column-left is-4-tablet is-4-desktop is-3-widescreen  order-1 is-sticky"><div class="card widget" id="toc" data-type="toc"><div class="card-content"><div class="menu"><h3 class="menu-label">目录</h3><ul class="menu-list"><ul class="menu-list"><li><a class="is-flex is-mobile" href="#写在前面"><span class="mr-2">1.1</span><span>写在前面</span></a></li></ul><li><a class="is-flex is-mobile" href="#使用-CephFS-提供文件存储"><span class="mr-2">2</span><span>使用 CephFS 提供文件存储</span></a><ul class="menu-list"><li><a class="is-flex is-mobile" href="#部署共享文件存储"><span class="mr-2">2.1</span><span>部署共享文件存储</span></a><ul class="menu-list"><li><a class="is-flex is-mobile" href="#在另一个Ceph集群上复制CephFS"><span class="mr-2">2.1.1</span><span>在另一个Ceph集群上复制CephFS</span></a></li><li><a class="is-flex is-mobile" href="#调度快照"><span class="mr-2">2.1.2</span><span>调度快照</span></a></li></ul></li><li><a class="is-flex is-mobile" href="#博文部分内容参考"><span class="mr-2">2.2</span><span>博文部分内容参考</span></a></li></ul></li></ul></div></div><style>.menu-list > li > a.is-active + .menu-list { display: block; }.menu-list > li > a + .menu-list { display: none; }</style><script src="/js/toc.js" defer></script></div><div class="card widget" data-type="profile"><div class="card-content"><nav class=""><div class="level-item has-text-centered flex-shrink-1"><div><figure class="image is-128x128 mx-auto mb-2"><img class="avatar" src="/img/%E5%BE%AE%E4%BF%A1%E5%85%AC%E4%BC%97%E5%8F%B7.jpg" alt="山河已无恙"></figure><p class="title is-size-4 is-block" style="line-height:inherit;">山河已无恙</p><p class="is-size-6 is-block">爱自己，是终生浪漫的开始</p><p class="is-size-6 is-flex justify-content-center"><i class="fas fa-map-marker-alt mr-1"></i><span>中国·呼和浩特</span></p></div></div></nav><nav class="level is-mobile"><div class="level-item has-text-centered is-marginless"><div><p class="heading">文章</p><a href="/archives"><p class="title">421</p></a></div></div><div class="level-item has-text-centered is-marginless"><div><p class="heading">分类</p><a href="/categories"><p class="title">138</p></a></div></div><div class="level-item has-text-centered is-marginless"><div><p class="heading">标签</p><a href="/tags"><p class="title">186</p></a></div></div></nav><div class="level"><a class="level-item button is-primary is-rounded" href="https://mp.weixin.qq.com/s?__biz=MzkyNjIxNTYwMw==&amp;mid=2247496480&amp;idx=1&amp;sn=a9971fed3962ef2a1aeda1f0bda65f86&amp;chksm=c2380ffcf54f86eaba8daac6caca72a70f38e61a8d25dc2a66d3a17b87c02530e326dcaea14b#rd" target="_blank" rel="noopener">关注我</a></div><div class="level is-mobile"><a class="level-item button is-transparent is-marginless" target="_blank" rel="noopener" title="Github" href="https://github.com/LIRUILONGS"><i class="fab fa-github"></i></a><a class="level-item button is-transparent is-marginless" target="_blank" rel="noopener" title="CSDN" href="https://liruilong.blog.csdn.net/"><i class="fa fa-code"></i></a><a class="level-item button is-transparent is-marginless" target="_blank" rel="noopener" title="Email" href="mailto:1224965096@qq.com"><i class="fa fa-envelope"></i></a></div></div></div><div class="card widget" data-type="links"><div class="card-content"><div class="menu"><h3 class="menu-label">链接</h3><ul class="menu-list"><li><a class="level is-mobile" href="https://liruilong.blog.csdn.net/?t=1&amp;type=blog" target="_blank" rel="noopener"><span class="level-left"><span class="level-item">CSDN</span></span><span class="level-right"><span class="level-item tag">liruilong.blog.csdn.net</span></span></a></li><li><a class="level is-mobile" href="https://www.cnblogs.com/liruilong/" target="_blank" rel="noopener"><span class="level-left"><span class="level-item">博客园</span></span><span class="level-right"><span class="level-item tag">www.cnblogs.com</span></span></a></li><li><a class="level is-mobile" href="https://github.com/LIRUILONGS" target="_blank" rel="noopener"><span class="level-left"><span class="level-item">Githup</span></span><span class="level-right"><span class="level-item tag">github.com</span></span></a></li><li><a class="level is-mobile" href="https://gitee.com/liruilonger" target="_blank" rel="noopener"><span class="level-left"><span class="level-item">码云</span></span><span class="level-right"><span class="level-item tag">gitee.com</span></span></a></li></ul></div></div></div><div class="card widget"><div class="card-content"><h3 class="menu-label">最新评论</h3><span class="body_hot_comment">加载中，最新评论有1分钟缓存...</span></div></div><div class="card widget"><div class="card-content"><h3 class="menu-label">最新文章</h3><article class="media"><div class="media-content"><p class="date"><time dateTime="2025-02-10T03:06:02.000Z">2025-02-10</time></p><p class="title"><a href="/2025/02/10/%E5%BE%85%E5%8F%91%E5%B8%83/xxl-job-%E6%BC%8F%E6%B4%9E%E9%97%AE%E9%A2%98%E7%89%88%E6%9C%AC%E5%8D%87%E7%BA%A7%E8%AE%B0%E5%BD%95/">xxl-job 漏洞问题版本升级记录</a></p><p class="categories"><a href="/categories/xxl-job/">xxl-job</a></p></div></article><article class="media"><div class="media-content"><p class="date"><time dateTime="2025-02-06T07:06:00.000Z">2025-02-06</time></p><p class="title"><a href="/2025/02/06/%E5%BE%85%E5%8F%91%E5%B8%83/SpringBoot%20%E6%8E%A5%E5%8F%A3%E5%86%85%E5%AE%B9%E5%8A%A0%E5%AF%86%E6%96%B9%E6%A1%88(RSA+AES+HMAC%E6%A0%A1%E9%AA%8C)%E8%AE%A4%E7%9F%A5/">SpringBoot 接口内容加密方案(RSA+AES+HMAC校验)认知</a></p><p class="categories"><a href="/categories/RSA/">RSA</a> / <a href="/categories/RSA/AES/">AES</a> / <a href="/categories/RSA/AES/HMAC/">HMAC</a></p></div></article><article class="media"><div class="media-content"><p class="date"><time dateTime="2025-02-02T05:32:31.000Z">2025-02-02</time></p><p class="title"><a href="/2025/02/02/%E5%BE%85%E5%8F%91%E5%B8%83/DeepSeek%20%E5%A4%A7%E6%A8%A1%E5%9E%8B%E5%9F%BA%E6%9C%AC%E8%AE%A4%E7%9F%A5(V3%E3%80%81R1%E3%80%81Janus%E3%80%81VL2%20%E7%AE%80%E5%8D%95%E4%BB%8B%E7%BB%8D%E4%BB%A5%E5%8F%8A%E6%9C%AC%E5%9C%B0%E9%83%A8%E7%BD%B2)/">DeepSeek 大模型基本认知(V3、R1、Janus、VL2 简单介绍以及本地部署)</a></p><p class="categories"><a href="/categories/DeepSeek/">DeepSeek</a></p></div></article><article class="media"><div class="media-content"><p class="date"><time dateTime="2025-01-26T07:09:03.000Z">2025-01-26</time></p><p class="title"><a href="/2025/01/26/%E5%BE%85%E5%8F%91%E5%B8%83/AI%E5%A4%A7%E6%A8%A1%E5%9E%8B%E7%9A%84%E6%96%87%E6%9C%AC%E6%B5%81%E5%A6%82%E4%BD%95%E6%8C%81%E7%BB%AD%E5%90%90%E5%88%B0%E5%89%8D%E7%AB%AF%EF%BC%8CBS%E6%9E%B6%E6%9E%84%E5%AE%9E%E6%97%B6%E9%80%9A%E4%BF%A1%E7%9A%84%E6%8A%80%E6%9C%AF%20SSE(Server-Sent%20Events)%20%E8%AE%A4%E7%9F%A5/">AI大模型的文本流如何持续吐到前端，服务端实时通信技术 SSE(Server-Sent Events) 认知</a></p><p class="categories"><a href="/categories/SSE/">SSE</a></p></div></article><article class="media"><div class="media-content"><p class="date"><time dateTime="2025-01-13T03:55:24.000Z">2025-01-13</time></p><p class="title"><a href="/2025/01/13/%E5%BE%85%E5%8F%91%E5%B8%83/%E9%9B%AA%E8%8A%B1%E7%AE%97%E6%B3%95%E8%AE%A4%E7%9F%A5-Twitter-Snowflake/">雪花算法认知(Twitter_Snowflake)</a></p><p class="categories"><a href="/categories/%E9%9B%AA%E8%8A%B1%E7%AE%97%E6%B3%95/">雪花算法</a></p></div></article></div></div><div class="card widget"><div class="card-content"><div class="menu"><h3 class="menu-label">分类</h3><ul class="menu-list"><li><a class="level is-mobile is-marginless" href="/categories/AIGC/"><span class="level-start"><span class="level-item">AIGC</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/AdaFace/"><span class="level-start"><span class="level-item">AdaFace</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/Ajax/"><span class="level-start"><span class="level-item">Ajax</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/Ansible/"><span class="level-start"><span class="level-item">Ansible</span></span><span class="level-end"><span class="level-item tag">23</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/AppCube/"><span class="level-start"><span class="level-item">AppCube</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/BPF/"><span class="level-start"><span class="level-item">BPF</span></span><span class="level-end"><span class="level-item tag">5</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/Bind9/"><span class="level-start"><span class="level-item">Bind9</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/CI-CD/"><span class="level-start"><span class="level-item">CI/CD</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/CSS/"><span class="level-start"><span class="level-item">CSS</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/Ceph/"><span class="level-start"><span class="level-item">Ceph</span></span><span class="level-end"><span class="level-item tag">22</span></span></a></li><a class="level is-mobile is-marginless" href="/categories/"><span class="level-start"><span class="level-item">查看全部&gt;&gt;</span></span></a></ul></div></div></div><div class="card widget"><div class="card-content"><div class="menu"><h3 class="menu-label">归档</h3><ul class="menu-list"><li><a class="level is-mobile is-marginless" href="/archives/2025/02/"><span class="level-start"><span class="level-item">二月 2025</span></span><span class="level-end"><span class="level-item tag">3</span></span></a></li><li><a class="level is-mobile is-marginless" href="/archives/2025/01/"><span class="level-start"><span class="level-item">一月 2025</span></span><span class="level-end"><span class="level-item tag">2</span></span></a></li><li><a class="level is-mobile is-marginless" href="/archives/2024/12/"><span class="level-start"><span class="level-item">十二月 2024</span></span><span class="level-end"><span class="level-item tag">2</span></span></a></li><li><a class="level is-mobile is-marginless" href="/archives/2024/11/"><span class="level-start"><span class="level-item">十一月 2024</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li><li><a class="level is-mobile is-marginless" href="/archives/2024/10/"><span class="level-start"><span class="level-item">十月 2024</span></span><span class="level-end"><span class="level-item tag">4</span></span></a></li><a class="level is-mobile is-marginless" href="/archives/"><span class="level-start"><span class="level-item">查看全部&gt;&gt;</span></span></a></ul></div></div></div><div class="card widget"><div class="card-content"><div class="menu"><h3 class="menu-label">标签</h3><div class="field is-grouped is-grouped-multiline"><div class="control"><a class="tags has-addons" href="/tags/Kubernetes/"><span class="tag">Kubernetes</span><span class="tag is-grey-lightest">98</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Linux/"><span class="tag">Linux</span><span class="tag is-grey-lightest">50</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Ansible/"><span class="tag">Ansible</span><span class="tag is-grey-lightest">25</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Ceph/"><span class="tag">Ceph</span><span class="tag is-grey-lightest">22</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Python/"><span class="tag">Python</span><span class="tag is-grey-lightest">15</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Docker/"><span class="tag">Docker</span><span class="tag is-grey-lightest">9</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Git/"><span class="tag">Git</span><span class="tag is-grey-lightest">8</span></a></div><div class="control"><a class="tags has-addons" href="/tags/JAVA/"><span class="tag">JAVA</span><span class="tag is-grey-lightest">8</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%E5%8D%8E%E4%B8%BA%E4%BA%91/"><span class="tag">华为云</span><span class="tag is-grey-lightest">8</span></a></div><div class="control"><a class="tags has-addons" href="/tags/CPU/"><span class="tag">CPU</span><span class="tag is-grey-lightest">7</span></a></div><div class="control"><a class="tags has-addons" href="/tags/BPF/"><span class="tag">BPF</span><span class="tag is-grey-lightest">6</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Go/"><span class="tag">Go</span><span class="tag is-grey-lightest">6</span></a></div><div class="control"><a class="tags has-addons" href="/tags/OpenShift/"><span class="tag">OpenShift</span><span class="tag is-grey-lightest">6</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%E7%A8%8B%E5%BA%8F%E4%BA%BA%E7%94%9F/"><span class="tag">程序人生</span><span class="tag is-grey-lightest">6</span></a></div><div class="control"><a class="tags has-addons" href="/tags/DNS/"><span class="tag">DNS</span><span class="tag is-grey-lightest">5</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Mysql/"><span class="tag">Mysql</span><span class="tag is-grey-lightest">5</span></a></div><div class="control"><a class="tags has-addons" href="/tags/OKD/"><span class="tag">OKD</span><span class="tag is-grey-lightest">5</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%E6%91%84%E5%BD%B1%E6%9B%9D%E5%85%89/"><span class="tag">摄影曝光</span><span class="tag is-grey-lightest">5</span></a></div><div class="control"><a class="tags has-addons" href="/tags/selenium/"><span class="tag">selenium</span><span class="tag is-grey-lightest">4</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%E5%AE%B9%E5%99%A8/"><span class="tag">容器</span><span class="tag is-grey-lightest">4</span></a></div></div><div class="field is-grouped is-grouped-multiline"><a class="tags has-addons" href="/tags/"><span class="tag">查看全部&gt;&gt;</span></a></div></div></div></div><div class="card widget" data-type="subscribe-email"><div class="card-content"><div class="menu"><h3 class="menu-label">订阅更新</h3><form action="https://feedburner.google.com/fb/a/mailverify" method="post" target="popupwindow" onsubmit="window.open(&#039;https://feedburner.google.com/fb/a/mailverify?uri=&#039;,&#039;popupwindow&#039;,&#039;scrollbars=yes,width=550,height=520&#039;);return true"><input type="hidden" value="" name="uri"><input type="hidden" name="loc" value="en_US"><div class="field has-addons"><div class="control has-icons-left is-expanded"><input class="input" name="email" type="email" placeholder="Email"><span class="icon is-small is-left"><i class="fas fa-envelope"></i></span></div><div class="control"><input class="button" type="submit" value="订阅"></div></div></form></div></div></div><!--!--><div class="column-right-shadow is-hidden-widescreen is-sticky"></div></div></div></div></section><footer class="footer"><div class="container"><div class="level"><div class="level-start"><a class="footer-logo is-block mb-2" href="/"><img src="/img/logo.png" alt="山河已无恙" height="28"></a><p class="size-small"><span>&copy; 2025 山河已无恙</span>  Powered by <a href="https://hexo.io/" target="_blank">Hexo</a> &amp; <a href="https://github.com/ppoffice/hexo-theme-icarus" target="_blank">Icarus</a> &amp; <a href="https://github.com/removeif/hexo-theme-amazing" target="_blank">Amazing</a> <br><span>© <a href="http://www.beian.miit.gov.cn/" target="_blank">备案中</a><br></span><span>© 版权说明：[本网站所有内容均收集于互联网或自己创作,<br />&nbsp;&nbsp;&nbsp;&nbsp;方便于网友与自己学习交流，如有侵权，请<a href="/message" target="_blank">留言</a>，立即处理]<br /></span><span><span id="statistic-times">loading...</span><script>function createTime(time) {
+            var n = new Date(time);
+            now.setTime(now.getTime() + 250),
+                days = (now - n) / 1e3 / 60 / 60 / 24,
+                dnum = Math.floor(days),
+                hours = (now - n) / 1e3 / 60 / 60 - 24 * dnum,
+                hnum = Math.floor(hours),
+            1 == String(hnum).length && (hnum = "0" + hnum),
+                minutes = (now - n) / 1e3 / 60 - 1440 * dnum - 60 * hnum,
+                mnum = Math.floor(minutes),
+            1 == String(mnum).length && (mnum = "0" + mnum),
+                seconds = (now - n) / 1e3 - 86400 * dnum - 3600 * hnum - 60 * mnum,
+                snum = Math.round(seconds),
+            1 == String(snum).length && (snum = "0" + snum),
+                document.getElementById("statistic-times").innerHTML = "❤️本站自 <strong>"+time.split(" ")[0].replace(/\//g,".")+"</strong> 已运行 <strong>" + dnum + "</strong> 天 <strong>" + hnum + "</strong> 小时 <strong>" + mnum + "</strong> 分 <strong>" + snum + "</strong> 秒！❤️";
+        }var now = new Date();setInterval("createTime('2021/6/26 21:27:00')", 250,"");</script><br></span><div class="size-small"><span>❤️感谢 <strong><span id="busuanzi_value_site_uv">99+</span></strong> 小伙伴的 <strong><span id="busuanzi_value_site_pv">99+</span></strong> 次光临！❤️</span></div></p></div><div class="level-end"><div class="field has-addons"><p class="control"><a class="button is-transparent is-large" target="_blank" rel="noopener" title="Creative Commons" href="https://creativecommons.org/"><i class="fab fa-creative-commons"></i></a></p><p class="control"><a class="button is-transparent is-large" target="_blank" rel="noopener" title="Attribution 4.0 International" href="https://creativecommons.org/licenses/by/4.0/"><i class="fab fa-creative-commons-by"></i></a></p><p class="control"><a class="button is-transparent is-large" target="_blank" rel="noopener" title="Download on GitHub" href="https://github.com/removeif/hexo-theme-amazing"><i class="fab fa-github"></i></a></p></div><div class="sideMusic"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/aplayer/dist/APlayer.min.css"><script src="/js/APlayer.min.js"></script><script src="https://cdn.jsdelivr.net/npm/meting@2/dist/Meting.min.js"></script><meting-js style="width: auto;height: 2000px;" server="netease" type="playlist" id="2364053447" theme="#2980b9" loop="all" autoplay="false" order="list" storageName="aplayer-setting" lrctype="0" list-max-height="400px" fixed="true"></meting-js></div></div></div></div></footer><script src="https://cdnjs.loli.net/ajax/libs/moment.js/2.22.2/moment-with-locales.min.js"></script><script src="https://cdnjs.loli.net/ajax/libs/clipboard.js/2.0.4/clipboard.min.js" async></script><script>moment.locale("zh-CN");</script><script>var IcarusThemeSettings = {
+            article: {
+                highlight: {
+                    clipboard: true,
+                    fold: 'unfolded'
+                }
+            }
+        };</script><script src="/js/column.js"></script><!--!--><script src="/js/animation.js"></script><a id="back-to-top" title="回到顶端" href="javascript:;"><i class="fas fa-chevron-up"></i></a><script src="/js/back_to_top.js" defer></script><!--!--><script src="https://cdnjs.loli.net/ajax/libs/lightgallery/1.6.8/js/lightgallery.min.js" defer></script><script src="https://cdnjs.loli.net/ajax/libs/justifiedGallery/3.7.0/js/jquery.justifiedGallery.min.js" defer></script><script>window.addEventListener("load", () => {
+            if (typeof $.fn.lightGallery === 'function') {
+                $('.article').lightGallery({ selector: '.gallery-item' });
+            }
+            if (typeof $.fn.justifiedGallery === 'function') {
+                if ($('.justified-gallery > p > .gallery-item').length) {
+                    $('.justified-gallery > p > .gallery-item').unwrap();
+                }
+                $('.justified-gallery').justifiedGallery();
+            }
+        });</script><!--!--><!--!--><link rel="stylesheet" href="https://cdnjs.loli.net/ajax/libs/KaTeX/0.11.1/katex.min.css"><script src="https://cdnjs.loli.net/ajax/libs/KaTeX/0.11.1/katex.min.js" defer></script><script src="https://cdnjs.loli.net/ajax/libs/KaTeX/0.11.1/contrib/auto-render.min.js" defer></script><script src="https://cdnjs.loli.net/ajax/libs/KaTeX/0.11.1/contrib/mhchem.js" defer></script><script>window.addEventListener("load", function() {
+            document.querySelectorAll('[role="article"] > .content').forEach(function(element) {
+                renderMathInElement(element);
+            });
+        });</script><script type="text/x-mathjax-config">MathJax.Hub.Config({
+            'HTML-CSS': {
+                matchFontHeight: false
+            },
+            SVG: {
+                matchFontHeight: false
+            },
+            CommonHTML: {
+                matchFontHeight: false
+            },
+            tex2jax: {
+                inlineMath: [
+                    ['$','$'],
+                    ['\\(','\\)']
+                ]
+            }
+        });</script><script src="https://cdnjs.loli.net/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-MML-AM_CHTML" defer></script><div id="outdated"><h6>Your browser is out-of-date!</h6><p>Update your browser to view this website correctly.&amp;npsb;<a id="btnUpdateBrowser" target="_blank" rel="noopener" href="http://outdatedbrowser.com/">Update my browser now </a></p><p class="last"><a href="#" id="btnCloseUpdateBrowser" title="Close">×</a></p></div><script src="https://cdnjs.loli.net/ajax/libs/outdated-browser/1.1.5/outdatedbrowser.min.js" defer></script><script>window.addEventListener("load", function () {
+            outdatedBrowser({
+                bgColor: '#f25648',
+                color: '#ffffff',
+                lowerThan: 'object-fit' // display on IE11 or below
+            });
+        });</script><!--!--><script src="/js/main.js" defer></script><script>$.getScript('/js/comment-issue-data.js',function(){loadIssueData('9fdc9739266d48d5f62e','c1cc33697d099a2197650ec9dadcb16bd4904655','LIRUILONGS','blog_comment',false);})</script><div class="searchbox"><div class="searchbox-container"><div class="searchbox-header"><div class="searchbox-input-container"><input class="searchbox-input" type="text" placeholder="想要查找什么..."></div><a class="searchbox-close" href="javascript:;">×</a></div><div class="searchbox-body"></div></div></div><script src="/js/insight.js" defer></script><script>document.addEventListener('DOMContentLoaded', function () {
+            loadInsight({"contentUrl":"/content.json"}, {"hint":"想要查找什么...","untitled":"(无标题)","posts":"文章","pages":"页面","categories":"分类","tags":"标签"});
+        });</script><script src="https://cdn.jsdelivr.net/npm/pjax@0.2.8/pjax.js"></script><script type="text/javascript">var pjax = new Pjax({
+            elements: "a",//代表点击链接就更新
+            selectors: [  //代表要更新的节点
+                ".section",
+                "title"
+            ],
+            cache: true,
+            cacheBust:false
+        })
+
+        function loadBusuanzi(){
+        $.getScript("//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js", function () {});
+        }
+
+        function loadMathJax() { //加载mathjax
+            $.getScript("//cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.4/MathJax.js?config=TeX-MML-AM_CHTML", function () {
+                MathJax.Hub.Config({ tex2jax: { inlineMath: [['$', '$'], ['\(', '\)']] } });
+                var math = document.getElementsByClassName("entry-content")[0];
+                MathJax.Hub.Queue(["Typeset", MathJax.Hub, math]);
+            });
+        };
+
+        // 开始 PJAX 执行的函数
+        document.addEventListener('pjax:send', function () {
+        });
+        
+        // PJAX 完成之后执行的函数，可以和上面的重载放在一起
+        document.addEventListener('pjax:complete', function () {
+            $(".section").css({opacity:1});
+            if(true){
+                $.getScript('/js/comment-issue-data.js',function(){loadIssueData('9fdc9739266d48d5f62e','c1cc33697d099a2197650ec9dadcb16bd4904655','LIRUILONGS','blog_comment',false);});
+            }
+            if(false){
+                loadMathJax();
+            }
+            loadMainJs(jQuery, window.moment, window.ClipboardJS, window.IcarusThemeSettings);
+            loadBackTop();
+            loadBusuanzi();
+            if(typeof loadBanner == 'function'){
+                loadBanner();
+            }
+        });</script></body></html>

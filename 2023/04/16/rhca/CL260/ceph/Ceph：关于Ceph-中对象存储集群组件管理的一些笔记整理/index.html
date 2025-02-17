@@ -1,0 +1,598 @@
+<!doctype html>
+<html lang="zh"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"><meta><title>Ceph：关于Ceph 中对象存储集群组件管理的一些笔记整理 - 山河已无恙</title><link rel="manifest" href="/manifest.json"><meta name="application-name" content="山河已无恙"><meta name="msapplication-TileImage" content="https://cdn.jsdelivr.net/gh/removeif/removeif-demo@latest/img/favicon.png"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="山河已无恙"><meta name="apple-mobile-web-app-status-bar-style" content="default"><meta description="对每个人而言，真正的职责只有一个：找到自我。然后在心中坚守其一生，全心全意，永不停息。所有其它的路都是不完整的，是人的逃避方式，是对大众理想的懦弱回归，是随波逐流，是对内心的恐惧 ——赫尔曼·黑塞《德米安》"><meta property="og:type" content="blog"><meta property="og:title" content="山河已无恙"><meta property="og:url" content="https://mp.weixin.qq.com/s?__biz=MzkyNjIxNTYwMw==&amp;mid=2247496480&amp;idx=1&amp;sn=a9971fed3962ef2a1aeda1f0bda65f86&amp;chksm=c2380ffcf54f86eaba8daac6caca72a70f38e61a8d25dc2a66d3a17b87c02530e326dcaea14b#rd"><meta property="og:site_name" content="山河已无恙"><meta property="og:description" content="对每个人而言，真正的职责只有一个：找到自我。然后在心中坚守其一生，全心全意，永不停息。所有其它的路都是不完整的，是人的逃避方式，是对大众理想的懦弱回归，是随波逐流，是对内心的恐惧 ——赫尔曼·黑塞《德米安》"><meta property="og:locale" content="zh_CN"><meta property="og:image" content="https://mp.weixin.qq.com/img/头像.jpg"><meta property="article:published_time" content="2023-04-16T09:09:08.000Z"><meta property="article:modified_time" content="2024-11-22T02:19:42.806Z"><meta property="article:author" content="LIRUILONGS"><meta property="article:tag" content="Ceph"><meta property="twitter:card" content="summary"><meta property="twitter:image" content="/img/头像.jpg"><script type="application/ld+json">{"@context":"https://schema.org","@type":"BlogPosting","mainEntityOfPage":{"@type":"WebPage","@id":"https://liruilongs.github.io/2023/04/16/rhca/CL260/ceph/Ceph%EF%BC%9A%E5%85%B3%E4%BA%8ECeph-%E4%B8%AD%E5%AF%B9%E8%B1%A1%E5%AD%98%E5%82%A8%E9%9B%86%E7%BE%A4%E7%BB%84%E4%BB%B6%E7%AE%A1%E7%90%86%E7%9A%84%E4%B8%80%E4%BA%9B%E7%AC%94%E8%AE%B0%E6%95%B4%E7%90%86/"},"headline":"山河已无恙","image":["https://img-blog.csdnimg.cn/f5bae28283824ae39d08721f37e07273.png"],"datePublished":"2023-04-16T09:09:08.000Z","dateModified":"2024-11-22T02:19:42.806Z","author":{"@type":"Person","name":"山河已无恙"},"description":"对每个人而言，真正的职责只有一个：找到自我。然后在心中坚守其一生，全心全意，永不停息。所有其它的路都是不完整的，是人的逃避方式，是对大众理想的懦弱回归，是随波逐流，是对内心的恐惧 ——赫尔曼·黑塞《德米安》"}</script><link rel="canonical" href="https://liruilongs.github.io/2023/04/16/rhca/CL260/ceph/Ceph%EF%BC%9A%E5%85%B3%E4%BA%8ECeph-%E4%B8%AD%E5%AF%B9%E8%B1%A1%E5%AD%98%E5%82%A8%E9%9B%86%E7%BE%A4%E7%BB%84%E4%BB%B6%E7%AE%A1%E7%90%86%E7%9A%84%E4%B8%80%E4%BA%9B%E7%AC%94%E8%AE%B0%E6%95%B4%E7%90%86/"><link rel="alternate" href="/path/to/atom.xml" title="山河已无恙" type="application/atom+xml"><link rel="icon" href="https://cdn.jsdelivr.net/gh/removeif/removeif-demo@latest/img/favicon.png"><meta name="referrer" content="no-referrer-when-downgrade"><link rel="stylesheet" href="https://cdnjs.loli.net/ajax/libs/font-awesome/5.12.0/css/all.min.css"><link rel="stylesheet" href="https://cdnjs.loli.net/ajax/libs/highlight.js/9.12.0/styles/dracula.min.css"><link rel="stylesheet" href="https://fonts.loli.net/css2?family=Ubuntu:wght@400;600&amp;family=Source+Code+Pro"><link rel="stylesheet" href="/css/default.css"><link rel="stylesheet" href="https://cdnjs.loli.net/ajax/libs/font-awesome/5.12.0/css/all.min.css"><link rel="stylesheet" href="https://fonts.loli.net/css?family=Ubuntu:400,600|Source+Code+Pro|Monda:300,300italic,400,400italic,700,700italic|Roboto Slab:300,300italic,400,400italic,700,700italic|Microsoft YaHei:300,300italic,400,400italic,700,700italic|PT Mono:300,300italic,400,400italic,700,700italic&amp;amp;subset=latin,latin-ext|Inconsolata|Itim|Lobster.css"><script src="https://cdnjs.loli.net/ajax/libs/jquery/3.3.1/jquery.min.js"></script><script src="/js/globalUtils.js"></script><script src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js" defer></script><style>body>.footer,body>.navbar,body>.section{opacity:0}</style><!--!--><script>var _hmt = _hmt || [];
+        (function() {
+            var hm = document.createElement("script");
+            hm.src = "//hm.baidu.com/hm.js?3f06f2b732a5b1034c989f74e28d0eea";
+            var s = document.getElementsByTagName("script")[0];
+            s.parentNode.insertBefore(hm, s);
+        })();</script><link rel="stylesheet" href="https://cdnjs.loli.net/ajax/libs/lightgallery/1.6.8/css/lightgallery.min.css"><link rel="stylesheet" href="https://cdnjs.loli.net/ajax/libs/justifiedGallery/3.7.0/css/justifiedGallery.min.css"><!--!--><!--!--><!--!--><!--!--><link rel="stylesheet" href="https://cdnjs.loli.net/ajax/libs/outdated-browser/1.1.5/outdatedbrowser.min.css"><script src="https://cdnjs.loli.net/ajax/libs/pace/1.0.2/pace.min.js"></script><link rel="stylesheet" href="/live2d/waifu.css"><script type="text/javascript" async src="/live2d/autoload.js"></script><meta name="generator" content="Hexo 5.4.2"></head><body class="is-3-column has-navbar-fixed-top"><nav class="navbar navbar-main is-fixed-top"><div class="container"><div class="navbar-brand justify-content-center"><a class="navbar-item navbar-logo" href="/"><img src="/img/logo.png" alt="山河已无恙" height="28"></a></div><div class="navbar-menu"><div class="navbar-start"><a class="navbar-item" href="/">首页</a><a class="navbar-item" href="/archives">归档</a><a class="navbar-item" href="/categories">分类</a><a class="navbar-item" href="/tags">标签</a><a class="navbar-item" href="/media">影音</a><a class="navbar-item" href="/album">相册</a><a class="navbar-item" href="/friend">友链</a><a class="navbar-item" href="/self-talking">生活小记</a><a class="navbar-item" href="/message">留言墙</a><a class="navbar-item" href="/about">关于</a></div><div class="navbar-end"><a class="navbar-item" target="_blank" rel="noopener" title="Gitee" href="https://gitee.com/liruilonger"><i class="fab fa-git-square fa-1x"></i></a><a class="navbar-item" target="_blank" rel="noopener" title="GitHub" href="https://github.com/LIRUILONGS"><i class="fab fa-github fa-1x"></i></a><a class="navbar-item is-hidden-tablet catalogue" title="目录" href="javascript:;"><i class="fas fa-list-ul fa-1x"></i></a><a class="navbar-item search" title="搜索" href="javascript:;"><i class="fas fa-search fa-1x"></i></a><a class="navbar-item" id="night-nav" title="Night Mode" href="javascript:;"><i class="fas fa-moon fa-1x" id="night-icon"></i></a></div></div></div></nav><script type="text/javascript" src="/js/theme-setting.js"></script><section class="section"><div class="container"><div class="columns"><div class="column order-2 column-main is-8-tablet is-8-desktop is-9-widescreen"><!--!--><div class="card"><article class="card-content article" role="article"><div class="article-meta size-small is-uppercase level is-mobile"><div class="level-left"><i class="far fa-calendar-plus"> </i>2023-04-16  <a class="commentCountImg" href="/2023/04/16/rhca/CL260/ceph/Ceph%EF%BC%9A%E5%85%B3%E4%BA%8ECeph-%E4%B8%AD%E5%AF%B9%E8%B1%A1%E5%AD%98%E5%82%A8%E9%9B%86%E7%BE%A4%E7%BB%84%E4%BB%B6%E7%AE%A1%E7%90%86%E7%9A%84%E4%B8%80%E4%BA%9B%E7%AC%94%E8%AE%B0%E6%95%B4%E7%90%86/#comment-container"><span class="display-none-class">c53bd2e5d65b0de697f23ecdb50f4487</span><i class="far fa-comment-dots"></i> <span class="commentCount" id="c53bd2e5d65b0de697f23ecdb50f4487">99+</span>  </a><span class="level-item"><i class="far fa-clock"> </i>1 小时  <i class="fas fa-pencil-alt"> </i>10.8 k</span><span class="level-item" id="busuanzi_container_page_pv"><span id="busuanzi_value_page_pv">0</span>次访问</span></div></div><h1 class="title is-3 is-size-4-mobile">Ceph：关于Ceph 中对象存储集群组件管理的一些笔记整理</h1><div class="content"><p><strong><font color="009688"> 对每个人而言，真正的职责只有一个：找到自我。然后在心中坚守其一生，全心全意，永不停息。所有其它的路都是不完整的，是人的逃避方式，是对大众理想的懦弱回归，是随波逐流，是对内心的恐惧 ——赫尔曼·黑塞《德米安》</strong></font></p>
+<span id="more"></span>
+<h2 id="写在前面"><a href="#写在前面" class="headerlink" title="写在前面"></a>写在前面</h2><hr>
+<p>+ </p>
+<ul>
+<li>理解不足小伙伴帮忙指正</li>
+</ul>
+<p><strong><font color="009688"> 对每个人而言，真正的职责只有一个：找到自我。然后在心中坚守其一生，全心全意，永不停息。所有其它的路都是不完整的，是人的逃避方式，是对大众理想的懦弱回归，是随波逐流，是对内心的恐惧 ——赫尔曼·黑塞《德米安》</strong></font></p>
+<hr>
+<h1 id="创建对象存储集群组件"><a href="#创建对象存储集群组件" class="headerlink" title="创建对象存储集群组件"></a>创建对象存储集群组件</h1><h2 id="使用逻辑卷创建-BlueStore-OSD"><a href="#使用逻辑卷创建-BlueStore-OSD" class="headerlink" title="使用逻辑卷创建 BlueStore OSD"></a>使用逻辑卷创建 BlueStore OSD</h2><h3 id="BlueStore-简介"><a href="#BlueStore-简介" class="headerlink" title="BlueStore 简介"></a>BlueStore 简介</h3><p><code>BlueStore</code> 取代 <code>FileStore</code> 作为 OSD 的存储后端。FileStore 现已弃用</p>
+<p>FileStore 将对象存储为块设备基础上的文件系统（通常是 XFS）中的文件。</p>
+<p>BlueStore 将对象直接存储在原始<code>块设备</code>上，免除了对文件系统层的需要，从而提高了读写操作速度,通过直接操作底层块设备来管理数据，而不是传统的文件系统。</p>
+<p>这种方法提供了更好的性能和可靠性，因为可以将数据划分为较小的块并使用校验和来检测错误。此外，BlueStore可以直接与Solid State Drive（SSD）交互，并利用其快速读写速度。</p>
+<p>BlueStore还具有可扩展性，可以处理数百万个物理盘和千亿个对象。它实现了动态负载平衡和自动恢复机制，以确保高可用性和数据可靠性。</p>
+<h3 id="BlueStore-架构"><a href="#BlueStore-架构" class="headerlink" title="BlueStore 架构"></a>BlueStore 架构</h3><p>Ceph 集群中存储的对象具有：</p>
+<ul>
+<li>集群范围的唯一标识符</li>
+<li>二进制对象数据</li>
+<li>对象元数据</li>
+</ul>
+<p>BlueStore 将 对象<code>元数据</code>存储在<code>块数据库</code>中，块数据库将元数据作为键值对存储在 <code>RocksDB</code> 数据库中，这是一种高性能的键值存储，块数据库驻留于存储设备上的一个小型 <code>BlueFS</code> 分区，BlueFS 是一种最小的文件系统，设计用于保存 <code>RocksDB</code> 文件，BlueStore 利用<code>预写式日志 (WAL) </code>以原子式将数据写入到块设备。预写式日志执行日志记录功能，并记录所有事务</p>
+<h3 id="BlueStore-性能"><a href="#BlueStore-性能" class="headerlink" title="BlueStore 性能"></a>BlueStore 性能</h3><p>FileStore 先写入到日志，然后从日志中写入到块设备。</p>
+<p>BlueStore 可避免这种双重写入的性能损失，直接将数据写入块设备，同时使用单独的数据流将事务记录到预写式日志。</p>
+<p>当工作负载相似 时，BlueStore 的写操作速度约为 FileStore 的 <code>两倍</code>，如果在集群中混用不同的存储设备，您可以自定义<code>BlueStore OSD</code>来提入性能。</p>
+<p>创建新的 <code>BlueStore OSD</code> 时，默认为将<code>数据、块数据库和预写式日志</code>都放置到<code>同一个块设备上</code>。从数据中分离块数据库和预写式日志，并将它们放入更快速的 SSD 或 NVMe 设备，或许能提高性能。</p>
+<p>如果将块数据库或预写式日志放置到与对象数据不同的存储设备上，或许能够提升性能，但条件是这个设备的速度要快于主要存储设备。</p>
+<p><img src="https://img-blog.csdnimg.cn/f5bae28283824ae39d08721f37e07273.png" alt="在这里插入图片描述"></p>
+<p>例如，如果对象数据位于 <code>HDD</code> 设备上，可以通过将块数据库放在 <code>SSD</code> 设备上并将预写式日志放到 <code>NVMe</code> 设备上来提高性能</p>
+<p>使用服务规范文件定义 <code>BlueStore</code> 数据、块数据库和预写日志设备的 位置。示例如下：</p>
+<p>指定 OSD 服务对应的 BlueStore 设备</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">service_type:</span> <span class="string">osd</span></span><br><span class="line"><span class="attr">service_id:</span> <span class="string">osd_example</span></span><br><span class="line"><span class="attr">placement:</span></span><br><span class="line">  <span class="attr">host_pattern:</span> <span class="string">&#x27;*&#x27;</span></span><br><span class="line"><span class="attr">data_devices:</span> <span class="comment"># 对象数据</span></span><br><span class="line">  <span class="attr">paths:</span></span><br><span class="line">    <span class="bullet">-</span> <span class="string">/dev/vda</span></span><br><span class="line"><span class="attr">db_devices:</span>  <span class="comment"># 块数据库</span></span><br><span class="line">  <span class="attr">paths:</span> </span><br><span class="line">    <span class="bullet">-</span> <span class="string">/dev/nvme0</span></span><br><span class="line"><span class="attr">wal_devices:</span> <span class="comment"># 预写日志</span></span><br><span class="line">  <span class="attr">paths:</span> </span><br><span class="line">    <span class="bullet">-</span> <span class="string">/dev/nvme1</span></span><br></pre></td></tr></table></figure>
+
+<p>BlueStore 存储后端提供下列功能：</p>
+<ul>
+<li>允许将不同的设备用于数据、块数据库和<strong>预写式日志</strong> (WAL)</li>
+<li>支持以虚拟方式使用 HDD、SSD 和 NVMe 设备的任意组合</li>
+<li>通过提高元数据效率，可以消除对存储设备的双重写入</li>
+</ul>
+<p>BlueStore 在用户空间内运行，管理自己的缓存，并且其内存占用比 FileStore 少。如有需要，可以手动调优 BlueStore 参数，BlueStore 使用 RocksDB 存储键值元数据，<code>BlueStore默认是自调优</code>，但如果需要，可以手动调优BlueStore参数</p>
+<p>BlueStore 分区写数据的块大小为 <code>bluestore_ min_alloc_size</code> 参数的大小，缺省值为<code>4kib</code> .</p>
+<p><code>bluestore_min_alloc_size</code> 参数指定了每个对象分配所需的最小空间量，即使对象实际大小较小也会分配该数量的空间。如果要写入的数据小于该大小，则 BlueStore 将剩余空间用0填充。</p>
+<p>设置较小的 <code>bluestore_min_alloc_size</code> 可能会导致过多的碎片和浪费，因为一些较小的对象在分配时仍然需要使用与较大对象相同的空间。但是，如果设置较大的 bluestore_min_alloc_size ，则可能会浪费更多的空间，因为对象可能只使用其中的一部分空间。</p>
+<p>总之，<code>bluestore_min_alloc_size</code> 参数应根据特定的工作负载和性能需求进行调整。对于需要存储许多小型对象的应用程序，可能需要将此值设置得较小，而对于需要存储大型对象的应用程序，可能需要将此值设置得较大。</p>
+<h3 id="BlueStore-数据库分片"><a href="#BlueStore-数据库分片" class="headerlink" title="BlueStore 数据库分片"></a>BlueStore 数据库分片</h3><p><code>BlueStore</code> 可以限制存储在 <code>RocksDB</code> 中的大型 <code>map</code> 对象的大小，并将它们分布到多个列族中，这个过程被称为分片。</p>
+<p>使用 sharding(分片) 时，将访问修改频率相近的密钥分组，以<code>提高性能</code>和<code>节省磁盘空间</code>。Sharding 可以缓解RocksDB压缩的影响，压缩数据库之前，RocksDB 需要达到一定的已用空间，这会影响 OSD 性能，这些操作与已用空间级别无关，可以更精确地进行压缩，并将对 OSD 性能的影响降到最低</p>
+<p><strong>Red Hat建议配置的 RocksDB 空间至少为数据设备大小的 4%</strong></p>
+<p>在Red Hat Ceph Storage 5（Ceph Nautilus（14.x）） 中，默认启用分片，从早期版本迁移过来的集群的osd中没有启用分片，从以前版本迁移过来的集群中的osd将不会启用分片</p>
+<p>使用 <code>ceph config  get</code> 验证一个 OSD 是否启用了 sharding ，并查看当前的定义</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">[ceph: root@clienta /]<span class="comment"># ceph \</span></span><br><span class="line">	config get osd.1 bluestore_rocksdb_cf</span><br><span class="line"><span class="literal">true</span></span><br></pre></td></tr></table></figure>
+<p>为 true 的时候说明默认启用了分片</p>
+<p>osd 分片的参数定义</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">[ceph: root@clienta /]<span class="comment"># ceph \</span></span><br><span class="line">	config get osd.1 bluestore_rocksdb_cfs</span><br><span class="line">m(3) p(3,0-12) O(3,0-13)=block_cache=&#123;<span class="built_in">type</span>=binned_lru&#125; L P</span><br></pre></td></tr></table></figure>
+
+<p><code>block_cache=&#123;type=binned_lru&#125;</code>: 这是 <code>RocksDB</code> 的缓存设置。这里使用了 binned LRU 策略作为块缓存的替换策略。</p>
+<p><code>L</code>: 这是 BlueStore 的 <code>日志设置</code>，表示将日志写入硬盘而不是内存。这对数据持久性非常重要，因为任何未同步的写操作都会在下次启动时丢失。</p>
+<p><code>P</code>: 这是 BlueStore 的 <code>预分配设置</code>。预分配是一种优化技术，可以在写入新对象时事先分配足够的磁盘空间，以减少写入延迟和碎片。此处，“P”表示预分配已启用。</p>
+<p><code>m(3) p(3,0-12) O(3,0-13)</code>：在这个映射中</p>
+<ul>
+<li>m(3) 表示使用 mon0、mon1 和 mon2 作为监视器。</li>
+<li>p(3,0-12) 表示<code>数据池</code>中有 13 个 PG，它们被分配到了 OSD 0 到 OSD 12 上</li>
+<li>O(3,0-13) 表示<code>对象池</code>中也有 13 个 PG，它们被分配到了 OSD 0 到 OSD 13 上</li>
+</ul>
+<p><code>数据池（Data Pools）</code>：数据池用于存储客户端的数据。例如，如果您想在Ceph中创建一个文件系统或块设备，就必须将其存储在数据池中。数据池通常会经过复制或编码以提高容错性和可靠性。</p>
+<p><code>对象池（Object Pools）</code>：对象池用于存储Ceph内部使用的对象，如 <code>PG Map、OSD Map、Mon Map</code>等。这些对象也可以被视为元数据，因为它们包含了关于Ceph集群的配置信息和状态信息。与数据池不同，对象池通常不需要复制或编码，因为它们已经具有容错性和可靠性。</p>
+<p>在大多数 <code>Ceph</code> 用例中，<code>默认值</code>会带来良好的性能。生产集群的最佳分片定义取决于几个因素，Red Hat建议使用默认值，除非面临显著的性能问题。</p>
+<p>在生产升级的集群中，可能需要权衡在大型环境中为 RocksDB 启用分片所带来的性能优势和维护工作</p>
+<p>可以使用 <code>BlueStore</code> 管理工具 <code>ceph-bluestore-tool</code> 重新共享 <code>RocksDB</code> 数据库，而无需重新配置 <code>osd</code> 。要重新共享一个 <code>OSD</code>，需要停止守护进程并使用 <code>--sharding</code> 选项传递新的 <code>sharding</code> 定义。<code>--path</code> 选项表示 <code>OSD</code> 数据 Location，默认为<code>/var/lib/ceph/$fsid/osd.$ID/</code></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">[ceph: root@node /]<span class="comment"># ceph-bluestore-tool \</span></span><br><span class="line">	--path &lt;data path&gt; \</span><br><span class="line">	--sharding=<span class="string">&quot;m&#123;3) p&#123;3,0-12) 0(3,0-13)= block_cache=&#123;type=binned_lru&#125; L P&quot;</span> reshard</span><br></pre></td></tr></table></figure>
+
+
+
+<h3 id="提供-BlueStore-OSD"><a href="#提供-BlueStore-OSD" class="headerlink" title="提供 BlueStore OSD"></a>提供 BlueStore OSD</h3><p>作为存储管理员，可以使用 <code>Ceph Orchestrator</code> 服务在集群中添加或删除osd，添加OSD时，需要满足以下条件:</p>
+<ol>
+<li>设备不能有分区</li>
+<li>设备不能被挂载</li>
+<li>设备空间要求5GB以上</li>
+<li>设备不能包含 <code>Ceph BlueStore OSD</code></li>
+</ol>
+<p>使用<a href="">ceph orch device ls</a>命令列出集群中主机中的设备</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">[ceph: root@clienta /]<span class="comment"># ceph orch device ls</span></span><br><span class="line">Hostname                 Path      Type  Serial  Size   Health   Ident  Fault  Available  </span><br><span class="line">clienta.lab.example.com  /dev/vdb  hdd           10.7G  Unknown  N/A    N/A    Yes        </span><br><span class="line">clienta.lab.example.com  /dev/vdc  hdd           10.7G  Unknown  N/A    N/A    Yes        </span><br><span class="line">clienta.lab.example.com  /dev/vdd  hdd           10.7G  Unknown  N/A    N/A    Yes        </span><br></pre></td></tr></table></figure>
+
+<p>Available 列中标签为Yes的节点为OSD发放的候选节点。如果需要查看已使用的存储设备，请使用 <code>ceph device ls</code>命令</p>
+<p>使用<a href="">ceph orch device zap</a>命令准备设备，该命令删除所有分区并清除设备中的数据，以便将其用于资源配置，使用–force选项确保<del>删除</del>上一个OSD可能创建的任何分区</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">[ceph: root@node /]<span class="comment"># ceph orch \</span></span><br><span class="line">	device zap node /dev/vda --force</span><br></pre></td></tr></table></figure>
+
+
+
+<h3 id="回顾BlueStore配置方法"><a href="#回顾BlueStore配置方法" class="headerlink" title="回顾BlueStore配置方法"></a>回顾BlueStore配置方法</h3><p>在rhcs5中，cephadm是提供和管理osd的推荐工具，它在后台使用cephvolume工具来进行OSD操作，cephadm工具可能看不到手动操作使用ceph -volume，建议仅为故障排除手动执行ceph-volume OSD</p>
+<p>以 root 用户执行 <code>ceph orch daemon add osd</code> 命令，在指定主机上使用指定设备创建 osd</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">[ceph: root@admin /]<span class="comment"># ceph orch \</span></span><br><span class="line">	daemon add osd osd-1:/dev/vdb </span><br></pre></td></tr></table></figure>
+
+
+<p>有多种方式提供OSDs与cephadm，根据需要的集群行为考虑适当的方法</p>
+<h3 id="基于Orchestrator提供"><a href="#基于Orchestrator提供" class="headerlink" title="基于Orchestrator提供"></a>基于Orchestrator提供</h3><p>Orchestrator服务可以发现集群主机之间的可用设备，添加设备，并创建OSD守护进程。Orchestrator处理在主机之间平衡的新osd的放置，以及处理BlueStore设备选择</p>
+<p>使用<a href="">ceph orch apply osd –all-available-devices</a>命令提供所有可用的、未使用的设备</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">[ceph: root@node /]<span class="comment"># ceph \</span></span><br><span class="line">	orch apply osd --all-available-devices</span><br></pre></td></tr></table></figure>
+
+<p>该命令创建一个OSD服务，名为osd.all-available-devices，使Orchestrator服务能够管理所有OSD供应。<br>Orchestrator从集群中的新磁盘设备和使用ceph orch设备zap命令准备的现有设备自动创建osd</p>
+<p>若要禁用Orchestrator自动供应osd，请将非托管标志设置为true</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">[ceph: root@node /]<span class="comment"># ceph \</span></span><br><span class="line">	orch apply osd --all-available-devices --unmanaged=<span class="literal">true</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="基于指定目标提供"><a href="#基于指定目标提供" class="headerlink" title="基于指定目标提供"></a>基于指定目标提供</h3><p>可以使用特定的设备和主机创建OSD进程，使用ceph orch daemon add命令创建带有指定主机和存储设备的单个OSD守护进程</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[ceph: root@node /]<span class="comment"># ceph orch daemon add osd node:/dev/vdb</span></span><br></pre></td></tr></table></figure>
+
+<p>停止OSD进程，使用带OSD ID的ceph orch daemon stop命令</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[ceph: root@node /]<span class="comment"># ceph arch daemon stop osd.12 </span></span><br></pre></td></tr></table></figure>
+
+<p>使用ceph orch daemon rm命令移除OSD守护进程</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[ceph: root@node /)<span class="comment"># ceph orch daemon rm osd.12</span></span><br></pre></td></tr></table></figure>
+
+<p>释放一个OSD ID，使用ceph osd rm命令</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[ceph: root@node /]<span class="comment"># ceph osd rm 12</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="基于服务规范文件提供"><a href="#基于服务规范文件提供" class="headerlink" title="基于服务规范文件提供"></a>基于服务规范文件提供</h3><p>使用服务规范文件描述OSD服务的集群布局，可以使用过滤器自定义服务发放，通过过滤器，可以在不知道具体硬件架构的情况下配置OSD服务，这种方法在自动化集群引导和维护窗口时很有用</p>
+<p>下面是一个示例服务规范YAML文件，它定义了两个OSD服务，每个服务使用不同的过滤器来放置和BlueStore设备位置</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">service_type:</span> <span class="string">osd</span></span><br><span class="line"><span class="attr">service_id:</span> <span class="string">osd_size_and_model</span></span><br><span class="line"><span class="attr">placement:</span></span><br><span class="line">  <span class="attr">host_pattern:</span> <span class="string">&#x27;*&#x27;</span></span><br><span class="line"><span class="attr">data_devices:</span></span><br><span class="line">  <span class="attr">size:</span> <span class="string">&#x27;100G:&#x27;</span></span><br><span class="line"><span class="attr">db_devices:</span> </span><br><span class="line">  <span class="attr">model:</span> <span class="string">My-Disk</span> </span><br><span class="line"><span class="attr">wal_devices:</span></span><br><span class="line">  <span class="attr">size:</span> <span class="string">&#x27;10G:20G&#x27;</span> </span><br><span class="line"><span class="attr">unmanaged:</span> <span class="literal">true</span></span><br><span class="line"><span class="meta">---</span></span><br><span class="line"><span class="attr">service_type:</span> <span class="string">osd</span> </span><br><span class="line"><span class="attr">service_id:</span> <span class="string">osd_host_and_path</span> </span><br><span class="line"><span class="attr">placement:</span> </span><br><span class="line">  <span class="attr">host_pattern:</span> <span class="string">&#x27;node[6-10]&#x27;</span> </span><br><span class="line"><span class="attr">data_devices:</span> </span><br><span class="line">  <span class="attr">paths:</span> </span><br><span class="line">    <span class="bullet">-</span> <span class="string">/dev/sdb</span> </span><br><span class="line"><span class="attr">db_devices:</span> </span><br><span class="line">  <span class="attr">paths:</span> </span><br><span class="line">    <span class="bullet">-</span> <span class="string">/dev/sdc</span> </span><br><span class="line"><span class="attr">wal_devices:</span> </span><br><span class="line">  <span class="attr">paths:</span> </span><br><span class="line">    <span class="bullet">-</span> <span class="string">/dev/sdd</span> </span><br><span class="line"><span class="attr">encrypted:</span> <span class="literal">true</span></span><br></pre></td></tr></table></figure>
+
+<p>osd_size_and_model服务指定任何主机都可以用于放置，并且该服务将由存储管理员管理，数据设备必须有一个100gb或更多的设备，提前写日志必须有一个10 - 20gb的设备。数据库设备必须是My-Disk型号</p>
+<p>osd_host_and_path服务指定目标主机必须在node6和node10之间的节点上提供，并且服务将由协调器服务管理，数据、数据库和预写日志的设备路径必须 &#x2F;dev&#x2F;sdb、 &#x2F;dev&#x2F;sdc 和 &#x2F;dev&#x2F;sdd，此服务中的设备将被加密</p>
+<p>执行ceph orch apply命令应用服务规范</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[ceph: root@node /]<span class="comment"># ceph orch apply -i service_spec.yaml </span></span><br></pre></td></tr></table></figure>
+
+<h3 id="其他OSD实用工具"><a href="#其他OSD实用工具" class="headerlink" title="其他OSD实用工具"></a>其他OSD实用工具</h3><p>ceph-volume命令是将逻辑卷部署为osd的模块化工具，它在框架类型中使用了插件，<a href="">ceph -volume</a>实用程序支持lvm插件和原始物理磁盘，它还可以管理由遗留的<a href="">ceph-disk</a>实用程序提供的设备</p>
+<p>使用ceph-volume lvm命令手动创建和删除BlueStore osd，在块存储设备&#x2F;dev&#x2F;vdc上创建一个新的BlueStore OSD:</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">[ceph: root@node /]<span class="comment"># ceph-volume \</span></span><br><span class="line">	lvm create --bluestore --data /dev/vdc </span><br></pre></td></tr></table></figure>
+
+<p>create子命令的另一种选择是使用ceph-volume lvm prepare和ceph -volume lvm activate子命令，通过这种方法，osd逐渐引入到集群中，可以控制新的osd何时处于up或in状态，因此可以确保大量数据不会意外地在osd之间重新平衡</p>
+<p>prepare子命令用于配置OSD使用的逻辑卷，可以指定逻辑卷或设备名称，如果指定了设备名，则会自动创建一个逻辑卷</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">[ceph: root@node /]<span class="comment"># ceph-volume \</span></span><br><span class="line">	lvm prepare --bluestore --data /dev/vdc </span><br></pre></td></tr></table></figure>
+
+<p>activate子命令为OSD启用一个systemd单元，使其在启动时启动，使用activate子命令时，需要从命令ceph-vo lume lvm list的输出信息中获取OSD的fsid (UUID)。提供唯一标识符可以确保激活正确的OSD，因为OSD id可以重用</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">[ceph: root@node /]<span class="comment"># ceph-volume \</span></span><br><span class="line">	lvm activate &lt;osd-fsid&gt;</span><br></pre></td></tr></table></figure>
+
+<p>创建OSD后，使用systemctl start ceph-osd@$id命令启动OSD，使其在集群中处于up状态</p>
+<p>batch子命令可以同时创建多个osd。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">[ceph: root@node /]<span class="comment"># ceph-volume \</span></span><br><span class="line">	lvm batch --bluestore /dev/vdc /dev/vdd /dev/nvme0n1 </span><br></pre></td></tr></table></figure>
+
+<p>inventory子命令用于查询节点上所有物理存储设备的信息</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[ceph: root@node /]<span class="comment"># ceph-volume inventory</span></span><br></pre></td></tr></table></figure>
+
+
+
+<h2 id="4-2-创建和配置池"><a href="#4-2-创建和配置池" class="headerlink" title="4.2 创建和配置池"></a>4.2 创建和配置池</h2><h2 id="了解池的含义"><a href="#了解池的含义" class="headerlink" title="了解池的含义"></a>了解池的含义</h2><ol>
+<li><p>池是存储对象的逻辑分区。Ceph客户端将对象写入池</p>
+</li>
+<li><p>Ceph客户机需要集群名称(默认情况下是Ceph)和一个监视器地址来连接到集群，Ceph客户端通常从Ceph配置文件中获取这些信息，或者通过指定为命令行参数来获取</p>
+</li>
+<li><p>Ceph客户端使用集群映射检索到的池列表来确定存储新对象的位置</p>
+</li>
+<li><p>Ceph客户端创建一个输入&#x2F;输出上下文到一个特定的池，Ceph集群使用CRUSH算法将这些池映射到放置组，然后放置组映射到特定的osd</p>
+</li>
+<li><p>池为集群提供了一层弹性，因为池定义了可以在不丢失数据的情况下发生故障的osd的数量</p>
+</li>
+</ol>
+<h2 id="池类型"><a href="#池类型" class="headerlink" title="池类型"></a>池类型</h2><p>可用的池类型有复制池和纠删代码池，工作负载的用例和类型可以帮助您确定要创建<strong>复制池</strong>还是<strong>纠删代码池</strong></p>
+<ul>
+<li><p>复制池是默认的池类型，通过将各个对象复制到多个 OSD 来发挥作用，它们需要更多的存储空间， 因为会创建多个对象副本，但读取操作不受副本丢失的影响<br>对于经常访问并且需要快速读取性能的数据，复制池通常都是更好的选择。</p>
+</li>
+<li><p>纠删代码池需要的存储空间和网络带宽较小，但因为奇偶校验计算，计算开销会更高一些<br>对于不需要频繁访问且不需要低延迟的数据，纠删代码池通常是更好的选择。</p>
+</li>
+</ul>
+<p>每一种池的恢复时间取决于特定的部署和故障情景</p>
+<p>创建池后，不能修改池的类型</p>
+<h2 id="池属性"><a href="#池属性" class="headerlink" title="池属性"></a>池属性</h2><p>在创建池时，您必须指定特定的属性： </p>
+<ol>
+<li><p>pool name，必须在集群中唯一</p>
+</li>
+<li><p>pool type，决定了池用于确保数据持久性的保护机制</p>
+</li>
+<li><p>replicated 类型，将每个对象的多个副本分发到集群中</p>
+</li>
+<li><p>erasure coded 类型，将每个对象分割为多个区块，并将它们与额外的纠删代码区块一起分发，以使用自动纠错机制来保护对象</p>
+</li>
+<li><p>池中的 placement groups (PG) 数量，这将其对象存储到由 CRUSH 算法决定的一组 OSD 中</p>
+</li>
+<li><p>可选的 CRUSH rule set，Ceph 使用它来标识要用于存储池对象的放置组</p>
+</li>
+</ol>
+<p>更改 osd_pool_default_pg_num 和 osd_pool_default_pgp_num 配置设置，以设置池的默认 PG 数</p>
+<h2 id="创建复制池"><a href="#创建复制池" class="headerlink" title="创建复制池"></a>创建复制池</h2><p>Ceph通过为每个对象创建多个副本来保护复制池中的数据，Ceph使用CRUSH故障域来确定作用集的主要osd来存储数据，然后，Ceph使用CRUSH 故障域来决定主OSD来存储数据，然后住OSD查找当前的池副本数量并计算辅助OSD来写入数据，当主OSD收到写响应并完成写操作后，主OSD确认写成功到Ceph客户端，这样可以在一个或多个osd失效时保护对象中的数据</p>
+<p>使用以下命令创建一个复制池</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[ceph: root@node /]<span class="comment"># ceph osd pool create pool-name pg-num pgp-num replicated crush-rule-name </span></span><br></pre></td></tr></table></figure>
+
+<p>其中：</p>
+<ol>
+<li><p>pool_name 是新池的名称</p>
+</li>
+<li><p>pg_num 是为这个池配置的放置组 (PG) 总数</p>
+</li>
+<li><p>pgp_num 是这个池的有效放置组数量，将它设置为与 pg_num 相等</p>
+</li>
+<li><p>replicated 指定这是复制池，如果命令中未包含此参数，这是默认值</p>
+</li>
+<li><p>crush-rule-name 是想要⽤于这个池的 CRUSH 规则集的名称，osd_pool_default_crush_replicated_ruleset 配置参数设置其默认值</p>
+</li>
+</ol>
+<p>在初始配置池之后，可以调整池中放置组的数量，如果pg_num和pgp_num被设置为相同的数字，那么以后任何对pg_num的调整都会自动进行调整pgp_num的值。如果需要，对pgp_num的调整会触发跨osd的pg移动，以实现更改，使用以下命令在池中定义新的pg数量</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[ceph: root@node /]<span class="comment"># ceph osd pool set my_pool pg_num 32</span></span><br></pre></td></tr></table></figure>
+
+<p>使用ceph osd pool create命令创建池时，不指定副本个数(size)，osd_pool _default size配置参数定义了副本的数量，默认值为3</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">[ceph: root@node /]<span class="comment"># ceph config get mon osd_pool_default_size </span></span><br><span class="line">3 </span><br></pre></td></tr></table></figure>
+
+<p>使用ceph osd pool set pooI-name size number-of-replica 命令修改池大小，或者，更新osd_pool_default_size配置设置的默认设置</p>
+<p>osd_pool_default_min_size参数设置一个对象的拷贝数，必须可以接受I&#x2F;O的请求，缺省值为2</p>
+<h2 id="配置Erasure编码池"><a href="#配置Erasure编码池" class="headerlink" title="配置Erasure编码池"></a>配置Erasure编码池</h2><p>Erasure编码池使用擦除编码代替复制来保护对象数据</p>
+<p>存储在Erasure编码池中的对象被划分为多个数据块，这些数据块存储在单独的osd中，编码块的数量是根据数据块计算出来的，并存储在不同的osd中，当OSD出现故障时，编码块用于重建对象的数据，主OSD接收到写操作后，将写载荷编码成K+M块，通过Erasure编码池发送给备OSD</p>
+<p>Erasure编码池使用这种方法来保护它们的对象，并且与复制池不同，它不依赖于存储每个对象的多个副本</p>
+<p>总结Erasure编码池的工作原理:</p>
+<ol>
+<li><p>每个对象的数据被划分为k个数据块</p>
+</li>
+<li><p>计算M个编码块</p>
+</li>
+<li><p>编码块大小与数据块大小相同</p>
+</li>
+<li><p>该对象总共存储在k + m个osd上</p>
+</li>
+</ol>
+<p><img src="https://k8s.ruitong.cn:8080/Redhat/CL260-RHCS5.0-en-1-20211117/images/component/configuring-config-erasure.svg"></p>
+<p>Erasure编码比复制更有效地利用存储容量，复制池维护一个对象的n个副本，而纠删编码只维护k + m块，例如，3副本的复制池使用3倍的存储空间，k&#x3D;4和m&#x3D;2的Erasure编码池只使用1.5倍的存储空间</p>
+<p>Red Hat支持以下k+m值，从而产生相应的可用到原始比率:</p>
+<p>4 + 2(1:1.5比率)</p>
+<p>8 + 3(1:1.375比率)</p>
+<p>8 + 4(1:1.5比率)</p>
+<p>erasure code开销的计算公式为nOSD * k &#x2F; (k+m) * 0SD大小，例如，如果您有64个4TB的osd(总共256 TB)， k&#x3D;8, m&#x3D;4，那么公式是64 * 8 &#x2F;(8+4)* 4 &#x3D; 170.67，然后将原始存储容量除以开销，得到这个比率。256TB &#x2F;170.67 TB &#x3D; 1.5</p>
+<p>与复制池相比，Erasure编码池需要更少的存储空间才能获得类似级别的数据保护，从而降低存储集群的成本和规模。但是，计算编码块会增加Erasure编码池的CPU处理和内存开销，从而降低整体性能</p>
+<p>使用以下命令创建Erasure编码池</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">[ceph: root@node /]<span class="comment"># ceph \</span></span><br><span class="line">	osd pool create pool-name \</span><br><span class="line">	pg-num pgp-num \</span><br><span class="line">	erasure erasure-code-profile crush-rule-name </span><br></pre></td></tr></table></figure>
+
+<p>其中：</p>
+<ol>
+<li><p>pool-name 是新池的名称</p>
+</li>
+<li><p>pg-num 是这个池的放置组 (PG) 总数</p>
+</li>
+<li><p>pgp-num 是这个池的有效放置组数量，通常而言，这应当与 PG 总数相等</p>
+</li>
+<li><p>erasure 指定这是纠删代码池</p>
+</li>
+<li><p>erasure-code-profile 要使⽤的配置文件的名称，可以使用<a href="">ceph osd erasure-code-profile set</a> 命令创建新的配置⽂件，配置文件定义 k 和 m 值，以及要使用的纠删代码池插件。默认情况下，Ceph 使用default 配置文件</p>
+</li>
+<li><p>crush-rule-name 是要用于这个池的 CRUSH 规则集的名称。如果不设置，Ceph 将使用纠删代码池配置文件中定义的规则集</p>
+</li>
+</ol>
+<p>可以在池上配置放置组自动伸缩，自动缩放允许集群计算放置组的数量，并自动选择适当的pg_num值，自动缩放在Red Hat Ceph Storage 5中是默认启用的</p>
+<p>集群中的每个池都有一个pg_autoscale_mode选项，其值为on、off或warn</p>
+<ol>
+<li><p>on:启用自动调整池的PG计数</p>
+</li>
+<li><p>off:禁用池的PG自动伸缩</p>
+</li>
+<li><p>warn:当PG计数需要调整时，引发健康警报并将集群健康状态更改为HEALTH_WARN</p>
+</li>
+</ol>
+<p>本例在Ceph MGR节点上启用pg_autoscaler模块，并将池的自动缩放模式设置为on:</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">[ceph: root@node /]<span class="comment"># ceph mgr module enable pg_autoscaler </span></span><br><span class="line">module <span class="string">&#x27;pg_autoscaler&#x27;</span> is already enabled (always-on) </span><br><span class="line">[ceph: root@node /]<span class="comment"># ceph \</span></span><br><span class="line">	osd pool <span class="built_in">set</span> pool-name pg_autoscale_mode on </span><br><span class="line"><span class="built_in">set</span> pool 7 pg_autoscale_mode to on</span><br></pre></td></tr></table></figure>
+
+<p>纠删代码池不能使用对象映射特性，对象映射是一个对象索引，跟踪rbd对象块的分配位置，拥有池的对象映射可以提高调整大小、导出、扁平化和其他操作的性能。</p>
+<h2 id="Erasure-Code配置文件"><a href="#Erasure-Code配置文件" class="headerlink" title="Erasure Code配置文件"></a>Erasure Code配置文件</h2><p>Erasure Code配置文件配置你的Erasure Code池用来存储对象的数据块和编码块的数量，以及使用哪些Erasure Code插件和算法</p>
+<p>创建配置文件来定义不同的纠删编码参数集，Ceph在安装过程中自动创建默认概要文件，这个配置文件被配置为将对象分为两个数据块和一个编码块</p>
+<p>使用以下命令创建一个新的概要文件</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">[ceph: root@node /]<span class="comment"># ceph \</span></span><br><span class="line">	osd erasure-code-profile <span class="built_in">set</span> profile-name arguments</span><br></pre></td></tr></table></figure>
+
+<p>以下是可用的参数:</p>
+<p><strong>k</strong></p>
+<p>跨osd分割的数据块的数量，缺省值为2</p>
+<p><strong>m</strong></p>
+<p>数据不可用前可能发生故障的osd数量，缺省值为1</p>
+<p><strong>directory</strong></p>
+<p>这个可选参数是插件库的位置，默认值为&#x2F;usr&#x2F;lib64&#x2F;ceph&#x2F;erasure-code</p>
+<p><strong>plugin</strong></p>
+<p>此可选参数定义要使用的纠删编码算法</p>
+<p><strong>crush-failure-domain</strong></p>
+<p>这个可选参数定义了CRUSH故障域，它控制块的放置，默认情况下，它被设置为host，这确保一个对象的块被放置在不同主机的osd上，如果设置为osd，那么一个对象的chunk可以放置在同一主机上的osd上，将故障域设置为osd，会导致主机上所有的osd故障，弹性较差，主机失败，可以定义并使用故障域，以确保块放置在不同数据中心机架或其他指定的主机上的osd上</p>
+<p><strong>crush-device-class</strong></p>
+<p>此可选参数仅为池选择由该类设备支持的osd，典型的类可能包括hdd、ssd或nvme</p>
+<p><strong>crush-root</strong></p>
+<p>该可选参数设置CRUSH规则集的根节点</p>
+<p><strong>key&#x3D;value</strong></p>
+<p>插件可能具有该插件特有的键值参数</p>
+<p><strong>technique</strong></p>
+<p>每个插件提供一组不同的技术，用于实现不同的算法</p>
+<p>不能修改已存在存储池的erasure code配置文件</p>
+<p>使用<a href="">ceph osd erasure-code-profile ls</a> 命令列出已存在的配置文件</p>
+<p>使用<a href="">ceph osd erasure-code-profile get</a>命令查看已创建配置文件的详细信息</p>
+<p>使用<a href="">ceph osd erasure-code-profile rm</a>删除已存在的配置文件</p>
+<h2 id="管理和操作池"><a href="#管理和操作池" class="headerlink" title="管理和操作池"></a>管理和操作池</h2><p>可以查看、修改已创建的存储池，并修改存储池的配置信息</p>
+<ol>
+<li><p>使用<a href="">ceph osd pool rename</a>命令重命名池，这不会影响存储在池中的数据，如果重命名池，并且为经过身份验证的用户提供了每个池的功能，则必须使用新的池名称更新用户的功能</p>
+</li>
+<li><p>使用<a href="">ceph osd pool delete</a>命令删除osd池</p>
+</li>
+<li><p>使用<a href="">ceph osd pool set pool_name nodelete true</a>命令可以防止指定池被删除，使用实例将nodedelete设置为false以允许删除池</p>
+</li>
+<li><p>使用<a href="">ceph osd pool set</a>和<a href="">ceph osd pool get</a>命令查看和修改池配置</p>
+</li>
+<li><p>使用<a href="">ceph osd lspoolls</a>和<a href="">ceph osd pool ls detail</a>命令列出池和池配置设置</p>
+</li>
+<li><p>使用<a href="">ceph df</a>和<a href="">ceph osd pool stats</a>命令列出池的使用情况和性能统计信息</p>
+</li>
+<li><p>使用<a href="">ceph osd pool application enable</a>命令启用池中的Ceph应用，应用类型为Ceph File System的 <a href="">cepfs</a>、Ceph Block Device的<a href="">rbd</a>、RADOS Gateway的<a href="">rgw</a></p>
+</li>
+<li><p>使用<a href="">ceph osd pool set-quota</a>命令设置池配额，限制池中最大字节数或最大对象数</p>
+</li>
+</ol>
+<p>当存储池达到设置的配额时，将阻止操作，可以通过将配额值设置为0来删除配额</p>
+<p>配置这些设置值的示例，以启用对池重新配置的保护:</p>
+<p><strong>osd_ pool _default flag_nodelete</strong></p>
+<p>设置池上的nodedelete标志的默认值，设置该值为true，以防止删除池</p>
+<p><strong>osd_pool_default_flag_nopgchange</strong></p>
+<p>设置池上的nopgchange标志的默认值，设置为true可以防止pg_ num和pgp_num的变化</p>
+<p><strong>osd_pool_default_flag_nosizechange</strong></p>
+<p>设置池的nosizechange标志的默认值。设置该值为true，以防止池的大小变化</p>
+<h2 id="池名称空间"><a href="#池名称空间" class="headerlink" title="池名称空间"></a>池名称空间</h2><p>命名空间是池中对象的逻辑组，可以限制对池的访问，以便用户只能在特定的名称空间中存储或检索对象，名称空间的一个优点是限制用户访问池的一部分，名称空间对于限制应用程序的存储访问非常有用，它们允许对池进行逻辑分区，并将应用程序限制到池中的特定名称空间。</p>
+<p>可以为每个应用程序专用一个完整的池，但是拥有更多的池意味着每个OSD拥有更多的pg，而pg在计算上是非常昂贵的，随着负载的增加，这可能会降低OSD的性能，使用名称空间，可以保持池的数量相同，而不必为每个应用程序专用整个池</p>
+<p>要在名称空间中存储对象，客户机应用程序必须提供池和名称空间名称。默认情况下，每个池包含一个名称为空的名称空间，称为默认名称空间。</p>
+<p>使用rados命令从池中存储和检索对象。使用-n name和–namespace&#x3D;name选项指定要使用的池和命名空间</p>
+<p>下面以将&#x2F;etc&#x2F;services文件作为srv对象存储在系统命名空间下的mytestpool池中为例</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">[ceph: root@node /]<span class="comment"># rados \</span></span><br><span class="line">	-p mytestpool -N system   put srv /etc/services </span><br><span class="line">[ceph: root@node /]<span class="comment"># rados \</span></span><br><span class="line">	-p mytestpool -N system   ls</span><br></pre></td></tr></table></figure>
+
+<p>使用–all选项列出池中所有名称空间中的所有对象，要获得JSON格式的输出，请添加–format&#x3D;j son-pretty选项</p>
+<p>下面的例子列出了mytestpool池中的对象。mytest对象有一个空的名称空间。其他对象属于system或flowers名称空间</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">[ceph: root@node /]<span class="comment"># rados \</span></span><br><span class="line">	-p mytestpool --all ls </span><br><span class="line">[ceph: root@node /]<span class="comment"># rados \</span></span><br><span class="line">	-p mytestpool --all ls --format=json-pretty </span><br><span class="line">...</span><br></pre></td></tr></table></figure>
+
+<h2 id="4-3-管理Ceph认证"><a href="#4-3-管理Ceph认证" class="headerlink" title="4.3 管理Ceph认证"></a>4.3 管理Ceph认证</h2><h2 id="用户身份验证"><a href="#用户身份验证" class="headerlink" title="用户身份验证"></a>用户身份验证</h2><p>Red Hat Ceph Storage使用cephx协议对集群中客户端、应用程序和守护进程之间的通信进行授权。cephx协议基于共享密钥</p>
+<p>安装过程默认启用cephx，因此集群需要所有客户端应用程序进行用户身份验证和授权，Ceph使用用户帐户有以下几个目的：</p>
+<ol>
+<li><p>用于Ceph守护进程之间的内部通信</p>
+</li>
+<li><p>对于通过librados库访问集群的客户机应用程序</p>
+</li>
+<li><p>为集群管理员</p>
+</li>
+</ol>
+<p>Ceph守护进程使用的帐户名称与其关联的守护进程osd.1或mgr.serverc相匹配，并且其在安装过程中创建</p>
+<p>使用librados的客户端应用程序所使用的帐户具有<code>client.</code>名称前缀，例如，在集成OpenStack和Ceph时，通常会创建一个专用的client.openstack用户帐户。对于Ceph对象网关，安装会创建一个专用的client.rgw.hostname用户帐号，在librados之上创建定制软件的开发人员应该创建具有适当功能的专用帐户</p>
+<p>管理员帐户名也具有client.前缀。在运行ceph、rados等命令时使用，安装程序创建超级用户帐户client.admin，具有允许帐户访问所有内容和修改集群配置的功能。Ceph使用client.admin帐户用于运行管理命令，除非使用–name或–id选项明确指定用户名</p>
+<p>可以设置CEPH_ARGS环境变量来定义诸如集群名称或用户ID等参数</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[ceph: root@node /]<span class="comment"># export CEPH_ARGS=&quot;--id cephuser&quot; </span></span><br></pre></td></tr></table></figure>
+
+<p>Ceph-aware应用程序的最终用户没有Ceph集群上的帐户。相反，他们访问应用程序，然后应用程序代表他们访问Ceph。从Ceph的角度来看，应用程序就是客户端。应用程序可以通过其他机制提供自己的用户身份验证</p>
+<p>下图概述了应用程序如何提供自己的用户身份验证</p>
+<img width=60% src='https://k8s.ruitong.cn:8080/Redhat/CL260-RHCS5.0-en-1-20211117/images/component/configuring-config-auth.svg'>
+
+<p>Ceph对象网关有自己的用户数据库来认证Amazon S3和Swift用户，但使用client.rgw.hosttname用于访问集群的帐号</p>
+<h2 id="Keyring-文件"><a href="#Keyring-文件" class="headerlink" title="Keyring 文件"></a>Keyring 文件</h2><p>对于身份验证，客户端配置一个Ceph用户名和一个包含用户安全密钥的密钥环文件，Ceph在创建每个用户帐户时为其生成密匙环文件，但是，必须将此文件复制到需要它的每个客户机系统或应用程序服务器</p>
+<p>在这些客户机系统上，librados使用来自&#x2F;etc&#x2F;ceph&#x2F;ceph.conf的密匙环参数。Conf配置文件以定位密钥环文件。默认值为<code>/etc/ceph/$cluster.$name.keyring</code>密匙环。例如，对于client.openstack帐户，密钥环文件&#x2F;etc&#x2F;ceph&#x2F;ceph.client.openstack.keyring密匙环</p>
+<p>密钥环文件以纯文本的形式存储密钥，对文件进行相应的Linux文件权限保护，仅允许Linux授权用户访问，只在需要Ceph用户的密匙环文件进行身份验证的系统上部署它</p>
+<h2 id="传输密钥"><a href="#传输密钥" class="headerlink" title="传输密钥"></a>传输密钥</h2><p>cephx协议不以纯文本的形式传输共享密钥，相反，客户机从Monitor请求一个会话密钥，Monitor使用客户机的共享密钥加密会话密钥，并向客户机提供会话密钥，客户机解密会话密钥并从Monitor请求票据，以对集群守护进程进行身份验证。这类似于Kerberos协议，cephx密钥环文件类似于Kerberos keytab文件</p>
+<h2 id="配置用户身份验证"><a href="#配置用户身份验证" class="headerlink" title="配置用户身份验证"></a>配置用户身份验证</h2><p>使用命令行工具，如ceph、rados和rbd，管理员可以使用–id和–keyring选项指定用户帐户和密钥环文件。如果没有指定，命令作为client.admin进行身份验证</p>
+<p>在本例中，ceph命令作为client.operator3进行身份验证列出可用的池</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">[ceph: root@node /]<span class="comment"># ceph \</span></span><br><span class="line">	--id operator3 \</span><br><span class="line">	osd lspools</span><br></pre></td></tr></table></figure>
+
+<p>在使用–id 的时候不适用client.的前缀，–id会自动使用client.前缀，而使用–name的时候就需要使用client.的前缀</p>
+<p>如果将密钥环文件存储在默认位置，则不需要–keyring选项。cephadm shell自动从&#x2F;etc&#x2F;ceph&#x2F;目录挂载密钥环</p>
+<h2 id="配置用户授权"><a href="#配置用户授权" class="headerlink" title="配置用户授权"></a>配置用户授权</h2><p>创建新用户帐户时，授予群集权限，以授权用户的群集任务，cephx中的权限被称为能力，可以通过守护进程类型(mon、osd、mgr或mds)授予它们，使用功能来根据应用程序标记限制或提供对池、池的名称空间或一组池中的数据的访问。功能还允许集群中的守护进程相互交互</p>
+<h2 id="Cephx能力"><a href="#Cephx能力" class="headerlink" title="Cephx能力"></a>Cephx能力</h2><p>在cephx中，对于每个守护进程类型，有几个可用的功能：</p>
+<p><strong>R</strong> 授予读访问权限，每个用户帐户至少应该对监视器具有读访问权限，以便能够检索CRUSH map</p>
+<p><strong>W</strong> 授予写访问权限，客户端需要写访问来存储和修改osd上的对象。对于manager (MGRs)， w授予启用或禁用模块的权限</p>
+<p><strong>X</strong> 授予执行扩展对象类的授权，这允许客户端对对象执行额外的操作，比如用rados lock get或list列出RBD图像</p>
+<p>***** 授予完全访问权</p>
+<p><strong>class-read和class-write</strong> 是x的子集，你通常在RBD池中使用它们</p>
+<p>本例创建了formyappl用户帐户，并赋予了从任意池中存储和检索对象的能力：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">[ceph: root@node /]<span class="comment"># ceph auth \</span></span><br><span class="line">	get-or-create client.formyappl \</span><br><span class="line">	mon <span class="string">&#x27;allow r&#x27;</span> \</span><br><span class="line">	osd <span class="string">&#x27;allow rw&#x27;</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="使用配置文件设置能力"><a href="#使用配置文件设置能力" class="headerlink" title="使用配置文件设置能力"></a>使用配置文件设置能力</h2><p>Cephx提供预定义的功能配置文件，在创建用户帐户时，利用配置文件简化用户访问权限的配置</p>
+<p>本例通过rbd配置文件定义新的forrbd用户帐号的访问权限，客户端应用程序可以使用该帐户使用RADOS块设备对Ceph存储进行基于块的访问</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">[ceph: root@node /]<span class="comment"># ceph auth \</span></span><br><span class="line">	get-or-create client.forrbd \</span><br><span class="line">	mon <span class="string">&#x27;profile rbd&#x27;</span> \</span><br><span class="line">	osd <span class="string">&#x27;profile rbd&#x27;</span></span><br></pre></td></tr></table></figure>
+
+<p>rbd-read-only配置文件的工作方式相同，但授予只读访问权限，Ceph利用其他现有的配置文件在守护进程之间进行内部通信，不能创建自己的配置文件，Ceph在内部定义它们</p>
+<p>下表列出了默认安装下Ceph的功能</p>
+<table>
+<thead>
+<tr>
+<th align="center">能力</th>
+<th>描述</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center"><code>allow</code></td>
+<td>授予允许能力</td>
+</tr>
+<tr>
+<td align="center"><code>r</code></td>
+<td>赋予用户读访问权限，需要监视器来检索CRUSH map</td>
+</tr>
+<tr>
+<td align="center"><code>w</code></td>
+<td>赋予用户对对象的写访问权</td>
+</tr>
+<tr>
+<td align="center"><code>x</code></td>
+<td>使用户能够调用类方法(即读取和写入)并在监视器上执行身份验证操作</td>
+</tr>
+<tr>
+<td align="center">class-read</td>
+<td>赋予用户调用类读取方法的能力，x的子集</td>
+</tr>
+<tr>
+<td align="center">class-write</td>
+<td>赋予用户调用类写入方法的能力，x的子集</td>
+</tr>
+<tr>
+<td align="center">*</td>
+<td>为用户提供特定守护进程或池的读、写和执行权限，以及执行管理命令的能力</td>
+</tr>
+<tr>
+<td align="center"><code>profile osd</code></td>
+<td>允许用户作为OSD连接到其他OSD或监视器，授予osd权限，使osd能够处理复制心跳流量和状态报告。</td>
+</tr>
+<tr>
+<td align="center">profile bootstrap-osd</td>
+<td>允许用户引导一个OSD，这样用户在引导一个OSD时就有了添加key的权限</td>
+</tr>
+<tr>
+<td align="center"><code>profile rbd</code></td>
+<td>允许用户对Ceph块设备进行读写访问</td>
+</tr>
+<tr>
+<td align="center">profile rbd-read-only</td>
+<td>为用户提供对Ceph块设备的只读访问权限</td>
+</tr>
+</tbody></table>
+<h2 id="限制访问"><a href="#限制访问" class="headerlink" title="限制访问"></a>限制访问</h2><p>限制用户OSD的权限，使用户只能访问自己需要的池</p>
+<p>下面的例子创建了formyapp2用户，并限制了他们对myapp池的读写权限:</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">[ceph: root@node /]<span class="comment"># ceph auth \</span></span><br><span class="line">	get-or-create client.formyapp2 \</span><br><span class="line">	mon <span class="string">&#x27;allow r&#x27;</span> \</span><br><span class="line">	osd <span class="string">&#x27;allow rw pool=myapp&#x27;</span></span><br></pre></td></tr></table></figure>
+
+<p>如果在配置功能时没有指定池，那么Ceph将在所有现有的池上设置它们，cephx机制可以通过其他方式限制对对象的访问:</p>
+<p><strong>通过对象名称前缀</strong>，下面的示例限制对任何池中名称以pref开头的对象的访问</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">[ceph: root@node /]<span class="comment"># ceph auth \</span></span><br><span class="line">	get-or-create client.formyapp3 \</span><br><span class="line">	mon <span class="string">&#x27;allow r&#x27;</span> \</span><br><span class="line">	osd <span class="string">&#x27;allow rw object_prefix pref&#x27;</span></span><br></pre></td></tr></table></figure>
+
+<p>通过namespace，实现namespace来对池中的对象进行逻辑分组，然后可以将用户帐户限制为属于特定namespace的对象：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">[ceph: root@node /)<span class="comment"># ceph auth \</span></span><br><span class="line">	get-or-create client.designer \</span><br><span class="line">	mon <span class="string">&#x27;allow r&#x27;</span> \</span><br><span class="line">	osd <span class="string">&#x27;allow rw namespace=photos&#x27;</span></span><br></pre></td></tr></table></figure>
+
+<p>通过路径，Ceph文件系统(cepphfs)利用这种方法来限制对特定目录的访问，下面的例子创建了一个新的用户帐户webdesigner，它只能访问&#x2F;webcontent目录及其内容:</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">[ceph: root@node /]<span class="comment"># ceph \</span></span><br><span class="line">	fs authorize WEBFS \</span><br><span class="line">	client.webdesigner \</span><br><span class="line">  /webcontent rw </span><br><span class="line">[ceph: root@node /]<span class="comment"># ceph auth get client.webdesigner </span></span><br><span class="line">exported keyring <span class="keyword">for</span> client .webdesigner </span><br><span class="line">[client.webdesigner] </span><br><span class="line">key = AQBrVE9aNwoEGRAApYR6m71ECRzUlLpp4wEJkw== </span><br><span class="line">caps mds = <span class="string">&quot;allow rw path=/webcontent&quot;</span> </span><br><span class="line">caps mon = <span class="string">&quot;allow r&quot;</span> </span><br><span class="line">caps osd = <span class="string">&quot;allow rw pool=cephfs_data&quot;</span></span><br></pre></td></tr></table></figure>
+
+<p>通过monitor命令，这种方法将管理员限制在特定的命令列表中，创建operator1用户帐户并限制其访问两个命令的示例如下:</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">[ceph: root@node /]<span class="comment"># ceph auth \</span></span><br><span class="line">	get-or-create client.operator1 \</span><br><span class="line">	mon <span class="string">&#x27;allow r, allow command &quot;auth get-or-create&quot;, allow command &quot;auth list&quot; &#x27;</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="用户管理"><a href="#用户管理" class="headerlink" title="用户管理"></a>用户管理</h2><p>需要查询现有用户，使用ceph auth list命令</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">[ceph: root@node /]<span class="comment"># ceph auth list </span></span><br><span class="line">... output omitted ... </span><br><span class="line">osd.0 </span><br><span class="line">key: AQBW6Tha5z6OIhAAMQ7nY/4MogYecxKqQxX1sA== </span><br><span class="line">caps : [mgr] allow profile osd</span><br><span class="line">caps: [mon] allow profile osd </span><br><span class="line">caps: [osd] allow * </span><br><span class="line">client.admin </span><br><span class="line">key: AQCi6Dhajw7pIRAA/ECkwyipx2/raLWjgbklyA== </span><br><span class="line">caps: [mds] allow * </span><br><span class="line">caps: [mgr] allow * </span><br><span class="line">caps: [mon] allow * </span><br><span class="line">caps: [osd] allow * </span><br><span class="line">. . . output omitted ... </span><br></pre></td></tr></table></figure>
+
+<p>要获取特定帐户的详细信息，使用ceph auth get命令:</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">[ceph: root@node /]<span class="comment"># ceph auth get client.admin </span></span><br><span class="line">exported keyring <span class="keyword">for</span> client.admin </span><br><span class="line">[client . ad min] </span><br><span class="line">key = AQCi6Dhajw7pIRAA/ECkwyipx2/raLWj gbklyA== </span><br><span class="line">caps mds = <span class="string">&quot;allow *&quot;</span> </span><br><span class="line">caps mgr = <span class="string">&quot;allow *&quot;</span> </span><br><span class="line">caps mon = <span class="string">&quot;allow *&quot;</span> </span><br><span class="line">caps osd = <span class="string">&quot;allow *&quot;</span> </span><br></pre></td></tr></table></figure>
+
+<p>可以打印密钥：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">[ceph: root@node /]<span class="comment"># ceph auth print-key client.adrnin </span></span><br><span class="line">AQCi6Dhajw7pIRAA/ECkwyipx2/raLWjgbklyA== </span><br></pre></td></tr></table></figure>
+
+<p>需要导出和导入用户帐号，使用ceph auth export和ceph auth import命令</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">[ceph: root@node /]<span class="comment"># ceph auth \</span></span><br><span class="line">	<span class="built_in">export</span> client.operator1 &gt; ~/operatorl.export </span><br><span class="line">[ceph: root@node /]<span class="comment"># ceph auth \</span></span><br><span class="line">	import -i ~/operator1.export </span><br></pre></td></tr></table></figure>
+
+<h2 id="创建新用户帐户"><a href="#创建新用户帐户" class="headerlink" title="创建新用户帐户"></a>创建新用户帐户</h2><p>ceph auth get-or-create命令创建一个新用户帐户并生成它的密钥，该命令默认将该密钥打印到stdout，因此通常会添加-o选项来将标准输出保存到密钥环文件中。</p>
+<p>本例创建了对所有池具有读写权限的app1用户帐户，并将密钥环文件存储在 <code>/etc/ceph/ceph.client.app1.keyring</code></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">[ceph: root@node /]<span class="comment"># ceph auth \</span></span><br><span class="line">	get-or-create client.app1 \</span><br><span class="line">	mon <span class="string">&#x27;allow r&#x27;</span> \</span><br><span class="line">	osd <span class="string">&#x27;allow rw&#x27;</span> \</span><br><span class="line">	-o /etc/ceph/ceph.client.app1.keyring</span><br></pre></td></tr></table></figure>
+
+<p>身份验证需要密匙环文件，因此必须将该文件复制到使用此新用户帐户操作的所有客户端系统</p>
+<h2 id="修改用户能力"><a href="#修改用户能力" class="headerlink" title="修改用户能力"></a>修改用户能力</h2><p>用 ceph auth caps 命令修改用户帐户的能力，这个例子修改了 osd 上的 appuser account 功能，只允许对myapp池进行读写访问:</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">[ceph: root@node /]<span class="comment"># ceph auth \</span></span><br><span class="line">	caps client.app1 \</span><br><span class="line">	mon <span class="string">&#x27;allow r&#x27;</span> \</span><br><span class="line">	osd <span class="string">&#x27;allow rw pool=myapp&#x27;</span> </span><br><span class="line">updated caps <span class="keyword">for</span> client.app1 </span><br></pre></td></tr></table></figure>
+
+<p><code>ceph auth caps</code> 命令覆盖现有功能，使用该命令时，必须为所有守护进程指定完整的功能集，而不仅仅是要修改的那些。定义一个空字符串来删除所有功能。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">[ceph: root@node /]<span class="comment"># ceph auth caps client.app1 osd &#x27;&#x27; </span></span><br><span class="line">updated caps <span class="keyword">for</span> client.app1 </span><br></pre></td></tr></table></figure>
+
+<h2 id="删除用户帐号"><a href="#删除用户帐号" class="headerlink" title="删除用户帐号"></a>删除用户帐号</h2><p>ceph auth del命令用于删除用户帐号</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">[ceph: root@node /]<span class="comment"># ceph auth del client.app1</span></span><br><span class="line">updated</span><br></pre></td></tr></table></figure>
+
+<p>然后可以删除相关的密钥环文件</p>
+<h2 id="博文部分内容参考"><a href="#博文部分内容参考" class="headerlink" title="博文部分内容参考"></a>博文部分内容参考</h2><p>© 文中涉及参考链接内容版权归原作者所有，如有侵权请告知，这是一个开源项目，如果你认可它，不要吝啬星星哦 :)</p>
+<hr>
+<hr>
+<p>© 2018-至今 <a href="mailto:&#108;&#105;&#114;&#x75;&#105;&#108;&#111;&#x6e;&#103;&#101;&#114;&#64;&#103;&#109;&#97;&#x69;&#x6c;&#46;&#99;&#x6f;&#109;">&#108;&#105;&#114;&#x75;&#105;&#108;&#111;&#x6e;&#103;&#101;&#114;&#64;&#103;&#109;&#97;&#x69;&#x6c;&#46;&#99;&#x6f;&#109;</a>, All rights reserved. 保持署名-非商用-相同方式共享(CC BY-NC-SA 4.0)</p>
+</div><div class="article-licensing box"><div class="licensing-title"><p>Ceph：关于Ceph 中对象存储集群组件管理的一些笔记整理</p><p><a href="https://liruilongs.github.io/2023/04/16/rhca/CL260/ceph/Ceph：关于Ceph-中对象存储集群组件管理的一些笔记整理/">https://liruilongs.github.io/2023/04/16/rhca/CL260/ceph/Ceph：关于Ceph-中对象存储集群组件管理的一些笔记整理/</a></p></div><div class="licensing-meta level is-mobile"><div class="level-left"><div class="level-item is-narrow"><div><h6>作者</h6><a href="https://liruilongs.github.io"><p>山河已无恙</p></a></div></div><div class="level-item is-narrow"><div><h6>发布于</h6><p>2023-04-16</p></div></div><div class="level-item is-narrow"><div><h6>更新于</h6><p>2024-11-22</p></div></div><div class="level-item is-narrow"><div><h6>许可协议</h6><p><a class="icon" rel="noopener" target="_blank" title="Creative Commons" href="https://creativecommons.org/"><i class="fab fa-creative-commons"></i></a><a class="icon" rel="noopener" target="_blank" title="Attribution" href="https://creativecommons.org/licenses/by/4.0/"><i class="fab fa-creative-commons-by"></i></a><a class="icon" rel="noopener" target="_blank" title="Noncommercial" href="https://creativecommons.org/licenses/by-nc/4.0/"><i class="fab fa-creative-commons-nc"></i></a></p></div></div></div></div></div><div class="recommend-area"><div class="recommend-post"><span class="is-size-6 has-text-grey has-mr-7"># 相关文章</span><br><span>  1.<a class="is-size-6" href="/2023/10/16/rhca/CL260/Ceph%EF%BC%9A%E5%85%B3%E4%BA%8ECeph%20%E4%B8%AD%E5%88%9B%E5%BB%BA%E5%92%8C%E7%AE%A1%E7%90%86%E8%87%AA%E5%AE%9A%E4%B9%89%20CRUSH%20map%E7%9A%84%E4%B8%80%E4%BA%9B%E7%AC%94%E8%AE%B0%E6%95%B4%E7%90%86(11)/" target="_blank">Ceph：关于Ceph 中创建和管理自定义 CRUSH map的一些笔记整理(11)</a><br></span><span>  2.<a class="is-size-6" href="/2023/06/25/rhca/CL260/Ceph%EF%BC%9A%E5%85%B3%E4%BA%8ECeph%20%E9%9B%86%E7%BE%A4%E4%B8%AD%E6%95%B0%E6%8D%AE%E5%88%86%E5%B8%83%E5%92%8C%E5%AE%B9%E7%81%BE%E6%95%B4%E7%90%86%E7%9A%84%E4%B8%80%E4%BA%9B%E7%AC%94%E8%AE%B0(4)/" target="_blank">Ceph：关于Ceph 集群中数据分布和容灾整理的一些笔记(4)</a><br></span><span>  3.<a class="is-size-6" href="/2023/06/24/rhca/CL260/Ceph%EF%BC%9A%20Ceph%20%E5%AF%B9%E8%B1%A1%E5%AD%98%E5%82%A8%E9%9B%86%E7%BE%A4%E6%80%A7%E8%83%BD%E8%B0%83%E4%BC%98(17)/" target="_blank">Ceph： Ceph 对象存储集群性能调优(17)</a><br></span><span>  4.<a class="is-size-6" href="/2023/06/14/rhca/CL260/Ceph-%E5%85%B3%E4%BA%8ECeph-%E4%B8%AD%E4%BD%BF%E7%94%A8%E7%BA%A2%E5%B8%BD-Ceph-%E5%AD%98%E5%82%A8%E7%AE%A1%E7%90%86%E4%BA%91%E5%B9%B3%E5%8F%B0(19)/" target="_blank">Ceph:关于Ceph 中使用红帽 Ceph 存储管理云平台(19)</a><br></span><span>  5.<a class="is-size-6" href="/2023/06/14/rhca/CL260/Ceph%EF%BC%9A%E5%85%B3%E4%BA%8ECeph%20%E4%B8%AD%E5%A6%82%E4%BD%95%E4%BC%98%E5%8C%96%E5%AD%98%E5%82%A8%E6%80%A7%E8%83%BD%E7%9A%84%E4%B8%80%E4%BA%9B%E7%AC%94%E8%AE%B0%E6%95%B4%E7%90%86(16)/" target="_blank">Ceph：关于Ceph 中如何优化存储性能的一些笔记整理(16)</a><br></span><span>  6.<a class="is-size-6" href="/2023/06/14/rhca/CL260/Ceph-%E5%85%B3%E4%BA%8ECeph-%E4%B8%AD%E7%AE%A1%E7%90%86%E7%BA%A2%E5%B8%BD-Ceph-%E5%AD%98%E5%82%A8%E9%9B%86%E7%BE%A4(16)/" target="_blank">Ceph:关于Ceph 中管理红帽 Ceph 存储集群(16)</a><br></span><span>  7.<a class="is-size-6" href="/2023/06/14/rhca/CL260/Ceph%EF%BC%9A%E5%85%B3%E4%BA%8ECeph-%E4%B8%AD%E4%BD%BF%E7%94%A8-CephFS-%E6%8F%90%E4%BE%9B%E6%96%87%E4%BB%B6%E5%AD%98%E5%82%A8%E7%9A%84%E4%B8%80%E4%BA%9B%E7%AC%94%E8%AE%B0%E6%95%B4%E7%90%86(15)/" target="_blank">Ceph:关于Ceph 中使用 CephFS 提供文件存储</a><br></span><span>  8.<a class="is-size-6" href="/2023/06/13/rhca/CL260/%E5%85%B3%E4%BA%8ECeph-%E4%B8%ADRBD-%E5%9D%97%E5%AD%98%E5%82%A8%E6%89%A9%E5%B1%95%E6%93%8D%E4%BD%9C-%E8%B7%A8%E9%9B%86%E7%BE%A4RBD%E9%95%9C%E5%83%8F%E3%80%81%E5%A4%9A%E6%A8%A1%E5%BC%8F%E3%80%81iSCSI%E5%9D%97%E5%AD%98%E5%82%A8%E7%AD%89(12)/" target="_blank">关于Ceph 中RBD 块存储扩展操作(跨集群RBD镜像、多模式、iSCSI块存储等)</a><br></span></div><div class="recommend-post"><span class="is-size-6 has-text-grey has-mr-7"># 推荐文章</span><br><span>  1.<a class="is-size-6" href="/2021/08/27/K8s/%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/%E3%80%8AKubernetes%E6%9D%83%E5%A8%81%E6%8C%87%E5%8D%97-%E4%BB%8EDocker%E5%88%B0Kubernetes%E5%AE%9E%E8%B7%B5%E5%85%A8%E6%8E%A5%E8%A7%A6%E3%80%8B%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/" target="_blank">《Kubernetes权威指南:从Docker到Kubernetes实践全接触》读书笔记</a><br></span><span>  2.<a class="is-size-6" href="/2022/11/19/Git/%E5%85%B3%E4%BA%8E-Git-%E9%87%8D%E5%86%99%E5%8E%86%E5%8F%B2%E7%9A%84%E4%B8%80%E4%BA%9B%E7%AC%94%E8%AE%B0/" target="_blank">关于 Git 重写历史的一些笔记</a><br></span><span>  3.<a class="is-size-6" href="/2022/08/02/Git/%E5%85%B3%E4%BA%8EGit%E5%88%86%E6%94%AF%E5%8F%98%E5%9F%BA%E6%93%8D%E4%BD%9C%E7%9A%84%E4%B8%80%E4%BA%9B%E7%AC%94%E8%AE%B0/" target="_blank">关于Git分支变基操作的一些笔记</a><br></span><span>  4.<a class="is-size-6" href="/2022/07/26/Git/%E5%85%B3%E4%BA%8EGit%E5%88%86%E6%94%AF%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86%E7%9A%84%E4%B8%80%E4%BA%9B%E7%AC%94%E8%AE%B0/" target="_blank">关于Git分支基础知识的一些笔记</a><br></span><span>  5.<a class="is-size-6" href="/2022/08/02/Git/%E5%85%B3%E4%BA%8EGit%E5%88%86%E6%94%AF%E5%B7%A5%E4%BD%9C%E6%B5%81%E7%9A%84%E4%B8%80%E4%BA%9B%E7%AC%94%E8%AE%B0/" target="_blank">关于Git分支工作流的一些笔记</a><br></span><span>  6.<a class="is-size-6" href="/2023/02/19/Git/%E5%85%B3%E4%BA%8EGit%E9%AB%98%E7%BA%A7%E5%90%88%E5%B9%B6%E7%9A%84%E4%B8%80%E4%BA%9B%E7%AC%94%E8%AE%B0%E6%95%B4%E7%90%86/" target="_blank">关于Git分支高级合并的一些笔记整理</a><br></span></div></div><link rel="stylesheet" href="https://cdnjs.loli.net/ajax/libs/social-share.js/1.0.16/css/share.min.css"><div class="social-share"></div><script src="https://cdnjs.loli.net/ajax/libs/social-share.js/1.0.16/js/social-share.min.js"></script></article></div><div class="card"><div class="card-content"><h3 class="menu-label has-text-centered">喜欢这篇文章？打赏一下作者吧</h3><div class="buttons is-centered"><a class="button donate" data-type="alipay"><span class="icon is-small"><i class="fab fa-alipay"></i></span><span>支付宝</span><span class="qrcode"><img src="/img/alipay%EF%BF%A5.png" alt="支付宝"></span></a><a class="button donate" data-type="wechat"><span class="icon is-small"><i class="fab fa-weixin"></i></span><span>微信</span><span class="qrcode"><img src="/img/wechat%EF%BF%A5.png" alt="微信"></span></a></div></div></div><nav class="post-navigation mt-4 level is-mobile"><div class="level-start"><a class="article-nav-prev level level-item link-muted" href="/2023/04/16/rhca/CL260/Ceph%EF%BC%9A%E5%85%B3%E4%BA%8ECeph%20%E4%B8%AD%E4%BD%BF%E7%94%A8%20RADOS%20%E7%BD%91%E5%85%B3%E6%8F%90%E4%BE%9B%E5%AF%B9%E8%B1%A1%E5%AD%98%E5%82%A8%E7%9A%84%E4%B8%80%E4%BA%9B%E7%AC%94%E8%AE%B0%E6%95%B4%E7%90%86(13)/"><i class="level-item fas fa-chevron-left"></i><span class="level-item">Ceph：关于Ceph 中使用 RADOS 网关提供对象存储的一些笔记整理(13)</span></a></div><div class="level-end"><a class="article-nav-next level level-item link-muted" href="/2023/04/15/rhca/DO280/OpenShift%EF%BC%9A%E5%85%B3%E4%BA%8EOpenShift(OKD)%E9%80%9A%E8%BF%87%E5%91%BD%E4%BB%A4%E8%A1%8C%E7%9A%84%E6%96%B9%E5%BC%8F%E9%83%A8%E7%BD%B2%E9%95%9C%E5%83%8F%E4%BB%A5%E5%8F%8AS2I%E6%B5%81%E7%A8%8BDemo/"><span class="level-item">OpenShift：关于OpenShift(OKD)通过命令行的方式部署镜像以及S2I流程Demo</span><i class="level-item fas fa-chevron-right"></i></a></div></nav><!--!--><div class="card"><div class="card-content"><div class="title is-5">评论</div><div id="comment-container"></div><link rel="stylesheet" href="https://cdnjs.loli.net/ajax/libs/gitalk/1.6.0/gitalk.css"><script> $.getScript('/js/gitalk.min.js', function () { 
+            var gitalk = new Gitalk({
+            language:'zh-CN',
+            id: 'c53bd2e5d65b0de697f23ecdb50f4487',
+            repo: 'blog_comment',
+            owner: 'LIRUILONGS',
+            clientID: '9fdc9739266d48d5f62e',
+            clientSecret: 'c1cc33697d099a2197650ec9dadcb16bd4904655',
+            admin: ["LIRUILONGS"],
+            createIssueManually: true,
+            distractionFreeMode: true,
+            perPage: 10,
+            pagerDirection: 'last',
+            proxy: 'https://cors-anywhere.azm.workers.dev/https://github.com/login/oauth/access_token',
+            
+            enableHotKey: true,
+            isLocked: false
+        })
+        gitalk.render('comment-container')});</script></div></div></div><div class="column column-left is-4-tablet is-4-desktop is-3-widescreen  order-1 is-sticky"><div class="card widget" id="toc" data-type="toc"><div class="card-content"><div class="menu"><h3 class="menu-label">目录</h3><ul class="menu-list"><ul class="menu-list"><li><a class="is-flex is-mobile" href="#写在前面"><span class="mr-2">1.1</span><span>写在前面</span></a></li></ul><li><a class="is-flex is-mobile" href="#创建对象存储集群组件"><span class="mr-2">2</span><span>创建对象存储集群组件</span></a><ul class="menu-list"><li><a class="is-flex is-mobile" href="#使用逻辑卷创建-BlueStore-OSD"><span class="mr-2">2.1</span><span>使用逻辑卷创建 BlueStore OSD</span></a><ul class="menu-list"><li><a class="is-flex is-mobile" href="#BlueStore-简介"><span class="mr-2">2.1.1</span><span>BlueStore 简介</span></a></li><li><a class="is-flex is-mobile" href="#BlueStore-架构"><span class="mr-2">2.1.2</span><span>BlueStore 架构</span></a></li><li><a class="is-flex is-mobile" href="#BlueStore-性能"><span class="mr-2">2.1.3</span><span>BlueStore 性能</span></a></li><li><a class="is-flex is-mobile" href="#BlueStore-数据库分片"><span class="mr-2">2.1.4</span><span>BlueStore 数据库分片</span></a></li><li><a class="is-flex is-mobile" href="#提供-BlueStore-OSD"><span class="mr-2">2.1.5</span><span>提供 BlueStore OSD</span></a></li><li><a class="is-flex is-mobile" href="#回顾BlueStore配置方法"><span class="mr-2">2.1.6</span><span>回顾BlueStore配置方法</span></a></li><li><a class="is-flex is-mobile" href="#基于Orchestrator提供"><span class="mr-2">2.1.7</span><span>基于Orchestrator提供</span></a></li><li><a class="is-flex is-mobile" href="#基于指定目标提供"><span class="mr-2">2.1.8</span><span>基于指定目标提供</span></a></li><li><a class="is-flex is-mobile" href="#基于服务规范文件提供"><span class="mr-2">2.1.9</span><span>基于服务规范文件提供</span></a></li><li><a class="is-flex is-mobile" href="#其他OSD实用工具"><span class="mr-2">2.1.10</span><span>其他OSD实用工具</span></a></li></ul></li><li><a class="is-flex is-mobile" href="#4-2-创建和配置池"><span class="mr-2">2.2</span><span>4.2 创建和配置池</span></a></li><li><a class="is-flex is-mobile" href="#了解池的含义"><span class="mr-2">2.3</span><span>了解池的含义</span></a></li><li><a class="is-flex is-mobile" href="#池类型"><span class="mr-2">2.4</span><span>池类型</span></a></li><li><a class="is-flex is-mobile" href="#池属性"><span class="mr-2">2.5</span><span>池属性</span></a></li><li><a class="is-flex is-mobile" href="#创建复制池"><span class="mr-2">2.6</span><span>创建复制池</span></a></li><li><a class="is-flex is-mobile" href="#配置Erasure编码池"><span class="mr-2">2.7</span><span>配置Erasure编码池</span></a></li><li><a class="is-flex is-mobile" href="#Erasure-Code配置文件"><span class="mr-2">2.8</span><span>Erasure Code配置文件</span></a></li><li><a class="is-flex is-mobile" href="#管理和操作池"><span class="mr-2">2.9</span><span>管理和操作池</span></a></li><li><a class="is-flex is-mobile" href="#池名称空间"><span class="mr-2">2.10</span><span>池名称空间</span></a></li><li><a class="is-flex is-mobile" href="#4-3-管理Ceph认证"><span class="mr-2">2.11</span><span>4.3 管理Ceph认证</span></a></li><li><a class="is-flex is-mobile" href="#用户身份验证"><span class="mr-2">2.12</span><span>用户身份验证</span></a></li><li><a class="is-flex is-mobile" href="#Keyring-文件"><span class="mr-2">2.13</span><span>Keyring 文件</span></a></li><li><a class="is-flex is-mobile" href="#传输密钥"><span class="mr-2">2.14</span><span>传输密钥</span></a></li><li><a class="is-flex is-mobile" href="#配置用户身份验证"><span class="mr-2">2.15</span><span>配置用户身份验证</span></a></li><li><a class="is-flex is-mobile" href="#配置用户授权"><span class="mr-2">2.16</span><span>配置用户授权</span></a></li><li><a class="is-flex is-mobile" href="#Cephx能力"><span class="mr-2">2.17</span><span>Cephx能力</span></a></li><li><a class="is-flex is-mobile" href="#使用配置文件设置能力"><span class="mr-2">2.18</span><span>使用配置文件设置能力</span></a></li><li><a class="is-flex is-mobile" href="#限制访问"><span class="mr-2">2.19</span><span>限制访问</span></a></li><li><a class="is-flex is-mobile" href="#用户管理"><span class="mr-2">2.20</span><span>用户管理</span></a></li><li><a class="is-flex is-mobile" href="#创建新用户帐户"><span class="mr-2">2.21</span><span>创建新用户帐户</span></a></li><li><a class="is-flex is-mobile" href="#修改用户能力"><span class="mr-2">2.22</span><span>修改用户能力</span></a></li><li><a class="is-flex is-mobile" href="#删除用户帐号"><span class="mr-2">2.23</span><span>删除用户帐号</span></a></li><li><a class="is-flex is-mobile" href="#博文部分内容参考"><span class="mr-2">2.24</span><span>博文部分内容参考</span></a></li></ul></li></ul></div></div><style>.menu-list > li > a.is-active + .menu-list { display: block; }.menu-list > li > a + .menu-list { display: none; }</style><script src="/js/toc.js" defer></script></div><div class="card widget" data-type="profile"><div class="card-content"><nav class=""><div class="level-item has-text-centered flex-shrink-1"><div><figure class="image is-128x128 mx-auto mb-2"><img class="avatar" src="/img/%E5%BE%AE%E4%BF%A1%E5%85%AC%E4%BC%97%E5%8F%B7.jpg" alt="山河已无恙"></figure><p class="title is-size-4 is-block" style="line-height:inherit;">山河已无恙</p><p class="is-size-6 is-block">爱自己，是终生浪漫的开始</p><p class="is-size-6 is-flex justify-content-center"><i class="fas fa-map-marker-alt mr-1"></i><span>中国·呼和浩特</span></p></div></div></nav><nav class="level is-mobile"><div class="level-item has-text-centered is-marginless"><div><p class="heading">文章</p><a href="/archives"><p class="title">421</p></a></div></div><div class="level-item has-text-centered is-marginless"><div><p class="heading">分类</p><a href="/categories"><p class="title">138</p></a></div></div><div class="level-item has-text-centered is-marginless"><div><p class="heading">标签</p><a href="/tags"><p class="title">186</p></a></div></div></nav><div class="level"><a class="level-item button is-primary is-rounded" href="https://mp.weixin.qq.com/s?__biz=MzkyNjIxNTYwMw==&amp;mid=2247496480&amp;idx=1&amp;sn=a9971fed3962ef2a1aeda1f0bda65f86&amp;chksm=c2380ffcf54f86eaba8daac6caca72a70f38e61a8d25dc2a66d3a17b87c02530e326dcaea14b#rd" target="_blank" rel="noopener">关注我</a></div><div class="level is-mobile"><a class="level-item button is-transparent is-marginless" target="_blank" rel="noopener" title="Github" href="https://github.com/LIRUILONGS"><i class="fab fa-github"></i></a><a class="level-item button is-transparent is-marginless" target="_blank" rel="noopener" title="CSDN" href="https://liruilong.blog.csdn.net/"><i class="fa fa-code"></i></a><a class="level-item button is-transparent is-marginless" target="_blank" rel="noopener" title="Email" href="mailto:1224965096@qq.com"><i class="fa fa-envelope"></i></a></div></div></div><div class="card widget" data-type="links"><div class="card-content"><div class="menu"><h3 class="menu-label">链接</h3><ul class="menu-list"><li><a class="level is-mobile" href="https://liruilong.blog.csdn.net/?t=1&amp;type=blog" target="_blank" rel="noopener"><span class="level-left"><span class="level-item">CSDN</span></span><span class="level-right"><span class="level-item tag">liruilong.blog.csdn.net</span></span></a></li><li><a class="level is-mobile" href="https://www.cnblogs.com/liruilong/" target="_blank" rel="noopener"><span class="level-left"><span class="level-item">博客园</span></span><span class="level-right"><span class="level-item tag">www.cnblogs.com</span></span></a></li><li><a class="level is-mobile" href="https://github.com/LIRUILONGS" target="_blank" rel="noopener"><span class="level-left"><span class="level-item">Githup</span></span><span class="level-right"><span class="level-item tag">github.com</span></span></a></li><li><a class="level is-mobile" href="https://gitee.com/liruilonger" target="_blank" rel="noopener"><span class="level-left"><span class="level-item">码云</span></span><span class="level-right"><span class="level-item tag">gitee.com</span></span></a></li></ul></div></div></div><div class="card widget"><div class="card-content"><h3 class="menu-label">最新评论</h3><span class="body_hot_comment">加载中，最新评论有1分钟缓存...</span></div></div><div class="card widget"><div class="card-content"><h3 class="menu-label">最新文章</h3><article class="media"><div class="media-content"><p class="date"><time dateTime="2025-02-10T03:06:02.000Z">2025-02-10</time></p><p class="title"><a href="/2025/02/10/%E5%BE%85%E5%8F%91%E5%B8%83/xxl-job-%E6%BC%8F%E6%B4%9E%E9%97%AE%E9%A2%98%E7%89%88%E6%9C%AC%E5%8D%87%E7%BA%A7%E8%AE%B0%E5%BD%95/">xxl-job 漏洞问题版本升级记录</a></p><p class="categories"><a href="/categories/xxl-job/">xxl-job</a></p></div></article><article class="media"><div class="media-content"><p class="date"><time dateTime="2025-02-06T07:06:00.000Z">2025-02-06</time></p><p class="title"><a href="/2025/02/06/%E5%BE%85%E5%8F%91%E5%B8%83/SpringBoot%20%E6%8E%A5%E5%8F%A3%E5%86%85%E5%AE%B9%E5%8A%A0%E5%AF%86%E6%96%B9%E6%A1%88(RSA+AES+HMAC%E6%A0%A1%E9%AA%8C)%E8%AE%A4%E7%9F%A5/">SpringBoot 接口内容加密方案(RSA+AES+HMAC校验)认知</a></p><p class="categories"><a href="/categories/RSA/">RSA</a> / <a href="/categories/RSA/AES/">AES</a> / <a href="/categories/RSA/AES/HMAC/">HMAC</a></p></div></article><article class="media"><div class="media-content"><p class="date"><time dateTime="2025-02-02T05:32:31.000Z">2025-02-02</time></p><p class="title"><a href="/2025/02/02/%E5%BE%85%E5%8F%91%E5%B8%83/DeepSeek%20%E5%A4%A7%E6%A8%A1%E5%9E%8B%E5%9F%BA%E6%9C%AC%E8%AE%A4%E7%9F%A5(V3%E3%80%81R1%E3%80%81Janus%E3%80%81VL2%20%E7%AE%80%E5%8D%95%E4%BB%8B%E7%BB%8D%E4%BB%A5%E5%8F%8A%E6%9C%AC%E5%9C%B0%E9%83%A8%E7%BD%B2)/">DeepSeek 大模型基本认知(V3、R1、Janus、VL2 简单介绍以及本地部署)</a></p><p class="categories"><a href="/categories/DeepSeek/">DeepSeek</a></p></div></article><article class="media"><div class="media-content"><p class="date"><time dateTime="2025-01-26T07:09:03.000Z">2025-01-26</time></p><p class="title"><a href="/2025/01/26/%E5%BE%85%E5%8F%91%E5%B8%83/AI%E5%A4%A7%E6%A8%A1%E5%9E%8B%E7%9A%84%E6%96%87%E6%9C%AC%E6%B5%81%E5%A6%82%E4%BD%95%E6%8C%81%E7%BB%AD%E5%90%90%E5%88%B0%E5%89%8D%E7%AB%AF%EF%BC%8CBS%E6%9E%B6%E6%9E%84%E5%AE%9E%E6%97%B6%E9%80%9A%E4%BF%A1%E7%9A%84%E6%8A%80%E6%9C%AF%20SSE(Server-Sent%20Events)%20%E8%AE%A4%E7%9F%A5/">AI大模型的文本流如何持续吐到前端，服务端实时通信技术 SSE(Server-Sent Events) 认知</a></p><p class="categories"><a href="/categories/SSE/">SSE</a></p></div></article><article class="media"><div class="media-content"><p class="date"><time dateTime="2025-01-13T03:55:24.000Z">2025-01-13</time></p><p class="title"><a href="/2025/01/13/%E5%BE%85%E5%8F%91%E5%B8%83/%E9%9B%AA%E8%8A%B1%E7%AE%97%E6%B3%95%E8%AE%A4%E7%9F%A5-Twitter-Snowflake/">雪花算法认知(Twitter_Snowflake)</a></p><p class="categories"><a href="/categories/%E9%9B%AA%E8%8A%B1%E7%AE%97%E6%B3%95/">雪花算法</a></p></div></article></div></div><div class="card widget"><div class="card-content"><div class="menu"><h3 class="menu-label">分类</h3><ul class="menu-list"><li><a class="level is-mobile is-marginless" href="/categories/AIGC/"><span class="level-start"><span class="level-item">AIGC</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/AdaFace/"><span class="level-start"><span class="level-item">AdaFace</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/Ajax/"><span class="level-start"><span class="level-item">Ajax</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/Ansible/"><span class="level-start"><span class="level-item">Ansible</span></span><span class="level-end"><span class="level-item tag">23</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/AppCube/"><span class="level-start"><span class="level-item">AppCube</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/BPF/"><span class="level-start"><span class="level-item">BPF</span></span><span class="level-end"><span class="level-item tag">5</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/Bind9/"><span class="level-start"><span class="level-item">Bind9</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/CI-CD/"><span class="level-start"><span class="level-item">CI/CD</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/CSS/"><span class="level-start"><span class="level-item">CSS</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/Ceph/"><span class="level-start"><span class="level-item">Ceph</span></span><span class="level-end"><span class="level-item tag">22</span></span></a></li><a class="level is-mobile is-marginless" href="/categories/"><span class="level-start"><span class="level-item">查看全部&gt;&gt;</span></span></a></ul></div></div></div><div class="card widget"><div class="card-content"><div class="menu"><h3 class="menu-label">归档</h3><ul class="menu-list"><li><a class="level is-mobile is-marginless" href="/archives/2025/02/"><span class="level-start"><span class="level-item">二月 2025</span></span><span class="level-end"><span class="level-item tag">3</span></span></a></li><li><a class="level is-mobile is-marginless" href="/archives/2025/01/"><span class="level-start"><span class="level-item">一月 2025</span></span><span class="level-end"><span class="level-item tag">2</span></span></a></li><li><a class="level is-mobile is-marginless" href="/archives/2024/12/"><span class="level-start"><span class="level-item">十二月 2024</span></span><span class="level-end"><span class="level-item tag">2</span></span></a></li><li><a class="level is-mobile is-marginless" href="/archives/2024/11/"><span class="level-start"><span class="level-item">十一月 2024</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li><li><a class="level is-mobile is-marginless" href="/archives/2024/10/"><span class="level-start"><span class="level-item">十月 2024</span></span><span class="level-end"><span class="level-item tag">4</span></span></a></li><a class="level is-mobile is-marginless" href="/archives/"><span class="level-start"><span class="level-item">查看全部&gt;&gt;</span></span></a></ul></div></div></div><div class="card widget"><div class="card-content"><div class="menu"><h3 class="menu-label">标签</h3><div class="field is-grouped is-grouped-multiline"><div class="control"><a class="tags has-addons" href="/tags/Kubernetes/"><span class="tag">Kubernetes</span><span class="tag is-grey-lightest">98</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Linux/"><span class="tag">Linux</span><span class="tag is-grey-lightest">50</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Ansible/"><span class="tag">Ansible</span><span class="tag is-grey-lightest">25</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Ceph/"><span class="tag">Ceph</span><span class="tag is-grey-lightest">22</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Python/"><span class="tag">Python</span><span class="tag is-grey-lightest">15</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Docker/"><span class="tag">Docker</span><span class="tag is-grey-lightest">9</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Git/"><span class="tag">Git</span><span class="tag is-grey-lightest">8</span></a></div><div class="control"><a class="tags has-addons" href="/tags/JAVA/"><span class="tag">JAVA</span><span class="tag is-grey-lightest">8</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%E5%8D%8E%E4%B8%BA%E4%BA%91/"><span class="tag">华为云</span><span class="tag is-grey-lightest">8</span></a></div><div class="control"><a class="tags has-addons" href="/tags/CPU/"><span class="tag">CPU</span><span class="tag is-grey-lightest">7</span></a></div><div class="control"><a class="tags has-addons" href="/tags/BPF/"><span class="tag">BPF</span><span class="tag is-grey-lightest">6</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Go/"><span class="tag">Go</span><span class="tag is-grey-lightest">6</span></a></div><div class="control"><a class="tags has-addons" href="/tags/OpenShift/"><span class="tag">OpenShift</span><span class="tag is-grey-lightest">6</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%E7%A8%8B%E5%BA%8F%E4%BA%BA%E7%94%9F/"><span class="tag">程序人生</span><span class="tag is-grey-lightest">6</span></a></div><div class="control"><a class="tags has-addons" href="/tags/DNS/"><span class="tag">DNS</span><span class="tag is-grey-lightest">5</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Mysql/"><span class="tag">Mysql</span><span class="tag is-grey-lightest">5</span></a></div><div class="control"><a class="tags has-addons" href="/tags/OKD/"><span class="tag">OKD</span><span class="tag is-grey-lightest">5</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%E6%91%84%E5%BD%B1%E6%9B%9D%E5%85%89/"><span class="tag">摄影曝光</span><span class="tag is-grey-lightest">5</span></a></div><div class="control"><a class="tags has-addons" href="/tags/selenium/"><span class="tag">selenium</span><span class="tag is-grey-lightest">4</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%E5%AE%B9%E5%99%A8/"><span class="tag">容器</span><span class="tag is-grey-lightest">4</span></a></div></div><div class="field is-grouped is-grouped-multiline"><a class="tags has-addons" href="/tags/"><span class="tag">查看全部&gt;&gt;</span></a></div></div></div></div><div class="card widget" data-type="subscribe-email"><div class="card-content"><div class="menu"><h3 class="menu-label">订阅更新</h3><form action="https://feedburner.google.com/fb/a/mailverify" method="post" target="popupwindow" onsubmit="window.open(&#039;https://feedburner.google.com/fb/a/mailverify?uri=&#039;,&#039;popupwindow&#039;,&#039;scrollbars=yes,width=550,height=520&#039;);return true"><input type="hidden" value="" name="uri"><input type="hidden" name="loc" value="en_US"><div class="field has-addons"><div class="control has-icons-left is-expanded"><input class="input" name="email" type="email" placeholder="Email"><span class="icon is-small is-left"><i class="fas fa-envelope"></i></span></div><div class="control"><input class="button" type="submit" value="订阅"></div></div></form></div></div></div><!--!--><div class="column-right-shadow is-hidden-widescreen is-sticky"></div></div></div></div></section><footer class="footer"><div class="container"><div class="level"><div class="level-start"><a class="footer-logo is-block mb-2" href="/"><img src="/img/logo.png" alt="山河已无恙" height="28"></a><p class="size-small"><span>&copy; 2025 山河已无恙</span>  Powered by <a href="https://hexo.io/" target="_blank">Hexo</a> &amp; <a href="https://github.com/ppoffice/hexo-theme-icarus" target="_blank">Icarus</a> &amp; <a href="https://github.com/removeif/hexo-theme-amazing" target="_blank">Amazing</a> <br><span>© <a href="http://www.beian.miit.gov.cn/" target="_blank">备案中</a><br></span><span>© 版权说明：[本网站所有内容均收集于互联网或自己创作,<br />&nbsp;&nbsp;&nbsp;&nbsp;方便于网友与自己学习交流，如有侵权，请<a href="/message" target="_blank">留言</a>，立即处理]<br /></span><span><span id="statistic-times">loading...</span><script>function createTime(time) {
+            var n = new Date(time);
+            now.setTime(now.getTime() + 250),
+                days = (now - n) / 1e3 / 60 / 60 / 24,
+                dnum = Math.floor(days),
+                hours = (now - n) / 1e3 / 60 / 60 - 24 * dnum,
+                hnum = Math.floor(hours),
+            1 == String(hnum).length && (hnum = "0" + hnum),
+                minutes = (now - n) / 1e3 / 60 - 1440 * dnum - 60 * hnum,
+                mnum = Math.floor(minutes),
+            1 == String(mnum).length && (mnum = "0" + mnum),
+                seconds = (now - n) / 1e3 - 86400 * dnum - 3600 * hnum - 60 * mnum,
+                snum = Math.round(seconds),
+            1 == String(snum).length && (snum = "0" + snum),
+                document.getElementById("statistic-times").innerHTML = "❤️本站自 <strong>"+time.split(" ")[0].replace(/\//g,".")+"</strong> 已运行 <strong>" + dnum + "</strong> 天 <strong>" + hnum + "</strong> 小时 <strong>" + mnum + "</strong> 分 <strong>" + snum + "</strong> 秒！❤️";
+        }var now = new Date();setInterval("createTime('2021/6/26 21:27:00')", 250,"");</script><br></span><div class="size-small"><span>❤️感谢 <strong><span id="busuanzi_value_site_uv">99+</span></strong> 小伙伴的 <strong><span id="busuanzi_value_site_pv">99+</span></strong> 次光临！❤️</span></div></p></div><div class="level-end"><div class="field has-addons"><p class="control"><a class="button is-transparent is-large" target="_blank" rel="noopener" title="Creative Commons" href="https://creativecommons.org/"><i class="fab fa-creative-commons"></i></a></p><p class="control"><a class="button is-transparent is-large" target="_blank" rel="noopener" title="Attribution 4.0 International" href="https://creativecommons.org/licenses/by/4.0/"><i class="fab fa-creative-commons-by"></i></a></p><p class="control"><a class="button is-transparent is-large" target="_blank" rel="noopener" title="Download on GitHub" href="https://github.com/removeif/hexo-theme-amazing"><i class="fab fa-github"></i></a></p></div><div class="sideMusic"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/aplayer/dist/APlayer.min.css"><script src="/js/APlayer.min.js"></script><script src="https://cdn.jsdelivr.net/npm/meting@2/dist/Meting.min.js"></script><meting-js style="width: auto;height: 2000px;" server="netease" type="playlist" id="2364053447" theme="#2980b9" loop="all" autoplay="false" order="list" storageName="aplayer-setting" lrctype="0" list-max-height="400px" fixed="true"></meting-js></div></div></div></div></footer><script src="https://cdnjs.loli.net/ajax/libs/moment.js/2.22.2/moment-with-locales.min.js"></script><script src="https://cdnjs.loli.net/ajax/libs/clipboard.js/2.0.4/clipboard.min.js" async></script><script>moment.locale("zh-CN");</script><script>var IcarusThemeSettings = {
+            article: {
+                highlight: {
+                    clipboard: true,
+                    fold: 'unfolded'
+                }
+            }
+        };</script><script src="/js/column.js"></script><!--!--><script src="/js/animation.js"></script><a id="back-to-top" title="回到顶端" href="javascript:;"><i class="fas fa-chevron-up"></i></a><script src="/js/back_to_top.js" defer></script><!--!--><script src="https://cdnjs.loli.net/ajax/libs/lightgallery/1.6.8/js/lightgallery.min.js" defer></script><script src="https://cdnjs.loli.net/ajax/libs/justifiedGallery/3.7.0/js/jquery.justifiedGallery.min.js" defer></script><script>window.addEventListener("load", () => {
+            if (typeof $.fn.lightGallery === 'function') {
+                $('.article').lightGallery({ selector: '.gallery-item' });
+            }
+            if (typeof $.fn.justifiedGallery === 'function') {
+                if ($('.justified-gallery > p > .gallery-item').length) {
+                    $('.justified-gallery > p > .gallery-item').unwrap();
+                }
+                $('.justified-gallery').justifiedGallery();
+            }
+        });</script><!--!--><!--!--><link rel="stylesheet" href="https://cdnjs.loli.net/ajax/libs/KaTeX/0.11.1/katex.min.css"><script src="https://cdnjs.loli.net/ajax/libs/KaTeX/0.11.1/katex.min.js" defer></script><script src="https://cdnjs.loli.net/ajax/libs/KaTeX/0.11.1/contrib/auto-render.min.js" defer></script><script src="https://cdnjs.loli.net/ajax/libs/KaTeX/0.11.1/contrib/mhchem.js" defer></script><script>window.addEventListener("load", function() {
+            document.querySelectorAll('[role="article"] > .content').forEach(function(element) {
+                renderMathInElement(element);
+            });
+        });</script><script type="text/x-mathjax-config">MathJax.Hub.Config({
+            'HTML-CSS': {
+                matchFontHeight: false
+            },
+            SVG: {
+                matchFontHeight: false
+            },
+            CommonHTML: {
+                matchFontHeight: false
+            },
+            tex2jax: {
+                inlineMath: [
+                    ['$','$'],
+                    ['\\(','\\)']
+                ]
+            }
+        });</script><script src="https://cdnjs.loli.net/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-MML-AM_CHTML" defer></script><div id="outdated"><h6>Your browser is out-of-date!</h6><p>Update your browser to view this website correctly.&amp;npsb;<a id="btnUpdateBrowser" target="_blank" rel="noopener" href="http://outdatedbrowser.com/">Update my browser now </a></p><p class="last"><a href="#" id="btnCloseUpdateBrowser" title="Close">×</a></p></div><script src="https://cdnjs.loli.net/ajax/libs/outdated-browser/1.1.5/outdatedbrowser.min.js" defer></script><script>window.addEventListener("load", function () {
+            outdatedBrowser({
+                bgColor: '#f25648',
+                color: '#ffffff',
+                lowerThan: 'object-fit' // display on IE11 or below
+            });
+        });</script><!--!--><script src="/js/main.js" defer></script><script>$.getScript('/js/comment-issue-data.js',function(){loadIssueData('9fdc9739266d48d5f62e','c1cc33697d099a2197650ec9dadcb16bd4904655','LIRUILONGS','blog_comment',false);})</script><div class="searchbox"><div class="searchbox-container"><div class="searchbox-header"><div class="searchbox-input-container"><input class="searchbox-input" type="text" placeholder="想要查找什么..."></div><a class="searchbox-close" href="javascript:;">×</a></div><div class="searchbox-body"></div></div></div><script src="/js/insight.js" defer></script><script>document.addEventListener('DOMContentLoaded', function () {
+            loadInsight({"contentUrl":"/content.json"}, {"hint":"想要查找什么...","untitled":"(无标题)","posts":"文章","pages":"页面","categories":"分类","tags":"标签"});
+        });</script><script src="https://cdn.jsdelivr.net/npm/pjax@0.2.8/pjax.js"></script><script type="text/javascript">var pjax = new Pjax({
+            elements: "a",//代表点击链接就更新
+            selectors: [  //代表要更新的节点
+                ".section",
+                "title"
+            ],
+            cache: true,
+            cacheBust:false
+        })
+
+        function loadBusuanzi(){
+        $.getScript("//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js", function () {});
+        }
+
+        function loadMathJax() { //加载mathjax
+            $.getScript("//cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.4/MathJax.js?config=TeX-MML-AM_CHTML", function () {
+                MathJax.Hub.Config({ tex2jax: { inlineMath: [['$', '$'], ['\(', '\)']] } });
+                var math = document.getElementsByClassName("entry-content")[0];
+                MathJax.Hub.Queue(["Typeset", MathJax.Hub, math]);
+            });
+        };
+
+        // 开始 PJAX 执行的函数
+        document.addEventListener('pjax:send', function () {
+        });
+        
+        // PJAX 完成之后执行的函数，可以和上面的重载放在一起
+        document.addEventListener('pjax:complete', function () {
+            $(".section").css({opacity:1});
+            if(true){
+                $.getScript('/js/comment-issue-data.js',function(){loadIssueData('9fdc9739266d48d5f62e','c1cc33697d099a2197650ec9dadcb16bd4904655','LIRUILONGS','blog_comment',false);});
+            }
+            if(false){
+                loadMathJax();
+            }
+            loadMainJs(jQuery, window.moment, window.ClipboardJS, window.IcarusThemeSettings);
+            loadBackTop();
+            loadBusuanzi();
+            if(typeof loadBanner == 'function'){
+                loadBanner();
+            }
+        });</script></body></html>

@@ -1,0 +1,325 @@
+<!doctype html>
+<html lang="zh"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"><meta><title>Ceph：Ceph 集群与客户端故障处理(18) - 山河已无恙</title><link rel="manifest" href="/manifest.json"><meta name="application-name" content="山河已无恙"><meta name="msapplication-TileImage" content="https://cdn.jsdelivr.net/gh/removeif/removeif-demo@latest/img/favicon.png"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="山河已无恙"><meta name="apple-mobile-web-app-status-bar-style" content="default"><meta description="对每个人而言，真正的职责只有一个：找到自我。然后在心中坚守其一生，全心全意，永不停息。所有其它的路都是不完整的，是人的逃避方式，是对大众理想的懦弱回归，是随波逐流，是对内心的恐惧 ——赫尔曼·黑塞《德米安》"><meta property="og:type" content="blog"><meta property="og:title" content="山河已无恙"><meta property="og:url" content="https://mp.weixin.qq.com/s?__biz=MzkyNjIxNTYwMw==&amp;mid=2247496480&amp;idx=1&amp;sn=a9971fed3962ef2a1aeda1f0bda65f86&amp;chksm=c2380ffcf54f86eaba8daac6caca72a70f38e61a8d25dc2a66d3a17b87c02530e326dcaea14b#rd"><meta property="og:site_name" content="山河已无恙"><meta property="og:description" content="对每个人而言，真正的职责只有一个：找到自我。然后在心中坚守其一生，全心全意，永不停息。所有其它的路都是不完整的，是人的逃避方式，是对大众理想的懦弱回归，是随波逐流，是对内心的恐惧 ——赫尔曼·黑塞《德米安》"><meta property="og:locale" content="zh_CN"><meta property="og:image" content="https://mp.weixin.qq.com/img/头像.jpg"><meta property="article:published_time" content="2023-06-24T15:48:39.000Z"><meta property="article:modified_time" content="2025-02-04T02:43:58.548Z"><meta property="article:author" content="LIRUILONGS"><meta property="article:tag" content="test1"><meta property="twitter:card" content="summary"><meta property="twitter:image" content="/img/头像.jpg"><script type="application/ld+json">{"@context":"https://schema.org","@type":"BlogPosting","mainEntityOfPage":{"@type":"WebPage","@id":"https://liruilongs.github.io/2023/06/24/rhca/CL260/Ceph%EF%BC%9ACeph-%E9%9B%86%E7%BE%A4%E4%B8%8E%E5%AE%A2%E6%88%B7%E7%AB%AF%E6%95%85%E9%9A%9C%E5%A4%84%E7%90%86(18)/"},"headline":"山河已无恙","image":["https://liruilongs.github.io/img/og_image.png"],"datePublished":"2023-06-24T15:48:39.000Z","dateModified":"2025-02-04T02:43:58.548Z","author":{"@type":"Person","name":"山河已无恙"},"description":"对每个人而言，真正的职责只有一个：找到自我。然后在心中坚守其一生，全心全意，永不停息。所有其它的路都是不完整的，是人的逃避方式，是对大众理想的懦弱回归，是随波逐流，是对内心的恐惧 ——赫尔曼·黑塞《德米安》"}</script><link rel="canonical" href="https://liruilongs.github.io/2023/06/24/rhca/CL260/Ceph%EF%BC%9ACeph-%E9%9B%86%E7%BE%A4%E4%B8%8E%E5%AE%A2%E6%88%B7%E7%AB%AF%E6%95%85%E9%9A%9C%E5%A4%84%E7%90%86(18)/"><link rel="alternate" href="/path/to/atom.xml" title="山河已无恙" type="application/atom+xml"><link rel="icon" href="https://cdn.jsdelivr.net/gh/removeif/removeif-demo@latest/img/favicon.png"><meta name="referrer" content="no-referrer-when-downgrade"><link rel="stylesheet" href="https://cdnjs.loli.net/ajax/libs/font-awesome/5.12.0/css/all.min.css"><link rel="stylesheet" href="https://cdnjs.loli.net/ajax/libs/highlight.js/9.12.0/styles/dracula.min.css"><link rel="stylesheet" href="https://fonts.loli.net/css2?family=Ubuntu:wght@400;600&amp;family=Source+Code+Pro"><link rel="stylesheet" href="/css/default.css"><link rel="stylesheet" href="https://cdnjs.loli.net/ajax/libs/font-awesome/5.12.0/css/all.min.css"><link rel="stylesheet" href="https://fonts.loli.net/css?family=Ubuntu:400,600|Source+Code+Pro|Monda:300,300italic,400,400italic,700,700italic|Roboto Slab:300,300italic,400,400italic,700,700italic|Microsoft YaHei:300,300italic,400,400italic,700,700italic|PT Mono:300,300italic,400,400italic,700,700italic&amp;amp;subset=latin,latin-ext|Inconsolata|Itim|Lobster.css"><script src="https://cdnjs.loli.net/ajax/libs/jquery/3.3.1/jquery.min.js"></script><script src="/js/globalUtils.js"></script><script src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js" defer></script><style>body>.footer,body>.navbar,body>.section{opacity:0}</style><!--!--><script>var _hmt = _hmt || [];
+        (function() {
+            var hm = document.createElement("script");
+            hm.src = "//hm.baidu.com/hm.js?3f06f2b732a5b1034c989f74e28d0eea";
+            var s = document.getElementsByTagName("script")[0];
+            s.parentNode.insertBefore(hm, s);
+        })();</script><link rel="stylesheet" href="https://cdnjs.loli.net/ajax/libs/lightgallery/1.6.8/css/lightgallery.min.css"><link rel="stylesheet" href="https://cdnjs.loli.net/ajax/libs/justifiedGallery/3.7.0/css/justifiedGallery.min.css"><!--!--><!--!--><!--!--><!--!--><link rel="stylesheet" href="https://cdnjs.loli.net/ajax/libs/outdated-browser/1.1.5/outdatedbrowser.min.css"><script src="https://cdnjs.loli.net/ajax/libs/pace/1.0.2/pace.min.js"></script><link rel="stylesheet" href="/live2d/waifu.css"><script type="text/javascript" async src="/live2d/autoload.js"></script><meta name="generator" content="Hexo 5.4.2"></head><body class="is-3-column has-navbar-fixed-top"><nav class="navbar navbar-main is-fixed-top"><div class="container"><div class="navbar-brand justify-content-center"><a class="navbar-item navbar-logo" href="/"><img src="/img/logo.png" alt="山河已无恙" height="28"></a></div><div class="navbar-menu"><div class="navbar-start"><a class="navbar-item" href="/">首页</a><a class="navbar-item" href="/archives">归档</a><a class="navbar-item" href="/categories">分类</a><a class="navbar-item" href="/tags">标签</a><a class="navbar-item" href="/media">影音</a><a class="navbar-item" href="/album">相册</a><a class="navbar-item" href="/friend">友链</a><a class="navbar-item" href="/self-talking">生活小记</a><a class="navbar-item" href="/message">留言墙</a><a class="navbar-item" href="/about">关于</a></div><div class="navbar-end"><a class="navbar-item" target="_blank" rel="noopener" title="Gitee" href="https://gitee.com/liruilonger"><i class="fab fa-git-square fa-1x"></i></a><a class="navbar-item" target="_blank" rel="noopener" title="GitHub" href="https://github.com/LIRUILONGS"><i class="fab fa-github fa-1x"></i></a><a class="navbar-item is-hidden-tablet catalogue" title="目录" href="javascript:;"><i class="fas fa-list-ul fa-1x"></i></a><a class="navbar-item search" title="搜索" href="javascript:;"><i class="fas fa-search fa-1x"></i></a><a class="navbar-item" id="night-nav" title="Night Mode" href="javascript:;"><i class="fas fa-moon fa-1x" id="night-icon"></i></a></div></div></div></nav><script type="text/javascript" src="/js/theme-setting.js"></script><section class="section"><div class="container"><div class="columns"><div class="column order-2 column-main is-8-tablet is-8-desktop is-9-widescreen"><!--!--><div class="card"><article class="card-content article" role="article"><div class="article-meta size-small is-uppercase level is-mobile"><div class="level-left"><i class="far fa-calendar-plus"> </i>2023-06-24  <a class="commentCountImg" href="/2023/06/24/rhca/CL260/Ceph%EF%BC%9ACeph-%E9%9B%86%E7%BE%A4%E4%B8%8E%E5%AE%A2%E6%88%B7%E7%AB%AF%E6%95%85%E9%9A%9C%E5%A4%84%E7%90%86(18)/#comment-container"><span class="display-none-class">bab1627d68ae7197e5214df6468d45e4</span><i class="far fa-comment-dots"></i> <span class="commentCount" id="bab1627d68ae7197e5214df6468d45e4">99+</span>  </a><span class="level-item"><i class="far fa-clock"> </i>38 分钟  <i class="fas fa-pencil-alt"> </i>5.8 k</span><span class="level-item" id="busuanzi_container_page_pv"><span id="busuanzi_value_page_pv">0</span>次访问</span></div></div><h1 class="title is-3 is-size-4-mobile">Ceph：Ceph 集群与客户端故障处理(18)</h1><div class="content"><p><strong><font color="009688"> 对每个人而言，真正的职责只有一个：找到自我。然后在心中坚守其一生，全心全意，永不停息。所有其它的路都是不完整的，是人的逃避方式，是对大众理想的懦弱回归，是随波逐流，是对内心的恐惧 ——赫尔曼·黑塞《德米安》</strong></font></p>
+<span id="more"></span>
+<h2 id="写在前面"><a href="#写在前面" class="headerlink" title="写在前面"></a>写在前面</h2><hr>
+<p>+ </p>
+<ul>
+<li>理解不足小伙伴帮忙指正</li>
+</ul>
+<p><strong><font color="009688"> 对每个人而言，真正的职责只有一个：找到自我。然后在心中坚守其一生，全心全意，永不停息。所有其它的路都是不完整的，是人的逃避方式，是对大众理想的懦弱回归，是随波逐流，是对内心的恐惧 ——赫尔曼·黑塞《德米安》</strong></font></p>
+<hr>
+<h1 id="集群与客户端故障处理"><a href="#集群与客户端故障处理" class="headerlink" title="集群与客户端故障处理"></a>集群与客户端故障处理</h1><h4 id="开始故障排除"><a href="#开始故障排除" class="headerlink" title="开始故障排除"></a>开始故障排除</h4><p>支持 Ceph 集群的硬件随着时间的推移会出现故障。集群中的数据变得碎片化，需要维护。应该在集群中执行一致的监视和故障排除，以保持集群处于健康状态</p>
+<h5 id="识别问题"><a href="#识别问题" class="headerlink" title="识别问题"></a>识别问题</h5><p>在对Ceph问题进行故障排除时，<code>第一步是确定是哪个Ceph组件导致了问题</code>。</p>
+<p>有时，可以在 ceph 运行状况 detailorceph运行状况status命令提供的信息中找到此组件。其他时候，必须进一步调查以发现问题。验证集群的状态，以帮助确定是单个故障还是整个节点故障</p>
+<p>以下故障排除清单建议接下来的步骤:</p>
+<ol>
+<li>确定导致问题的Ceph组件</li>
+<li>为标识的组件设置调试日志并查看日志</li>
+<li>验证拥有一个受支持的配置</li>
+<li>确定是否有缓慢或卡住的操作</li>
+</ol>
+<h5 id="故障排除集群健康"><a href="#故障排除集群健康" class="headerlink" title="故障排除集群健康"></a>故障排除集群健康</h5><p>Red Hat Ceph Storage持续运行各种健康状况检查，以监控集群的健康状况。当运行状况检查失败时，集群运行状况状态将更改为HEALTH_WARN或HEALTH_ERR，具体取决于运行状况检查失败的严重程度和影响。</p>
+<p>Red Hat Ceph Storage还将健康检查警告和错误记录到集群日志中。ceph status和ceph health命令显示集群运行状况状态。当集群健康状态为HEAL TH_WARN或HEAL TH_ERR时，使用ceph health detail命令查看健康检查消息，以便可以开始对问题进行故障排除</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[ceph: root@node /]<span class="comment"># ceph health detail</span></span><br></pre></td></tr></table></figure>
+
+<p>一些运行状况状态消息指示某个特定问题;其他人则提供了更一般的指示。例如，如果群集运行状况状态更改为HEALTH_ WARN，并且看到运行状况消息HEALTH_WARN 1 osds down Degraded data redundancy，那么这就是问题的明确指示</p>
+<p>其他运行状况状态消息可能需要进一步的故障排除，因为它们可能指示几个可能的根本原因。例如，以下消息表示一个问题有多种可能的解决方案</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[ceph: root@node /]<span class="comment"># ceph health detail</span></span><br></pre></td></tr></table></figure>
+
+<p>可以通过更改指定池的pg num设置来解决这个问题，或者通过重新配置pg autosca ler模式设置从warn变为on，以便Ceph自动调整pg的数量</p>
+<p>当集群性能健康状况检查失败时，Ceph会发送有关性能的健康状况消息。例如，OSD之间通过发送心跳ping消息来监控OSD守护进程的可用性。Ceph还使用OSD的ping响应时间来监控网络性能。一个失败的OSD ping消息可能意味着来自某个特定OSD的延迟，表明该OSD存在潜在的问题。多个OSD的ping消息失败可能是网络组件故障，如OSD主机间网络切换</p>
+<h5 id="屏蔽Ceph健康警报"><a href="#屏蔽Ceph健康警报" class="headerlink" title="屏蔽Ceph健康警报"></a>屏蔽Ceph健康警报</h5><p>可能希望暂时关闭一些集群警告，因为已经知道它们，而且还不需要修复它们。</p>
+<p>例如，如果你关闭一个OSD进行维护，那么集群会报告一个<code>HEALTH_WARN</code>状态。可以静音此警告消息，以便健康检查不会影响报告的整体状态。</p>
+<p>Ceph通过健康检查码指定健康检查警报。例如，前面的HEALTH_ WARN消息显示了POOL_TOO_FEW_PGS运行状况代码。要使运行状况警报消息静音，请使用ceph health命令</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[ceph: root@node /)<span class="comment"># ceph health mute health-code [duration]</span></span><br></pre></td></tr></table></figure>
+
+<p>健康代码是ceph health detail命令提供的代码。可选参数duration是静音运行状况消息的时间，以秒、分钟或小时为单位指定。可以使用ceph health unmute heal th-code取消健康信息的静音，当您健康消息设置静音时，如果健康状态进一步降级，Ceph将自动取消警报的静音。例如，如果集群报告一个OSD故障，将该警报设置为静音，如果另一个OSD故障，Ceph将自动移除静音。任何可测量的运行状况警报都将取消静音</p>
+<h4 id="12-3-2-配置日志记录"><a href="#12-3-2-配置日志记录" class="headerlink" title="12.3.2 配置日志记录"></a>12.3.2 配置日志记录</h4><p>如果集群的某个特定区域出现问题，那么可以为该区域启用日志记录。<br>例如，如果osd运行正常，但的元数据服务器没有正常运行，请为特定的元数据服务器实例启用调试日志记录。根据需要为每个子系统启用日志记录。向Ceph配置添加调试通常是在运行时临时完成的。如果在启动集群时遇到问题，可以将Ceph调试日志记录添加到Ceph配置数据库中。查看默认路径“&#x2F;var&#x2F;log&#x2F;Ceph”下的Ceph日志文件。Ceph将日志存储在基于内存的缓存中。</p>
+<h5 id="理解Ceph日志"><a href="#理解Ceph日志" class="headerlink" title="理解Ceph日志"></a>理解Ceph日志</h5><p>在运行时使用Ceph命令配置Ceph日志记录。如果在启动集群时遇到错误，那么可以更新Ceph配置数据库，以便它在启动期间进行日志记录。</p>
+<p>您可以为集群中的每个子系统设置不同的日志记录级别。调试级别在1到20之间，其中1表示简洁，20表示详细。</p>
+<p>Ceph不发送基于内存的日志到输出日志，除了以下情况:</p>
+<ol>
+<li><p>一个致命的信号出现了</p>
+</li>
+<li><p>代码中的断言被触发</p>
+</li>
+<li><p>你的请求</p>
+</li>
+</ol>
+<p>要对输出日志级别和内存级别使用不同的调试级别，请使用斜杠(&#x2F;)字符。例如，debug_mon &#x3D; 1&#x2F;5设置ceph-mon守护进程的输出日志级别为1，内存日志级别为5</p>
+<h5 id="在运行时配置日志"><a href="#在运行时配置日志" class="headerlink" title="在运行时配置日志"></a>在运行时配置日志</h5><p>4003151606</p>
+<p>要在运行时激活调试输出，请使用ceph tell命令</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[ceph: root@node /]<span class="comment"># ceph tell type.id config set debug_subsystem debug-level</span></span><br></pre></td></tr></table></figure>
+
+<p>type和id参数是Ceph守护进程的类型及其id。该子系统为需要修改调试级别的具体子系统</p>
+<p>这个例子修改了Ceph组件间消息系统的OSD O调试级别:</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[ceph: root@node /]<span class="comment"># ceph tell osd.0 config set debug_ms 5 </span></span><br></pre></td></tr></table></figure>
+
+<p>在运行时查看配置设置如下:</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[ceph: root@node /)<span class="comment"># ceph tell osd.0 config show</span></span><br></pre></td></tr></table></figure>
+
+<h5 id="在配置数据库中配置日志"><a href="#在配置数据库中配置日志" class="headerlink" title="在配置数据库中配置日志"></a>在配置数据库中配置日志</h5><p>配置子系统调试级别，以便它们在引导时记录到默认日志文件中。使用Ceph config set命令将调试设置添加到Ceph配置数据库中</p>
+<p>例如，通过在Ceph配置数据库中设置以下参数，为特定的Ceph守护进程添加调试级别:</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">[ceph: root@node /]<span class="comment"># ceph config set global debug_ms 1/5 </span></span><br><span class="line">[ceph: root@node /)<span class="comment"># ceph config set osd debug_ms 1 </span></span><br><span class="line">[ceph: root@node /]<span class="comment"># ceph config set osd debug_osd 1/5 </span></span><br><span class="line">[ceph: root@node /]<span class="comment"># ceph config set mon debug_mon 20 </span></span><br></pre></td></tr></table></figure>
+
+<h5 id="设置日志文件轮转"><a href="#设置日志文件轮转" class="headerlink" title="设置日志文件轮转"></a>设置日志文件轮转</h5><p>Ceph组件的调试日志是资源密集型的，可以生成大量的数据。如果磁盘几乎满了，那么可以通过修改&#x2F;etc&#x2F;logrotate.d&#x2F;ceph上的日志旋转配置来加速日志轮转，Cron作业调度器使用此文件调度日志轮换</p>
+<p>可以在轮转频率之后添加一个大小设置，这样当日志文件达到指定的大小时就会进行轮转:</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">rotate 7 </span><br><span class="line">weekly </span><br><span class="line">size size </span><br><span class="line">compress </span><br><span class="line">sharedscripts </span><br></pre></td></tr></table></figure>
+
+<p>使用crontab命令添加一个检查&#x2F;etc&#x2F;logrotate.d&#x2F;ceph文件</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[ceph: root@node /]<span class="comment"># crontab -e </span></span><br></pre></td></tr></table></figure>
+
+<p>例如，可以指示Cron检查&#x2F;etc&#x2F;logrotate.&#x2F;ceph每30分钟</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">30 * * * * /usr/sbin/logrotate /etc/logrotate.d/ceph &gt; /dev/null 2&gt;&amp;1</span><br></pre></td></tr></table></figure>
+
+<h4 id="12-3-3-故障诊断网络问题"><a href="#12-3-3-故障诊断网络问题" class="headerlink" title="12.3.3 故障诊断网络问题"></a>12.3.3 故障诊断网络问题</h4><p>Ceph节点使用网络相互通信。当osd被报告为down时，网络问题可能是原因。带有时钟偏差的监视器是网络问题的常见原因。时钟歪斜，或计时歪斜，是同步数字电路系统中的一种现象，在这种现象中，相同的源时钟信号在不同的时间到达不同的元件。如果读数之间的差异与集群中配置的数据相差太远，那么就会出现时钟倾斜错误。该错误可能会导致丢包、延迟或带宽受限，影响集群的性能和稳定性</p>
+<p>下面的网络故障排除清单建议下一步步骤:</p>
+<ol>
+<li><p>确保集群中的cluster_network和public_network参数包含正确的值。可以通过使用<a href="">ceph config get mon cluster_network</a>或<a href="">ceph config get mon public_network</a>命令检索它们的值，或通过检查ceph.conf文件</p>
+</li>
+<li><p>检查所有网络接口是否正常</p>
+</li>
+<li><p>验证Ceph节点，并验证它们能够使用它们的主机名相互连接，如果使用防火墙，确保Ceph节点能够在适当的端口上相互连接。打开适当的端口，如有必要，重新安装端口</p>
+</li>
+<li><p>验证主机之间的网络连接是否有预期的延迟，并且没有丢包，例如，使用ping命令</p>
+</li>
+<li><p>连接较慢的节点可能会减慢较快节点的速度。检查交换机间链路是否能够承受已连接节点的累计带宽</p>
+</li>
+<li><p>验证NTP在集群节点中运行正常。例如，可以查看chronyc tracking命令提供的信息</p>
+</li>
+</ol>
+<h4 id="12-3-4-Ceph客户端故障处理"><a href="#12-3-4-Ceph客户端故障处理" class="headerlink" title="12.3.4 Ceph客户端故障处理"></a>12.3.4 Ceph客户端故障处理</h4><p>下面列出了客户端在访问Red Hat Ceph存储集群时遇到的最常见问题:</p>
+<ol>
+<li><p>客户机无法使用监视器(MONs)</p>
+</li>
+<li><p>使用CLI导致的不正确或缺少命令行参数</p>
+</li>
+<li><p>&#x2F;etc&#x2F;ceph&#x2F;ceph.conf不正确、丢失或不可访问</p>
+</li>
+<li><p>密钥环文件不正确、丢失或不可访问</p>
+</li>
+</ol>
+<p>ceph-common包为rados、ceph、rbd和radosgw-admin命令提供bash选项卡补全。在shell提示符下输入命令时，可以通过按Tab键来访问选项和属性补全</p>
+<h5 id="启用和修改日志文件"><a href="#启用和修改日志文件" class="headerlink" title="启用和修改日志文件"></a>启用和修改日志文件</h5><p>在对客户端进行故障诊断时，请提高日志级别</p>
+<p>在客户端系统中，可以通过c<a href="">eph config set client debug_ms 1</a>命令将debug_ms &#x3D; 1参数添加到配置数据库中。Ceph客户端将调试信息保存在“&#x2F;var&#x2F;log&#x2F;Ceph&#x2F;Ceph-client.id.log的日志文件</p>
+<p>大多数Ceph客户机命令，例如rados、Ceph或rbd，也接受- -debug -ms&#x3D;1选项，以只执行日志级别增加的命令</p>
+<h5 id="启用客户端管理套接字"><a href="#启用客户端管理套接字" class="headerlink" title="启用客户端管理套接字"></a>启用客户端管理套接字</h5><p>默认情况下，Ceph客户端在启动时创建一个UNIX域套接字。可以使用此套接字与客户机通信，以检索实时性能数据或动态获取或设置配置参数</p>
+<p>在&#x2F;var&#x2F;run&#x2F;ceph&#x2F;fsid目录中，有该主机的admin套接字列表。允许每个OSD一个管理套接字，每个MON一个套接字，每个MGR一个套接字。管理员可以使用附带- -admin-daemon socket-patch选项的ceph命令查询通过的客户端套接字</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[ceph: root@node /]<span class="comment"># sudo ls -al /var/run/ceph/fsid </span></span><br></pre></td></tr></table></figure>
+
+<p>下面的示例使用FUSE客户端挂载一个CephFS文件系统，获取性能计数器，并将debug_ms配置参数设置为1:</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">[root@host ~]<span class="comment"># ceph-fuse -n client.admin /mnt/mountpoint</span></span><br><span class="line"></span><br><span class="line">[root@host ~]<span class="comment"># ls \</span></span><br><span class="line">	/var/run/ceph/2ae6d05a-229a-11ec-925e-52540000fa0c</span><br><span class="line">ceph-client.admin.54240.94381967377904.asok</span><br><span class="line">[root@host ~]<span class="comment"># ceph --admin-daemon \</span></span><br><span class="line">	/var/run/ceph/ceph-client.admin.54240.94381967377904.asok \</span><br><span class="line">	perf dump</span><br><span class="line">[root@host ~]<span class="comment"># ceph --admin-daemon \</span></span><br><span class="line">	/var/run/ceph/ceph-client.admin.54240.94381967377904.asok \</span><br><span class="line">	config show</span><br><span class="line">[root@host -]<span class="comment"># ceph --admin-daemon \</span></span><br><span class="line">	/var/run/ceph/ceph-client.admin.54240.94381967377904.asok \</span><br><span class="line">	config <span class="built_in">set</span> debug_ms 5</span><br><span class="line">[root@host ~]<span class="comment"># ceph --admin-daemon \</span></span><br><span class="line">	/var/run/ceph/ceph-client.admin.54240.94381967377904.asok \</span><br><span class="line">	config show</span><br></pre></td></tr></table></figure>
+
+<h5 id="比较Ceph版本和功能"><a href="#比较Ceph版本和功能" class="headerlink" title="比较Ceph版本和功能"></a>比较Ceph版本和功能</h5><p>早期版本的Ceph客户端可能无法从已安装的Ceph集群提供的特性中获益。例如，较早的客户机可能无法从erasure-coded池检索数据。因此，在升级Ceph集群时，还应该更新客户机。RADOS网关、用于CephFS的FUSE客户端、librbd或命令行，例如RADOS或RBD，都是Ceph客户端的例子。</p>
+<p>在客户端，你可以通过Ceph versions命令找到正在运行的Ceph集群的版本:</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[ceph: root@node /]<span class="comment"># ceph versions</span></span><br></pre></td></tr></table></figure>
+
+<p>还可以使用ceph features命令列出支持的特性级别。如果无法升级客户端，<a href="">ceph osd set-require-min -compat-client version-name</a>指定ceph集群支持的最小客户端版本，使用这个最小的客户端设置，Ceph拒绝使用与当前客户端版本不兼容的特性</p>
+<p>使用ceph osd命令验证集群所需的最小版本:</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">[ceph: root@node /]<span class="comment"># ceph osd get-require-min-compat-client </span></span><br><span class="line">luminous </span><br></pre></td></tr></table></figure>
+
+<h5 id="使用Cephx"><a href="#使用Cephx" class="headerlink" title="使用Cephx"></a>使用Cephx</h5><p>Red Hat Ceph Storage提供了用于加密认证的cepphx协议。如果启用了Cephx，那么Ceph将在默认的&#x2F;etc&#x2F;ceph&#x2F;路径中查找密钥环。要么为所有组件启用Cephx，要么完全禁用它。Ceph不支持混合设置，比如为客户端启用cepphx，但为Ceph服务之间的通信禁用它。默认情况下，启用了Cephx，当客户端试图访问Ceph集群时，如果没有Cephx，就会收到错误消息</p>
+<p>所有Ceph命令都作为客户端进行身份验证。默认为admin用户，但可以使用–name和–ID选项指定用户名或用户ID</p>
+<p>Cephx的问题通常与以下方面有关:</p>
+<ol>
+<li><p>对钥匙圈或&#x2F;etc&#x2F;ceph&#x2F;ceph.conf的权限不正确</p>
+</li>
+<li><p>丢失钥匙圈和&#x2F;etc&#x2F;ceph&#x2F;ceph.conf文件</p>
+</li>
+<li><p>给定用户的cephx权限不正确或无效。使用ceph认证列表命令来识别问题</p>
+</li>
+<li><p>不正确或拼写错误的用户名，也可以使用ceph auth list命令来验证</p>
+</li>
+</ol>
+<h4 id="12-3-5-Ceph监视器故障排除"><a href="#12-3-5-Ceph监视器故障排除" class="headerlink" title="12.3.5 Ceph监视器故障排除"></a>12.3.5 Ceph监视器故障排除</h4><p>可以通过ceph运行状况详细信息命令或查看ceph日志提供的信息来识别错误消息</p>
+<p>以下是最常见的Ceph MON错误消息列表:</p>
+<p><strong>mon.X is down (out of quorum)</strong></p>
+<p>如果Ceph MON守护进程没有运行，则会出现一个错误，阻止该守护进程启动。例如，可能是守护进程有一个损坏的存储，或者&#x2F;var分区已满。</p>
+<p>如果Ceph MON守护进程正在运行，但被报告为关闭，那么原因取决于MON的状态。如果Ceph MON处于探测状态的时间长于预期，那么它就无法找到其他Ceph监视器。这个问题可能是由网络问题引起的，或者Ceph Monitor可能有一个过时的Ceph Monitor map (monmap)试图在不正确的IP地址上到达其他Ceph Monitor。</p>
+<p>如果Ceph MON处于e lee ting状态的时间超过预期，那么它的时钟可能不会同步。如果状态从同步变为eleeting，那么这意味着Ceph MON生成映射的速度比同步进程能够处理的速度要快。</p>
+<p>如果状态是leader or peon,，那么Ceph Mon已经达到法定人数，但集群的其他成员不承认法定人数。这个问题主要是由时钟故障引起的同步异常、网络故障或NTP同步异常</p>
+<p><strong>clock skew</strong></p>
+<p>这个错误消息表明MON的时钟可能没有被同步。mon_clock_drift_allowed参数控制集群在显示警告消息之前允许的时钟之间的最大差值。主要是由于时钟同步失败、网络故障或NTP同步异常等原因造成的</p>
+<p><strong>mon.X store is getting too big</strong></p>
+<p>当存储太大并延迟对客户端查询的响应时，Ceph MON会显示此警告消息</p>
+<h4 id="12-3-6-Ceph-OSDs故障处理"><a href="#12-3-6-Ceph-OSDs故障处理" class="headerlink" title="12.3.6 Ceph OSDs故障处理"></a>12.3.6 Ceph OSDs故障处理</h4><p>使用ceph status命令查看监视器的仲裁。如果群集显示健康状态，则群集可以组成仲裁。如果没有监视器仲裁，或者监视器状态出现错误，请首先解决监视器问题，然后继续验证网络</p>
+<p>以下是最常见的Ceph OSD错误消息列表:</p>
+<ul>
+<li><strong>full osds</strong></li>
+</ul>
+<p>当集群达到mon_osd_full_ratio参数设置的容量时，Ceph返回HEALTH_ERR full osds消息。默认设置为0.95，即集群容量的95%。</p>
+<p>使用ceph df命令确定已使用的原始存储的百分比，由% raw used列给出。如果裸存储占比超过70%，则可以删除不必要的数据，或者通过增加OSD来扩展集群来减少裸存储</p>
+<ul>
+<li><strong>nearfull osds</strong></li>
+</ul>
+<p>当集群达到由mon_osd_nearfull_ratio默认参数设置的容量时，Ceph返回nearfull osds消息。默认值为0.85，即集群容量的85%。</p>
+<p>产生此警告消息的主要原因是:</p>
+<ol>
+<li><p>集群OSD间OSD数不均衡</p>
+</li>
+<li><p>基于OSD数量、用例、每个OSD的目标pg数和OSD利用率，放置组计数不正确</p>
+</li>
+<li><p>集群使用不成比例的CRUSH可调项</p>
+</li>
+<li><p>osd的后端存储几乎满了</p>
+</li>
+</ol>
+<p>要解决此问题:</p>
+<ol>
+<li><p>验证PG计数是否足够</p>
+</li>
+<li><p>确认您使用了集群版本最优的CRUSH可调项，如果不是，请调整它们</p>
+</li>
+<li><p>根据利用率修改osd的权重</p>
+</li>
+<li><p>确定osd使用的磁盘上剩余的空间</p>
+</li>
+</ol>
+<p><strong>osds are down</strong></p>
+<p>当osds down或flapping时，Ceph返回osds是down消息。该消息的主要原因是ceph-osd的某个进程故障，或者与其他osd的网络连接出现问题</p>
+<h4 id="12-3-7-RADOS网关故障处理"><a href="#12-3-7-RADOS网关故障处理" class="headerlink" title="12.3.7 RADOS网关故障处理"></a>12.3.7 RADOS网关故障处理</h4><p>可以排除Ceph RESTful接口和一些常见的RADOS网关问题</p>
+<h5 id="调试Ceph-RESTful接口"><a href="#调试Ceph-RESTful接口" class="headerlink" title="调试Ceph RESTful接口"></a>调试Ceph RESTful接口</h5><p>radosgw守护进程是一个Ceph客户端，它位于Ceph集群和HTTP客户端之间。它包括自己的网络服务器Beast，它支持HTTP和HTTPS。</p>
+<p>如果发生错误，应该查看&#x2F;var &#x2F;log&#x2F;ceph&#x2F;文件夹中的日志文件</p>
+<p>要将日志记录到文件中，请将log_to_file参数设置为true。可以通过log_file和debug参数更新日志文件的位置和日志级别。还可以在Ceph配置数据库中启用rgw_enable_ops_ log和rgw_ enable_usage_ log参数，分别记录每次成功的RADOS网关操作和使用情况</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">[ceph: root@node /]<span class="comment"># ceph config set \</span></span><br><span class="line">	client.rgw log_file /var/<span class="built_in">log</span>/ceph/ceph-rgw-node.log </span><br><span class="line">[ceph: root@node /]<span class="comment"># ceph config set client.rgw log_to_file true </span></span><br><span class="line">[ceph: root@node /]<span class="comment"># ceph config set client.rgw debug_rgw 20 </span></span><br><span class="line">[ceph: root@node /]<span class="comment"># ceph config set \</span></span><br><span class="line">	client.rgw rgw_enable_ops_log <span class="literal">true</span> </span><br><span class="line">[ceph: root@node /)<span class="comment"># ceph config set \</span></span><br><span class="line">	global rgw_enable_usage_log <span class="literal">true</span></span><br></pre></td></tr></table></figure>
+
+<p>使用<a href="">radosgw-admin log list</a>命令查看调试日志。该命令提供可用的日志对象列表。使用<a href="">radosgw-admin log show</a>命令查看日志文件信息。若要直接从日志对象检索信息，请在对象ID中添加- -object参数。如果要检索具有时间戳的桶的信息，可以添加–bucket、–date和–bucket- ID参数，这些参数分别表示桶名、时间戳和桶ID</p>
+<h5 id="常见的RADOS网关问题"><a href="#常见的RADOS网关问题" class="headerlink" title="常见的RADOS网关问题"></a>常见的RADOS网关问题</h5><p>在RADOS网关中最常见的错误是客户端和RADOS网关之间的时间倾斜，因为S3协议使用日期和时间来签署每个请求。为了避免这个问题，在Ceph和客户节点上都使用NTP</p>
+<p>可以通过在RADOS网关日志文件中查找HTTP状态行来验证RADOS网关请求完成的问题</p>
+<p>RADOS网关是一个Ceph客户端，它将所有配置存储在RADOS对象中。保存配置数据的RADOS pg组必须处于active +clean状态。如果状态不是active+clean，那么如果主OSD无法提供数据服务，Ceph I&#x2F;O请求就会挂起，HTTP客户端最终会超时。使用ceph健康详细信息命令识别未激活的pg</p>
+<h4 id="12-3-8-CephFS故障排除"><a href="#12-3-8-CephFS故障排除" class="headerlink" title="12.3.8 CephFS故障排除"></a>12.3.8 CephFS故障排除</h4><p>CephFS元数据服务器(MDS)维护一个与其客户端、FUSE或内核共享的缓存，以便MDS可以将其缓存的一部分委托给客户端。<br>例如，访问inode的客户机可以在本地管理和缓存对该对象的更改。<br>如果其他客户端也请求访问同一个节点，MDS可以请求第一个客户端用新的元数据更新服务器</p>
+<p>为了保持缓存的一致性，MDS需要与客户端建立可靠的网络连接</p>
+<p>Ceph可以自动断开或驱逐没有响应的客户端。发生这种情况时，未刷新的客户端数据将丢失</p>
+<p>当客户端试图获得对CephFS的访问时，MDS请求具有当前能力的客户端释放它们。如果客户机没有响应，那么CephFS会在超时后显示一条错误消息。可以使用ceph fs set命令使用session_timeout属性配置超时时间。缺省值是60秒</p>
+<p>session_autoc丢失属性控制退出。如果客户端与MDS的通信失败时间超过默认的300秒，则MDS将客户端逐出</p>
+<p>Ceph暂时禁止被驱逐的客户端，以便他们不能重新连接。如果出现这种禁止，您必须重新引导客户端系统或卸载并重新挂载文件系统才能重新连接</p>
+<h2 id="博文部分内容参考"><a href="#博文部分内容参考" class="headerlink" title="博文部分内容参考"></a>博文部分内容参考</h2><p>© 文中涉及参考链接内容版权归原作者所有，如有侵权请告知，这是一个开源项目，如果你认可它，不要吝啬星星哦 :)</p>
+<hr>
+<hr>
+<p>© 2018-至今 <a href="mailto:&#108;&#x69;&#114;&#x75;&#105;&#108;&#111;&#x6e;&#x67;&#x65;&#x72;&#x40;&#x67;&#109;&#x61;&#x69;&#108;&#x2e;&#99;&#x6f;&#109;">&#108;&#x69;&#114;&#x75;&#105;&#108;&#111;&#x6e;&#x67;&#x65;&#x72;&#x40;&#x67;&#109;&#x61;&#x69;&#108;&#x2e;&#99;&#x6f;&#109;</a>, All rights reserved. 保持署名-非商用-相同方式共享(CC BY-NC-SA 4.0)</p>
+</div><div class="article-licensing box"><div class="licensing-title"><p>Ceph：Ceph 集群与客户端故障处理(18)</p><p><a href="https://liruilongs.github.io/2023/06/24/rhca/CL260/Ceph：Ceph-集群与客户端故障处理(18)/">https://liruilongs.github.io/2023/06/24/rhca/CL260/Ceph：Ceph-集群与客户端故障处理(18)/</a></p></div><div class="licensing-meta level is-mobile"><div class="level-left"><div class="level-item is-narrow"><div><h6>作者</h6><a href="https://liruilongs.github.io"><p>山河已无恙</p></a></div></div><div class="level-item is-narrow"><div><h6>发布于</h6><p>2023-06-24</p></div></div><div class="level-item is-narrow"><div><h6>更新于</h6><p>2025-02-04</p></div></div><div class="level-item is-narrow"><div><h6>许可协议</h6><p><a class="icon" rel="noopener" target="_blank" title="Creative Commons" href="https://creativecommons.org/"><i class="fab fa-creative-commons"></i></a><a class="icon" rel="noopener" target="_blank" title="Attribution" href="https://creativecommons.org/licenses/by/4.0/"><i class="fab fa-creative-commons-by"></i></a><a class="icon" rel="noopener" target="_blank" title="Noncommercial" href="https://creativecommons.org/licenses/by-nc/4.0/"><i class="fab fa-creative-commons-nc"></i></a></p></div></div></div></div></div><div class="recommend-area"><div class="recommend-post"><span class="is-size-6 has-text-grey has-mr-7"># 相关文章</span><br><span>  1.<a class="is-size-6" href="/2023/06/14/rhca/CL260/Ceph-%E5%85%B3%E4%BA%8ECeph-%E4%B8%ADRADOS%E7%BD%91%E5%85%B3%E5%A4%9A%E7%AB%99%E7%82%B9%E9%83%A8%E7%BD%B2(13)/" target="_blank">Ceph:关于Ceph 中RADOS网关多站点部署</a><br></span><span>  2.<a class="is-size-6" href="/2023/04/11/rhca/CL260/ceph/Ceph%EF%BC%9A%E5%85%B3%E4%BA%8E-Ceph-%E8%80%83%E8%AF%95%E9%A2%98%E7%AC%94%E8%AE%B0%E6%95%B4%E7%90%86/" target="_blank">Ceph：关于 Ceph 练习题笔记整理</a><br></span></div><div class="recommend-post"><span class="is-size-6 has-text-grey has-mr-7"># 推荐文章</span><br><span>  1.<a class="is-size-6" href="/2021/08/27/K8s/%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/%E3%80%8AKubernetes%E6%9D%83%E5%A8%81%E6%8C%87%E5%8D%97-%E4%BB%8EDocker%E5%88%B0Kubernetes%E5%AE%9E%E8%B7%B5%E5%85%A8%E6%8E%A5%E8%A7%A6%E3%80%8B%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/" target="_blank">《Kubernetes权威指南:从Docker到Kubernetes实践全接触》读书笔记</a><br></span><span>  2.<a class="is-size-6" href="/2022/11/19/Git/%E5%85%B3%E4%BA%8E-Git-%E9%87%8D%E5%86%99%E5%8E%86%E5%8F%B2%E7%9A%84%E4%B8%80%E4%BA%9B%E7%AC%94%E8%AE%B0/" target="_blank">关于 Git 重写历史的一些笔记</a><br></span><span>  3.<a class="is-size-6" href="/2022/08/02/Git/%E5%85%B3%E4%BA%8EGit%E5%88%86%E6%94%AF%E5%8F%98%E5%9F%BA%E6%93%8D%E4%BD%9C%E7%9A%84%E4%B8%80%E4%BA%9B%E7%AC%94%E8%AE%B0/" target="_blank">关于Git分支变基操作的一些笔记</a><br></span><span>  4.<a class="is-size-6" href="/2022/07/26/Git/%E5%85%B3%E4%BA%8EGit%E5%88%86%E6%94%AF%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86%E7%9A%84%E4%B8%80%E4%BA%9B%E7%AC%94%E8%AE%B0/" target="_blank">关于Git分支基础知识的一些笔记</a><br></span><span>  5.<a class="is-size-6" href="/2022/08/02/Git/%E5%85%B3%E4%BA%8EGit%E5%88%86%E6%94%AF%E5%B7%A5%E4%BD%9C%E6%B5%81%E7%9A%84%E4%B8%80%E4%BA%9B%E7%AC%94%E8%AE%B0/" target="_blank">关于Git分支工作流的一些笔记</a><br></span><span>  6.<a class="is-size-6" href="/2023/02/19/Git/%E5%85%B3%E4%BA%8EGit%E9%AB%98%E7%BA%A7%E5%90%88%E5%B9%B6%E7%9A%84%E4%B8%80%E4%BA%9B%E7%AC%94%E8%AE%B0%E6%95%B4%E7%90%86/" target="_blank">关于Git分支高级合并的一些笔记整理</a><br></span></div></div><link rel="stylesheet" href="https://cdnjs.loli.net/ajax/libs/social-share.js/1.0.16/css/share.min.css"><div class="social-share"></div><script src="https://cdnjs.loli.net/ajax/libs/social-share.js/1.0.16/js/social-share.min.js"></script></article></div><div class="card"><div class="card-content"><h3 class="menu-label has-text-centered">喜欢这篇文章？打赏一下作者吧</h3><div class="buttons is-centered"><a class="button donate" data-type="alipay"><span class="icon is-small"><i class="fab fa-alipay"></i></span><span>支付宝</span><span class="qrcode"><img src="/img/alipay%EF%BF%A5.png" alt="支付宝"></span></a><a class="button donate" data-type="wechat"><span class="icon is-small"><i class="fab fa-weixin"></i></span><span>微信</span><span class="qrcode"><img src="/img/wechat%EF%BF%A5.png" alt="微信"></span></a></div></div></div><nav class="post-navigation mt-4 level is-mobile"><div class="level-start"><a class="article-nav-prev level level-item link-muted" href="/2023/06/25/rhca/CL260/Ceph%EF%BC%9A%E5%85%B3%E4%BA%8ECeph%20%E9%9B%86%E7%BE%A4%E4%B8%AD%E6%95%B0%E6%8D%AE%E5%88%86%E5%B8%83%E5%92%8C%E5%AE%B9%E7%81%BE%E6%95%B4%E7%90%86%E7%9A%84%E4%B8%80%E4%BA%9B%E7%AC%94%E8%AE%B0(4)/"><i class="level-item fas fa-chevron-left"></i><span class="level-item">Ceph：关于Ceph 集群中数据分布和容灾整理的一些笔记(4)</span></a></div><div class="level-end"><a class="article-nav-next level level-item link-muted" href="/2023/06/24/rhca/CL260/Ceph%EF%BC%9A%20Ceph%20%E5%AF%B9%E8%B1%A1%E5%AD%98%E5%82%A8%E9%9B%86%E7%BE%A4%E6%80%A7%E8%83%BD%E8%B0%83%E4%BC%98(17)/"><span class="level-item">Ceph： Ceph 对象存储集群性能调优(17)</span><i class="level-item fas fa-chevron-right"></i></a></div></nav><!--!--><div class="card"><div class="card-content"><div class="title is-5">评论</div><div id="comment-container"></div><link rel="stylesheet" href="https://cdnjs.loli.net/ajax/libs/gitalk/1.6.0/gitalk.css"><script> $.getScript('/js/gitalk.min.js', function () { 
+            var gitalk = new Gitalk({
+            language:'zh-CN',
+            id: 'bab1627d68ae7197e5214df6468d45e4',
+            repo: 'blog_comment',
+            owner: 'LIRUILONGS',
+            clientID: '9fdc9739266d48d5f62e',
+            clientSecret: 'c1cc33697d099a2197650ec9dadcb16bd4904655',
+            admin: ["LIRUILONGS"],
+            createIssueManually: true,
+            distractionFreeMode: true,
+            perPage: 10,
+            pagerDirection: 'last',
+            proxy: 'https://cors-anywhere.azm.workers.dev/https://github.com/login/oauth/access_token',
+            
+            enableHotKey: true,
+            isLocked: false
+        })
+        gitalk.render('comment-container')});</script></div></div></div><div class="column column-left is-4-tablet is-4-desktop is-3-widescreen  order-1 is-sticky"><div class="card widget" id="toc" data-type="toc"><div class="card-content"><div class="menu"><h3 class="menu-label">目录</h3><ul class="menu-list"><ul class="menu-list"><li><a class="is-flex is-mobile" href="#写在前面"><span class="mr-2">1.1</span><span>写在前面</span></a></li></ul><li><a class="is-flex is-mobile" href="#集群与客户端故障处理"><span class="mr-2">2</span><span>集群与客户端故障处理</span></a><ul class="menu-list"><ul class="menu-list"><li><a class="is-flex is-mobile" href="#12-3-8-CephFS故障排除"><span class="mr-2">2.1.1</span><span>12.3.8 CephFS故障排除</span></a></li></ul><li><a class="is-flex is-mobile" href="#博文部分内容参考"><span class="mr-2">2.2</span><span>博文部分内容参考</span></a></li></ul></li></ul></div></div><style>.menu-list > li > a.is-active + .menu-list { display: block; }.menu-list > li > a + .menu-list { display: none; }</style><script src="/js/toc.js" defer></script></div><div class="card widget" data-type="profile"><div class="card-content"><nav class=""><div class="level-item has-text-centered flex-shrink-1"><div><figure class="image is-128x128 mx-auto mb-2"><img class="avatar" src="/img/%E5%BE%AE%E4%BF%A1%E5%85%AC%E4%BC%97%E5%8F%B7.jpg" alt="山河已无恙"></figure><p class="title is-size-4 is-block" style="line-height:inherit;">山河已无恙</p><p class="is-size-6 is-block">爱自己，是终生浪漫的开始</p><p class="is-size-6 is-flex justify-content-center"><i class="fas fa-map-marker-alt mr-1"></i><span>中国·呼和浩特</span></p></div></div></nav><nav class="level is-mobile"><div class="level-item has-text-centered is-marginless"><div><p class="heading">文章</p><a href="/archives"><p class="title">421</p></a></div></div><div class="level-item has-text-centered is-marginless"><div><p class="heading">分类</p><a href="/categories"><p class="title">138</p></a></div></div><div class="level-item has-text-centered is-marginless"><div><p class="heading">标签</p><a href="/tags"><p class="title">186</p></a></div></div></nav><div class="level"><a class="level-item button is-primary is-rounded" href="https://mp.weixin.qq.com/s?__biz=MzkyNjIxNTYwMw==&amp;mid=2247496480&amp;idx=1&amp;sn=a9971fed3962ef2a1aeda1f0bda65f86&amp;chksm=c2380ffcf54f86eaba8daac6caca72a70f38e61a8d25dc2a66d3a17b87c02530e326dcaea14b#rd" target="_blank" rel="noopener">关注我</a></div><div class="level is-mobile"><a class="level-item button is-transparent is-marginless" target="_blank" rel="noopener" title="Github" href="https://github.com/LIRUILONGS"><i class="fab fa-github"></i></a><a class="level-item button is-transparent is-marginless" target="_blank" rel="noopener" title="CSDN" href="https://liruilong.blog.csdn.net/"><i class="fa fa-code"></i></a><a class="level-item button is-transparent is-marginless" target="_blank" rel="noopener" title="Email" href="mailto:1224965096@qq.com"><i class="fa fa-envelope"></i></a></div></div></div><div class="card widget" data-type="links"><div class="card-content"><div class="menu"><h3 class="menu-label">链接</h3><ul class="menu-list"><li><a class="level is-mobile" href="https://liruilong.blog.csdn.net/?t=1&amp;type=blog" target="_blank" rel="noopener"><span class="level-left"><span class="level-item">CSDN</span></span><span class="level-right"><span class="level-item tag">liruilong.blog.csdn.net</span></span></a></li><li><a class="level is-mobile" href="https://www.cnblogs.com/liruilong/" target="_blank" rel="noopener"><span class="level-left"><span class="level-item">博客园</span></span><span class="level-right"><span class="level-item tag">www.cnblogs.com</span></span></a></li><li><a class="level is-mobile" href="https://github.com/LIRUILONGS" target="_blank" rel="noopener"><span class="level-left"><span class="level-item">Githup</span></span><span class="level-right"><span class="level-item tag">github.com</span></span></a></li><li><a class="level is-mobile" href="https://gitee.com/liruilonger" target="_blank" rel="noopener"><span class="level-left"><span class="level-item">码云</span></span><span class="level-right"><span class="level-item tag">gitee.com</span></span></a></li></ul></div></div></div><div class="card widget"><div class="card-content"><h3 class="menu-label">最新评论</h3><span class="body_hot_comment">加载中，最新评论有1分钟缓存...</span></div></div><div class="card widget"><div class="card-content"><h3 class="menu-label">最新文章</h3><article class="media"><div class="media-content"><p class="date"><time dateTime="2025-02-10T03:06:02.000Z">2025-02-10</time></p><p class="title"><a href="/2025/02/10/%E5%BE%85%E5%8F%91%E5%B8%83/xxl-job-%E6%BC%8F%E6%B4%9E%E9%97%AE%E9%A2%98%E7%89%88%E6%9C%AC%E5%8D%87%E7%BA%A7%E8%AE%B0%E5%BD%95/">xxl-job 漏洞问题版本升级记录</a></p><p class="categories"><a href="/categories/xxl-job/">xxl-job</a></p></div></article><article class="media"><div class="media-content"><p class="date"><time dateTime="2025-02-06T07:06:00.000Z">2025-02-06</time></p><p class="title"><a href="/2025/02/06/%E5%BE%85%E5%8F%91%E5%B8%83/SpringBoot%20%E6%8E%A5%E5%8F%A3%E5%86%85%E5%AE%B9%E5%8A%A0%E5%AF%86%E6%96%B9%E6%A1%88(RSA+AES+HMAC%E6%A0%A1%E9%AA%8C)%E8%AE%A4%E7%9F%A5/">SpringBoot 接口内容加密方案(RSA+AES+HMAC校验)认知</a></p><p class="categories"><a href="/categories/RSA/">RSA</a> / <a href="/categories/RSA/AES/">AES</a> / <a href="/categories/RSA/AES/HMAC/">HMAC</a></p></div></article><article class="media"><div class="media-content"><p class="date"><time dateTime="2025-02-02T05:32:31.000Z">2025-02-02</time></p><p class="title"><a href="/2025/02/02/%E5%BE%85%E5%8F%91%E5%B8%83/DeepSeek%20%E5%A4%A7%E6%A8%A1%E5%9E%8B%E5%9F%BA%E6%9C%AC%E8%AE%A4%E7%9F%A5(V3%E3%80%81R1%E3%80%81Janus%E3%80%81VL2%20%E7%AE%80%E5%8D%95%E4%BB%8B%E7%BB%8D%E4%BB%A5%E5%8F%8A%E6%9C%AC%E5%9C%B0%E9%83%A8%E7%BD%B2)/">DeepSeek 大模型基本认知(V3、R1、Janus、VL2 简单介绍以及本地部署)</a></p><p class="categories"><a href="/categories/DeepSeek/">DeepSeek</a></p></div></article><article class="media"><div class="media-content"><p class="date"><time dateTime="2025-01-26T07:09:03.000Z">2025-01-26</time></p><p class="title"><a href="/2025/01/26/%E5%BE%85%E5%8F%91%E5%B8%83/AI%E5%A4%A7%E6%A8%A1%E5%9E%8B%E7%9A%84%E6%96%87%E6%9C%AC%E6%B5%81%E5%A6%82%E4%BD%95%E6%8C%81%E7%BB%AD%E5%90%90%E5%88%B0%E5%89%8D%E7%AB%AF%EF%BC%8CBS%E6%9E%B6%E6%9E%84%E5%AE%9E%E6%97%B6%E9%80%9A%E4%BF%A1%E7%9A%84%E6%8A%80%E6%9C%AF%20SSE(Server-Sent%20Events)%20%E8%AE%A4%E7%9F%A5/">AI大模型的文本流如何持续吐到前端，服务端实时通信技术 SSE(Server-Sent Events) 认知</a></p><p class="categories"><a href="/categories/SSE/">SSE</a></p></div></article><article class="media"><div class="media-content"><p class="date"><time dateTime="2025-01-13T03:55:24.000Z">2025-01-13</time></p><p class="title"><a href="/2025/01/13/%E5%BE%85%E5%8F%91%E5%B8%83/%E9%9B%AA%E8%8A%B1%E7%AE%97%E6%B3%95%E8%AE%A4%E7%9F%A5-Twitter-Snowflake/">雪花算法认知(Twitter_Snowflake)</a></p><p class="categories"><a href="/categories/%E9%9B%AA%E8%8A%B1%E7%AE%97%E6%B3%95/">雪花算法</a></p></div></article></div></div><div class="card widget"><div class="card-content"><div class="menu"><h3 class="menu-label">分类</h3><ul class="menu-list"><li><a class="level is-mobile is-marginless" href="/categories/AIGC/"><span class="level-start"><span class="level-item">AIGC</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/AdaFace/"><span class="level-start"><span class="level-item">AdaFace</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/Ajax/"><span class="level-start"><span class="level-item">Ajax</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/Ansible/"><span class="level-start"><span class="level-item">Ansible</span></span><span class="level-end"><span class="level-item tag">23</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/AppCube/"><span class="level-start"><span class="level-item">AppCube</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/BPF/"><span class="level-start"><span class="level-item">BPF</span></span><span class="level-end"><span class="level-item tag">5</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/Bind9/"><span class="level-start"><span class="level-item">Bind9</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/CI-CD/"><span class="level-start"><span class="level-item">CI/CD</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/CSS/"><span class="level-start"><span class="level-item">CSS</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/Ceph/"><span class="level-start"><span class="level-item">Ceph</span></span><span class="level-end"><span class="level-item tag">22</span></span></a></li><a class="level is-mobile is-marginless" href="/categories/"><span class="level-start"><span class="level-item">查看全部&gt;&gt;</span></span></a></ul></div></div></div><div class="card widget"><div class="card-content"><div class="menu"><h3 class="menu-label">归档</h3><ul class="menu-list"><li><a class="level is-mobile is-marginless" href="/archives/2025/02/"><span class="level-start"><span class="level-item">二月 2025</span></span><span class="level-end"><span class="level-item tag">3</span></span></a></li><li><a class="level is-mobile is-marginless" href="/archives/2025/01/"><span class="level-start"><span class="level-item">一月 2025</span></span><span class="level-end"><span class="level-item tag">2</span></span></a></li><li><a class="level is-mobile is-marginless" href="/archives/2024/12/"><span class="level-start"><span class="level-item">十二月 2024</span></span><span class="level-end"><span class="level-item tag">2</span></span></a></li><li><a class="level is-mobile is-marginless" href="/archives/2024/11/"><span class="level-start"><span class="level-item">十一月 2024</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li><li><a class="level is-mobile is-marginless" href="/archives/2024/10/"><span class="level-start"><span class="level-item">十月 2024</span></span><span class="level-end"><span class="level-item tag">4</span></span></a></li><a class="level is-mobile is-marginless" href="/archives/"><span class="level-start"><span class="level-item">查看全部&gt;&gt;</span></span></a></ul></div></div></div><div class="card widget"><div class="card-content"><div class="menu"><h3 class="menu-label">标签</h3><div class="field is-grouped is-grouped-multiline"><div class="control"><a class="tags has-addons" href="/tags/Kubernetes/"><span class="tag">Kubernetes</span><span class="tag is-grey-lightest">98</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Linux/"><span class="tag">Linux</span><span class="tag is-grey-lightest">50</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Ansible/"><span class="tag">Ansible</span><span class="tag is-grey-lightest">25</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Ceph/"><span class="tag">Ceph</span><span class="tag is-grey-lightest">22</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Python/"><span class="tag">Python</span><span class="tag is-grey-lightest">15</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Docker/"><span class="tag">Docker</span><span class="tag is-grey-lightest">9</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Git/"><span class="tag">Git</span><span class="tag is-grey-lightest">8</span></a></div><div class="control"><a class="tags has-addons" href="/tags/JAVA/"><span class="tag">JAVA</span><span class="tag is-grey-lightest">8</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%E5%8D%8E%E4%B8%BA%E4%BA%91/"><span class="tag">华为云</span><span class="tag is-grey-lightest">8</span></a></div><div class="control"><a class="tags has-addons" href="/tags/CPU/"><span class="tag">CPU</span><span class="tag is-grey-lightest">7</span></a></div><div class="control"><a class="tags has-addons" href="/tags/BPF/"><span class="tag">BPF</span><span class="tag is-grey-lightest">6</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Go/"><span class="tag">Go</span><span class="tag is-grey-lightest">6</span></a></div><div class="control"><a class="tags has-addons" href="/tags/OpenShift/"><span class="tag">OpenShift</span><span class="tag is-grey-lightest">6</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%E7%A8%8B%E5%BA%8F%E4%BA%BA%E7%94%9F/"><span class="tag">程序人生</span><span class="tag is-grey-lightest">6</span></a></div><div class="control"><a class="tags has-addons" href="/tags/DNS/"><span class="tag">DNS</span><span class="tag is-grey-lightest">5</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Mysql/"><span class="tag">Mysql</span><span class="tag is-grey-lightest">5</span></a></div><div class="control"><a class="tags has-addons" href="/tags/OKD/"><span class="tag">OKD</span><span class="tag is-grey-lightest">5</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%E6%91%84%E5%BD%B1%E6%9B%9D%E5%85%89/"><span class="tag">摄影曝光</span><span class="tag is-grey-lightest">5</span></a></div><div class="control"><a class="tags has-addons" href="/tags/selenium/"><span class="tag">selenium</span><span class="tag is-grey-lightest">4</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%E5%AE%B9%E5%99%A8/"><span class="tag">容器</span><span class="tag is-grey-lightest">4</span></a></div></div><div class="field is-grouped is-grouped-multiline"><a class="tags has-addons" href="/tags/"><span class="tag">查看全部&gt;&gt;</span></a></div></div></div></div><div class="card widget" data-type="subscribe-email"><div class="card-content"><div class="menu"><h3 class="menu-label">订阅更新</h3><form action="https://feedburner.google.com/fb/a/mailverify" method="post" target="popupwindow" onsubmit="window.open(&#039;https://feedburner.google.com/fb/a/mailverify?uri=&#039;,&#039;popupwindow&#039;,&#039;scrollbars=yes,width=550,height=520&#039;);return true"><input type="hidden" value="" name="uri"><input type="hidden" name="loc" value="en_US"><div class="field has-addons"><div class="control has-icons-left is-expanded"><input class="input" name="email" type="email" placeholder="Email"><span class="icon is-small is-left"><i class="fas fa-envelope"></i></span></div><div class="control"><input class="button" type="submit" value="订阅"></div></div></form></div></div></div><!--!--><div class="column-right-shadow is-hidden-widescreen is-sticky"></div></div></div></div></section><footer class="footer"><div class="container"><div class="level"><div class="level-start"><a class="footer-logo is-block mb-2" href="/"><img src="/img/logo.png" alt="山河已无恙" height="28"></a><p class="size-small"><span>&copy; 2025 山河已无恙</span>  Powered by <a href="https://hexo.io/" target="_blank">Hexo</a> &amp; <a href="https://github.com/ppoffice/hexo-theme-icarus" target="_blank">Icarus</a> &amp; <a href="https://github.com/removeif/hexo-theme-amazing" target="_blank">Amazing</a> <br><span>© <a href="http://www.beian.miit.gov.cn/" target="_blank">备案中</a><br></span><span>© 版权说明：[本网站所有内容均收集于互联网或自己创作,<br />&nbsp;&nbsp;&nbsp;&nbsp;方便于网友与自己学习交流，如有侵权，请<a href="/message" target="_blank">留言</a>，立即处理]<br /></span><span><span id="statistic-times">loading...</span><script>function createTime(time) {
+            var n = new Date(time);
+            now.setTime(now.getTime() + 250),
+                days = (now - n) / 1e3 / 60 / 60 / 24,
+                dnum = Math.floor(days),
+                hours = (now - n) / 1e3 / 60 / 60 - 24 * dnum,
+                hnum = Math.floor(hours),
+            1 == String(hnum).length && (hnum = "0" + hnum),
+                minutes = (now - n) / 1e3 / 60 - 1440 * dnum - 60 * hnum,
+                mnum = Math.floor(minutes),
+            1 == String(mnum).length && (mnum = "0" + mnum),
+                seconds = (now - n) / 1e3 - 86400 * dnum - 3600 * hnum - 60 * mnum,
+                snum = Math.round(seconds),
+            1 == String(snum).length && (snum = "0" + snum),
+                document.getElementById("statistic-times").innerHTML = "❤️本站自 <strong>"+time.split(" ")[0].replace(/\//g,".")+"</strong> 已运行 <strong>" + dnum + "</strong> 天 <strong>" + hnum + "</strong> 小时 <strong>" + mnum + "</strong> 分 <strong>" + snum + "</strong> 秒！❤️";
+        }var now = new Date();setInterval("createTime('2021/6/26 21:27:00')", 250,"");</script><br></span><div class="size-small"><span>❤️感谢 <strong><span id="busuanzi_value_site_uv">99+</span></strong> 小伙伴的 <strong><span id="busuanzi_value_site_pv">99+</span></strong> 次光临！❤️</span></div></p></div><div class="level-end"><div class="field has-addons"><p class="control"><a class="button is-transparent is-large" target="_blank" rel="noopener" title="Creative Commons" href="https://creativecommons.org/"><i class="fab fa-creative-commons"></i></a></p><p class="control"><a class="button is-transparent is-large" target="_blank" rel="noopener" title="Attribution 4.0 International" href="https://creativecommons.org/licenses/by/4.0/"><i class="fab fa-creative-commons-by"></i></a></p><p class="control"><a class="button is-transparent is-large" target="_blank" rel="noopener" title="Download on GitHub" href="https://github.com/removeif/hexo-theme-amazing"><i class="fab fa-github"></i></a></p></div><div class="sideMusic"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/aplayer/dist/APlayer.min.css"><script src="/js/APlayer.min.js"></script><script src="https://cdn.jsdelivr.net/npm/meting@2/dist/Meting.min.js"></script><meting-js style="width: auto;height: 2000px;" server="netease" type="playlist" id="2364053447" theme="#2980b9" loop="all" autoplay="false" order="list" storageName="aplayer-setting" lrctype="0" list-max-height="400px" fixed="true"></meting-js></div></div></div></div></footer><script src="https://cdnjs.loli.net/ajax/libs/moment.js/2.22.2/moment-with-locales.min.js"></script><script src="https://cdnjs.loli.net/ajax/libs/clipboard.js/2.0.4/clipboard.min.js" async></script><script>moment.locale("zh-CN");</script><script>var IcarusThemeSettings = {
+            article: {
+                highlight: {
+                    clipboard: true,
+                    fold: 'unfolded'
+                }
+            }
+        };</script><script src="/js/column.js"></script><!--!--><script src="/js/animation.js"></script><a id="back-to-top" title="回到顶端" href="javascript:;"><i class="fas fa-chevron-up"></i></a><script src="/js/back_to_top.js" defer></script><!--!--><script src="https://cdnjs.loli.net/ajax/libs/lightgallery/1.6.8/js/lightgallery.min.js" defer></script><script src="https://cdnjs.loli.net/ajax/libs/justifiedGallery/3.7.0/js/jquery.justifiedGallery.min.js" defer></script><script>window.addEventListener("load", () => {
+            if (typeof $.fn.lightGallery === 'function') {
+                $('.article').lightGallery({ selector: '.gallery-item' });
+            }
+            if (typeof $.fn.justifiedGallery === 'function') {
+                if ($('.justified-gallery > p > .gallery-item').length) {
+                    $('.justified-gallery > p > .gallery-item').unwrap();
+                }
+                $('.justified-gallery').justifiedGallery();
+            }
+        });</script><!--!--><!--!--><link rel="stylesheet" href="https://cdnjs.loli.net/ajax/libs/KaTeX/0.11.1/katex.min.css"><script src="https://cdnjs.loli.net/ajax/libs/KaTeX/0.11.1/katex.min.js" defer></script><script src="https://cdnjs.loli.net/ajax/libs/KaTeX/0.11.1/contrib/auto-render.min.js" defer></script><script src="https://cdnjs.loli.net/ajax/libs/KaTeX/0.11.1/contrib/mhchem.js" defer></script><script>window.addEventListener("load", function() {
+            document.querySelectorAll('[role="article"] > .content').forEach(function(element) {
+                renderMathInElement(element);
+            });
+        });</script><script type="text/x-mathjax-config">MathJax.Hub.Config({
+            'HTML-CSS': {
+                matchFontHeight: false
+            },
+            SVG: {
+                matchFontHeight: false
+            },
+            CommonHTML: {
+                matchFontHeight: false
+            },
+            tex2jax: {
+                inlineMath: [
+                    ['$','$'],
+                    ['\\(','\\)']
+                ]
+            }
+        });</script><script src="https://cdnjs.loli.net/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-MML-AM_CHTML" defer></script><div id="outdated"><h6>Your browser is out-of-date!</h6><p>Update your browser to view this website correctly.&amp;npsb;<a id="btnUpdateBrowser" target="_blank" rel="noopener" href="http://outdatedbrowser.com/">Update my browser now </a></p><p class="last"><a href="#" id="btnCloseUpdateBrowser" title="Close">×</a></p></div><script src="https://cdnjs.loli.net/ajax/libs/outdated-browser/1.1.5/outdatedbrowser.min.js" defer></script><script>window.addEventListener("load", function () {
+            outdatedBrowser({
+                bgColor: '#f25648',
+                color: '#ffffff',
+                lowerThan: 'object-fit' // display on IE11 or below
+            });
+        });</script><!--!--><script src="/js/main.js" defer></script><script>$.getScript('/js/comment-issue-data.js',function(){loadIssueData('9fdc9739266d48d5f62e','c1cc33697d099a2197650ec9dadcb16bd4904655','LIRUILONGS','blog_comment',false);})</script><div class="searchbox"><div class="searchbox-container"><div class="searchbox-header"><div class="searchbox-input-container"><input class="searchbox-input" type="text" placeholder="想要查找什么..."></div><a class="searchbox-close" href="javascript:;">×</a></div><div class="searchbox-body"></div></div></div><script src="/js/insight.js" defer></script><script>document.addEventListener('DOMContentLoaded', function () {
+            loadInsight({"contentUrl":"/content.json"}, {"hint":"想要查找什么...","untitled":"(无标题)","posts":"文章","pages":"页面","categories":"分类","tags":"标签"});
+        });</script><script src="https://cdn.jsdelivr.net/npm/pjax@0.2.8/pjax.js"></script><script type="text/javascript">var pjax = new Pjax({
+            elements: "a",//代表点击链接就更新
+            selectors: [  //代表要更新的节点
+                ".section",
+                "title"
+            ],
+            cache: true,
+            cacheBust:false
+        })
+
+        function loadBusuanzi(){
+        $.getScript("//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js", function () {});
+        }
+
+        function loadMathJax() { //加载mathjax
+            $.getScript("//cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.4/MathJax.js?config=TeX-MML-AM_CHTML", function () {
+                MathJax.Hub.Config({ tex2jax: { inlineMath: [['$', '$'], ['\(', '\)']] } });
+                var math = document.getElementsByClassName("entry-content")[0];
+                MathJax.Hub.Queue(["Typeset", MathJax.Hub, math]);
+            });
+        };
+
+        // 开始 PJAX 执行的函数
+        document.addEventListener('pjax:send', function () {
+        });
+        
+        // PJAX 完成之后执行的函数，可以和上面的重载放在一起
+        document.addEventListener('pjax:complete', function () {
+            $(".section").css({opacity:1});
+            if(true){
+                $.getScript('/js/comment-issue-data.js',function(){loadIssueData('9fdc9739266d48d5f62e','c1cc33697d099a2197650ec9dadcb16bd4904655','LIRUILONGS','blog_comment',false);});
+            }
+            if(false){
+                loadMathJax();
+            }
+            loadMainJs(jQuery, window.moment, window.ClipboardJS, window.IcarusThemeSettings);
+            loadBackTop();
+            loadBusuanzi();
+            if(typeof loadBanner == 'function'){
+                loadBanner();
+            }
+        });</script></body></html>

@@ -1,0 +1,400 @@
+<!doctype html>
+<html lang="zh"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"><meta><title>Ceph：关于Ceph 中如何优化存储性能的一些笔记整理(16) - 山河已无恙</title><link rel="manifest" href="/manifest.json"><meta name="application-name" content="山河已无恙"><meta name="msapplication-TileImage" content="https://cdn.jsdelivr.net/gh/removeif/removeif-demo@latest/img/favicon.png"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="山河已无恙"><meta name="apple-mobile-web-app-status-bar-style" content="default"><meta description="对每个人而言，真正的职责只有一个：找到自我。然后在心中坚守其一生，全心全意，永不停息。所有其它的路都是不完整的，是人的逃避方式，是对大众理想的懦弱回归，是随波逐流，是对内心的恐惧 ——赫尔曼·黑塞《德米安》"><meta property="og:type" content="blog"><meta property="og:title" content="山河已无恙"><meta property="og:url" content="https://mp.weixin.qq.com/s?__biz=MzkyNjIxNTYwMw==&amp;mid=2247496480&amp;idx=1&amp;sn=a9971fed3962ef2a1aeda1f0bda65f86&amp;chksm=c2380ffcf54f86eaba8daac6caca72a70f38e61a8d25dc2a66d3a17b87c02530e326dcaea14b#rd"><meta property="og:site_name" content="山河已无恙"><meta property="og:description" content="对每个人而言，真正的职责只有一个：找到自我。然后在心中坚守其一生，全心全意，永不停息。所有其它的路都是不完整的，是人的逃避方式，是对大众理想的懦弱回归，是随波逐流，是对内心的恐惧 ——赫尔曼·黑塞《德米安》"><meta property="og:locale" content="zh_CN"><meta property="og:image" content="https://mp.weixin.qq.com/img/头像.jpg"><meta property="article:published_time" content="2023-06-14T06:48:03.000Z"><meta property="article:modified_time" content="2025-02-04T02:43:58.556Z"><meta property="article:author" content="LIRUILONGS"><meta property="article:tag" content="Ceph"><meta property="twitter:card" content="summary"><meta property="twitter:image" content="/img/头像.jpg"><script type="application/ld+json">{"@context":"https://schema.org","@type":"BlogPosting","mainEntityOfPage":{"@type":"WebPage","@id":"https://liruilongs.github.io/2023/06/14/rhca/CL260/Ceph%EF%BC%9A%E5%85%B3%E4%BA%8ECeph%20%E4%B8%AD%E5%A6%82%E4%BD%95%E4%BC%98%E5%8C%96%E5%AD%98%E5%82%A8%E6%80%A7%E8%83%BD%E7%9A%84%E4%B8%80%E4%BA%9B%E7%AC%94%E8%AE%B0%E6%95%B4%E7%90%86(16)/"},"headline":"山河已无恙","image":[],"datePublished":"2023-06-14T06:48:03.000Z","dateModified":"2025-02-04T02:43:58.556Z","author":{"@type":"Person","name":"山河已无恙"},"description":"对每个人而言，真正的职责只有一个：找到自我。然后在心中坚守其一生，全心全意，永不停息。所有其它的路都是不完整的，是人的逃避方式，是对大众理想的懦弱回归，是随波逐流，是对内心的恐惧 ——赫尔曼·黑塞《德米安》"}</script><link rel="canonical" href="https://liruilongs.github.io/2023/06/14/rhca/CL260/Ceph%EF%BC%9A%E5%85%B3%E4%BA%8ECeph%20%E4%B8%AD%E5%A6%82%E4%BD%95%E4%BC%98%E5%8C%96%E5%AD%98%E5%82%A8%E6%80%A7%E8%83%BD%E7%9A%84%E4%B8%80%E4%BA%9B%E7%AC%94%E8%AE%B0%E6%95%B4%E7%90%86(16)/"><link rel="alternate" href="/path/to/atom.xml" title="山河已无恙" type="application/atom+xml"><link rel="icon" href="https://cdn.jsdelivr.net/gh/removeif/removeif-demo@latest/img/favicon.png"><meta name="referrer" content="no-referrer-when-downgrade"><link rel="stylesheet" href="https://cdnjs.loli.net/ajax/libs/font-awesome/5.12.0/css/all.min.css"><link rel="stylesheet" href="https://cdnjs.loli.net/ajax/libs/highlight.js/9.12.0/styles/dracula.min.css"><link rel="stylesheet" href="https://fonts.loli.net/css2?family=Ubuntu:wght@400;600&amp;family=Source+Code+Pro"><link rel="stylesheet" href="/css/default.css"><link rel="stylesheet" href="https://cdnjs.loli.net/ajax/libs/font-awesome/5.12.0/css/all.min.css"><link rel="stylesheet" href="https://fonts.loli.net/css?family=Ubuntu:400,600|Source+Code+Pro|Monda:300,300italic,400,400italic,700,700italic|Roboto Slab:300,300italic,400,400italic,700,700italic|Microsoft YaHei:300,300italic,400,400italic,700,700italic|PT Mono:300,300italic,400,400italic,700,700italic&amp;amp;subset=latin,latin-ext|Inconsolata|Itim|Lobster.css"><script src="https://cdnjs.loli.net/ajax/libs/jquery/3.3.1/jquery.min.js"></script><script src="/js/globalUtils.js"></script><script src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js" defer></script><style>body>.footer,body>.navbar,body>.section{opacity:0}</style><!--!--><script>var _hmt = _hmt || [];
+        (function() {
+            var hm = document.createElement("script");
+            hm.src = "//hm.baidu.com/hm.js?3f06f2b732a5b1034c989f74e28d0eea";
+            var s = document.getElementsByTagName("script")[0];
+            s.parentNode.insertBefore(hm, s);
+        })();</script><link rel="stylesheet" href="https://cdnjs.loli.net/ajax/libs/lightgallery/1.6.8/css/lightgallery.min.css"><link rel="stylesheet" href="https://cdnjs.loli.net/ajax/libs/justifiedGallery/3.7.0/css/justifiedGallery.min.css"><!--!--><!--!--><!--!--><!--!--><link rel="stylesheet" href="https://cdnjs.loli.net/ajax/libs/outdated-browser/1.1.5/outdatedbrowser.min.css"><script src="https://cdnjs.loli.net/ajax/libs/pace/1.0.2/pace.min.js"></script><link rel="stylesheet" href="/live2d/waifu.css"><script type="text/javascript" async src="/live2d/autoload.js"></script><meta name="generator" content="Hexo 5.4.2"></head><body class="is-3-column has-navbar-fixed-top"><nav class="navbar navbar-main is-fixed-top"><div class="container"><div class="navbar-brand justify-content-center"><a class="navbar-item navbar-logo" href="/"><img src="/img/logo.png" alt="山河已无恙" height="28"></a></div><div class="navbar-menu"><div class="navbar-start"><a class="navbar-item" href="/">首页</a><a class="navbar-item" href="/archives">归档</a><a class="navbar-item" href="/categories">分类</a><a class="navbar-item" href="/tags">标签</a><a class="navbar-item" href="/media">影音</a><a class="navbar-item" href="/album">相册</a><a class="navbar-item" href="/friend">友链</a><a class="navbar-item" href="/self-talking">生活小记</a><a class="navbar-item" href="/message">留言墙</a><a class="navbar-item" href="/about">关于</a></div><div class="navbar-end"><a class="navbar-item" target="_blank" rel="noopener" title="Gitee" href="https://gitee.com/liruilonger"><i class="fab fa-git-square fa-1x"></i></a><a class="navbar-item" target="_blank" rel="noopener" title="GitHub" href="https://github.com/LIRUILONGS"><i class="fab fa-github fa-1x"></i></a><a class="navbar-item is-hidden-tablet catalogue" title="目录" href="javascript:;"><i class="fas fa-list-ul fa-1x"></i></a><a class="navbar-item search" title="搜索" href="javascript:;"><i class="fas fa-search fa-1x"></i></a><a class="navbar-item" id="night-nav" title="Night Mode" href="javascript:;"><i class="fas fa-moon fa-1x" id="night-icon"></i></a></div></div></div></nav><script type="text/javascript" src="/js/theme-setting.js"></script><section class="section"><div class="container"><div class="columns"><div class="column order-2 column-main is-8-tablet is-8-desktop is-9-widescreen"><!--!--><div class="card"><article class="card-content article" role="article"><div class="article-meta size-small is-uppercase level is-mobile"><div class="level-left"><i class="far fa-calendar-plus"> </i>2023-06-14  <a class="commentCountImg" href="/2023/06/14/rhca/CL260/Ceph%EF%BC%9A%E5%85%B3%E4%BA%8ECeph%20%E4%B8%AD%E5%A6%82%E4%BD%95%E4%BC%98%E5%8C%96%E5%AD%98%E5%82%A8%E6%80%A7%E8%83%BD%E7%9A%84%E4%B8%80%E4%BA%9B%E7%AC%94%E8%AE%B0%E6%95%B4%E7%90%86(16)/#comment-container"><span class="display-none-class">65be6988352995d0a487106188563889</span><i class="far fa-comment-dots"></i> <span class="commentCount" id="65be6988352995d0a487106188563889">99+</span>  </a><span class="level-item"><i class="far fa-clock"> </i>32 分钟  <i class="fas fa-pencil-alt"> </i>4.9 k</span><span class="level-item" id="busuanzi_container_page_pv"><span id="busuanzi_value_page_pv">0</span>次访问</span></div></div><h1 class="title is-3 is-size-4-mobile">Ceph：关于Ceph 中如何优化存储性能的一些笔记整理(16)</h1><div class="content"><p><strong><font color="009688"> 对每个人而言，真正的职责只有一个：找到自我。然后在心中坚守其一生，全心全意，永不停息。所有其它的路都是不完整的，是人的逃避方式，是对大众理想的懦弱回归，是随波逐流，是对内心的恐惧 ——赫尔曼·黑塞《德米安》</strong></font></p>
+<span id="more"></span>
+<h2 id="写在前面"><a href="#写在前面" class="headerlink" title="写在前面"></a>写在前面</h2><hr>
+<ul>
+<li>分享一些 优化 Ceph 存储性能 的笔记</li>
+<li>理解不足小伙伴帮忙指正</li>
+</ul>
+<p><strong><font color="009688"> 对每个人而言，真正的职责只有一个：找到自我。然后在心中坚守其一生，全心全意，永不停息。所有其它的路都是不完整的，是人的逃避方式，是对大众理想的懦弱回归，是随波逐流，是对内心的恐惧 ——赫尔曼·黑塞《德米安》</strong></font></p>
+<hr>
+<h2 id="优化-Ceph-存储性能"><a href="#优化-Ceph-存储性能" class="headerlink" title="优化 Ceph 存储性能"></a>优化 Ceph 存储性能</h2><h3 id="定义性能调优"><a href="#定义性能调优" class="headerlink" title="定义性能调优"></a>定义性能调优</h3><p><code>性能调优</code> 是裁减系统配置的过程，以便特定的关键应用程序具有最佳的 <code>响应时间或吞吐量</code>。</p>
+<p>Ceph 集群的性能调优有三个指标: <code>延迟</code>、<code>IOPS(每秒输入输出操作)</code>和<code>吞吐量</code>。</p>
+<h4 id="延迟"><a href="#延迟" class="headerlink" title="延迟"></a>延迟</h4><p><code>磁盘延迟是设备的一个函数，响应时间是整个服务器的一个函数</code>，所以说 磁盘延迟和响应时间是同一件事，这是一种常见的误解。 </p>
+<p>对于使用旋转盘片的<code>硬盘驱动器</code>，磁盘延迟有两个组成部分:</p>
+<ul>
+<li><strong>寻道时间:</strong>  在盘片上将磁头定位到正确轨道所花费的时间，通常为0.2到0.8毫秒</li>
+<li><strong>旋转延迟:</strong>  轨道上正确的起始扇区从磁头下经过所需要的额外时间，通常为几毫秒。在磁头定位好之后，驱动器就可以开始从盘片传输数据了。在这一点上，顺序数据传输速率很重要。</li>
+</ul>
+<p>对于<code>固态硬盘(ssd)</code>，等效的度量是存储设备的随机访问延迟，通常<code>小于一毫秒</code>。</p>
+<p>对于非易失性存储器表示驱动器(<code>NVMes</code>)，存储驱动器的随机访问延迟通常以<code>微秒为单位</code></p>
+<h4 id="每秒操作-IOPS"><a href="#每秒操作-IOPS" class="headerlink" title="每秒操作 (IOPS)"></a>每秒操作 (IOPS)</h4><p><strong>每秒操作 (IOPS)</strong> 系统每秒能处理的<code>读写请求数</code>与<code>存储设备的能力和应用有关</code>。</p>
+<p>当应用程序发出<code>I/O</code>请求时，操作系统将请求传输给设备，并等待直到请求完成。</p>
+<ul>
+<li>使用旋转盘片的<code>硬盘</code>的IOPS在<code>50到200之间</code>，</li>
+<li><code>ssd</code>的IOPS在<code>数千到数十万之间</code>，</li>
+<li><code>NVMes</code>的IOPS在数<code>十万左右</code></li>
+</ul>
+<h4 id="吞吐量"><a href="#吞吐量" class="headerlink" title="吞吐量"></a>吞吐量</h4><p><code>吞吐量</code>指的是系统每秒可以读取或写入的实际字节数。</p>
+<p><code>块的大小</code>和数据<code>传输速率</code>会影响<code>吞吐量</code>。磁盘块大小越大，延迟因素衰减得越多。数据传输速率越<code>高</code>，磁盘将数据从其表面传输到缓冲区的速度就越<code>快</code></p>
+<ul>
+<li>使用旋转盘片的<code>硬盘</code>的吞吐量约为 <code>150mb/s</code>, </li>
+<li><code>ssd</code>约为 <code>500mbp/s</code>, </li>
+<li><code>NVMes</code>约为 <code>2000mb/s</code>。</li>
+</ul>
+<p>可以测量网络和整个系统的吞吐量，从远程客户端到服务器</p>
+<h3 id="调优目标"><a href="#调优目标" class="headerlink" title="调优目标"></a>调优目标</h3><p>使用的<code>硬件</code>决定了<code>系统和Ceph集群</code>的性能限制</p>
+<p>性能调优的<code>目标</code>是尽可能<code>高效地使用硬件</code></p>
+<p>一个常见的现象是，调优一个特定子系统可能会对另一个子系统的性能产生<code>负面影响</code>。</p>
+<p>例如，可以以<code>高吞吐量</code>为代价来<code>优化系统</code>以获得<code>低延迟</code>，因此，在开始调优之前，建立与 Ceph 集群的预期工作负载一致的目标:</p>
+<p>根据工作负载的不同，调优目标应该包括:</p>
+<ol>
+<li><code>减少时延</code></li>
+<li><code>增加设备侧IOPS</code></li>
+<li><code>增加块大小</code></li>
+</ol>
+<p><strong>IOPS优化</strong></p>
+<p><code>块设备</code>上的<code>工作负载</code>通常是<code>IOPS密集型</code>的，例如 OpenStack 虚拟机上运行的数据库。典型的部署需要<code>高性能SAS驱动器</code>来存储<code>ssd或NVMe设备</code>上的日志</p>
+<p><strong>吞吐量的优化</strong></p>
+<p><code>RADOS网关</code>上的工作负载通常是<code>吞吐量密集型</code>的。对象可以存储大量的数据，比如音频和视频内容</p>
+<p><strong>容量优化</strong></p>
+<p>需要以尽可能低的成本存储大量数据的工作负载通常<code>以性能换取价格</code>。选择更便宜和更慢的<code>SATA驱动器</code>是这种工作负载的解决方案</p>
+<h2 id="优化Ceph性能"><a href="#优化Ceph性能" class="headerlink" title="优化Ceph性能"></a>优化Ceph性能</h2><p>下面的部分描述了调优 Ceph 的推荐实践</p>
+<h3 id="Ceph部署优化建议"><a href="#Ceph部署优化建议" class="headerlink" title="Ceph部署优化建议"></a>Ceph部署优化建议</h3><p>正确规划 Ceph 集群部署是很重要的。</p>
+<p><code>MONs</code> 的性能对于整个集群的性能至关重要。对于<code>大型部署</code>，<code>MONs</code>应该位于<code>专用节点</code>上。为了保证<code>仲裁</code>的正确性，需要<code>奇数</code>个MONs</p>
+<p>Ceph 设计用于处理大量数据，如果使用正确的硬件并正确地调优集群，则可以提高性能</p>
+<p>在集群安装之后，开始持续监视集群，以排除故障并安排维护活动。</p>
+<p>尽管 Ceph 具有显著的<code>自愈能力</code>，但许多类型的故障事件都需要 <code>快速通知和人工干预</code>。</p>
+<p>如果出现性能问题，请在<code>磁盘、网络和硬件级别</code>进行故障排除。然后，继续诊断 <code>RADOS块设备</code> 和 <code>Ceph RADOS网关</code></p>
+<h3 id="OSD的优化建议"><a href="#OSD的优化建议" class="headerlink" title="OSD的优化建议"></a>OSD的优化建议</h3><p>在写 <code>BlueStore</code> <code>块数据库</code>和<code>WAL (write-ahead log)</code>时，为了提高效率，建议使用<code>ssd</code>盘或<code>NVMes</code>盘。</p>
+<p>OSD的数据、块数据库和WAL可以配置在相同的存储设备上，也可以通过对这些组件使用<code>单独的设备来进行配置</code></p>
+<p>在典型的部署中，<code>osd 使用具有高延迟的传统旋转磁盘</code>，因为它们提供了令人满意的指标，以更低的<code>每兆字节成本</code>满足定义的目标。</p>
+<p>默认情况下，<code>BlueStore osd</code> 将数据、块数据库和WAL放在<code>同一个块设备</code>上。但是，可以通过<code>为块数据库和WAL使用单独的低延迟ssd或NVMe设备来最大化效率</code>。</p>
+<p>指定 OSD 服务对应的 BlueStore 设备</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">service_type:</span> <span class="string">osd</span></span><br><span class="line"><span class="attr">service_id:</span> <span class="string">osd_example</span></span><br><span class="line"><span class="attr">placement:</span></span><br><span class="line">  <span class="attr">host_pattern:</span> <span class="string">&#x27;*&#x27;</span></span><br><span class="line"><span class="attr">data_devices:</span> <span class="comment"># 对象数据</span></span><br><span class="line">  <span class="attr">paths:</span></span><br><span class="line">    <span class="bullet">-</span> <span class="string">/dev/vda</span></span><br><span class="line"><span class="attr">db_devices:</span>  <span class="comment"># 块数据库</span></span><br><span class="line">  <span class="attr">paths:</span> </span><br><span class="line">    <span class="bullet">-</span> <span class="string">/dev/nvme0</span></span><br><span class="line"><span class="attr">wal_devices:</span> <span class="comment"># 预写日志</span></span><br><span class="line">  <span class="attr">paths:</span> </span><br><span class="line">    <span class="bullet">-</span> <span class="string">/dev/nvme1</span></span><br></pre></td></tr></table></figure>
+
+<p>多个块数据库和WALs可以<code>共享同一个SSD或NVMe设备</code>，降低存储基础设施成本</p>
+<p>考虑以下 <code>SSD</code> 规格对预期工作负载的影响:</p>
+<ol>
+<li>支持仪式数量的平均故障间隔时间(MTBF)</li>
+<li><code>IOPS</code>功能</li>
+<li>数据传送速率</li>
+<li>BUS&#x2F; SSD几个功能</li>
+</ol>
+<p>当一个承载日志的 <code>SSD</code> 或 <code>NVMe</code> 设备失效时，每个使用它来承载日志的 OSD 也将不可用。在决定在同一存储设备上放置多少块数据库或WALs时，请考虑这一点</p>
+<h3 id="Ceph-RADOS网关的优化建议"><a href="#Ceph-RADOS网关的优化建议" class="headerlink" title="Ceph RADOS网关的优化建议"></a>Ceph RADOS网关的优化建议</h3><p><code>RADOS 网关</code> 上的工作负载通常是<code>吞吐量密集型</code>的。</p>
+<p>作为对象存储的音频和视频材料可能很大。但是，<code>桶索引池</code>通常显示更 <code>I/O密集型</code> 的工作负载模式。<strong>建议将索引池存储在SSD设备上。</strong></p>
+<p>RADOS网关为每个桶维护一个<code>索引</code>。</p>
+<p>默认情况下，Ceph 将这个索引存储在一个<code>RADOS对象</code>中。当一个桶存储超过 <code>100,000个对象</code> 时，<code>单个索引对象</code>成为瓶颈，索引性能下降。</p>
+<blockquote>
+<p>Ceph 可以在多个 <code>RADOS对象</code> 或分片中保存<code>大索引</code>。通过设置 <code>rgw_override_bucket_index_max</code> 可启用该特性。建议为每桶中预期的对象数除以 <code>100,000</code></p>
+</blockquote>
+<p>随着索引的增长，Ceph必须定期重新共享桶。<code>Ceph</code> 提供了<code>桶索引自动重分片</code>功能。<code>rgw_dynamic_resharding</code> 参数(默认为true)控制该特性</p>
+<h3 id="CephFS的建议"><a href="#CephFS的建议" class="headerlink" title="CephFS的建议"></a>CephFS的建议</h3><p>保存目录结构和其他索引的<code>元数据池</code>可能成为<code>CephFS</code>瓶颈。为了最大限度地减少这种限制，<code>元数据池</code>使用<code>SSD</code>设备(一个cephfs文件系统至少需要两个池，一个存储cephfs数据，另一个存储cephfs元数据)</p>
+<p>每个<code>MDS</code>在<code>内存中为不同类型的项(如inode)维护一个缓存</code>。Ceph通过<code>mds_cache_memory_limit</code>参数限制这个缓存的大小。其默认值(以绝对字节表示)为<code>4gb</code></p>
+<h2 id="PG-放置组调优"><a href="#PG-放置组调优" class="headerlink" title="PG 放置组调优"></a>PG 放置组调优</h2><p>由于某些<code>OSD节点</code>上不必要的CPU和RAM活动，集群中pg的总数可能会影响整体性能。Red Hat建议在将集群投入生产之前验证每个池的PG分配。还要考虑回填和回收的具体测试，对客户端I&#x2F;O请求的影响，有两个重要的值:</p>
+<ol>
+<li>集群中<code>pg</code>的总数</li>
+<li>特定池中可使用的<code>pg</code>数量</li>
+</ol>
+<p>使用这个公式来估算一个<code>特定池</code>中可使用的<code>pg</code>数量:</p>
+<p><code>放置组总数= (OSDs * 100) /副本数量</code></p>
+<p>应用每个池的公式可以获得集群的pg总数。Red Hat建议每个<code>OSD 100至200 pg</code></p>
+<p><strong>Splitting PGs</strong></p>
+<p>Ceph支持增加或减少池中pg的数量。<br>如果在创建池时不指定该值，则创建池时使用默认值 <code>8pg</code>，这个值非常低</p>
+<p>pg_autoscale_mode属性允许Ceph做出建议，并自动调整pg_num和pgp_num参数。在创建新池时，默认启用此选项。pg_num参数定义特定对象的pg数量。pgp_num参数定义CRUSH算法考虑放置的pg的数量。</p>
+<p>红帽建议你增加放置组的数量，直到你达到理想的pg数量。大量增加pg的数量会导致集群性能下降，因为会产生预期的数据，重新定位和再平衡是密集的。</p>
+<p>使用ceph osd pool set命令通过设置参数pg_num手动增加或减少pg数量。在禁用pg_autoscale模式选项的情况下，手动增加池中的pg数量时，应该只增加少量的增量</p>
+<p>将放置组的总数设置为2的幂可以更好地在osd中分布pg。增加pgp_num参数会自动增加pgp_num参数，但会逐步增加，以减少对集群性能的影响</p>
+<p><strong>PG合并</strong></p>
+<p>Red Hat Ceph Storage可以将两个PG合并成一个更大的PG，减少PG的总数。<br>当池中的pg数量过大且性能下降时，合并可能很有用。因为合并是一个复杂的过程，所以每次只合并一个PG，以尽量减少对集群性能的影响</p>
+<p><strong>PG Auto-scaling</strong></p>
+<p>如前所述，PG自动缩放功能允许Ceph做出建议，并自动调整PG的数量。该特性在创建池时默认启用。对于现有的池，使用这个命令配置自动伸缩:</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[admin@node -)$ ceph osd pool <span class="built_in">set</span> pool-name pg_autoscale_mode mode</span><br></pre></td></tr></table></figure>
+
+<p>将模式参数设置为off以禁用它，设置为on以启用它，并允许Ceph自动调整pg的数量，或在必须调整pg数量时发出警报。</p>
+<p>查看自动缩放模块提供的信息:</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[admin@node -)$ ceph osd pool autoscale-status</span><br></pre></td></tr></table></figure>
+
+<h4 id="12-1-4-设计集群架构"><a href="#12-1-4-设计集群架构" class="headerlink" title="12.1.4 设计集群架构"></a>12.1.4 设计集群架构</h4><p>在设计Ceph集群时，考虑扩展选择，以匹配未来的数据需求，并使用正确的网络大小和体系结构促进足够的吞吐量</p>
+<h5 id="可扩展性"><a href="#可扩展性" class="headerlink" title="可扩展性"></a>可扩展性</h5><p>可以通过两种方式扩展集群存储:</p>
+<ol>
+<li><p>通过向集群中添加更多节点向外扩展</p>
+</li>
+<li><p>通过向现有节点添加更多资源进行扩展</p>
+</li>
+</ol>
+<p>扩展要求节点可以接受更多的CPU和RAM资源，以处理磁盘数量和磁盘大小的增加。<br>向外扩展需要添加具有类似资源和容量的节点，以匹配集群的现有节点，从而实现平衡操作</p>
+<h5 id="网络的最佳实践"><a href="#网络的最佳实践" class="headerlink" title="网络的最佳实践"></a>网络的最佳实践</h5><p>连接Ceph集群中节点的网络对于良好的性能至关重要，因为所有客户端和I&#x2F;O集群操作都使用它。红帽公司推荐以下做法:</p>
+<ol>
+<li><p>为了提高性能和提供更好的故障排除隔离，OSD流量和客户端流量使用单独的网络</p>
+</li>
+<li><p>存储集群的网络容量不小于10gb。1gb组网不适合生产环境</p>
+</li>
+<li><p>根据集群和客户端流量以及存储的数据量评估网络大小</p>
+</li>
+<li><p>强烈建议进行网络监控</p>
+</li>
+<li><p>在可能的情况下，使用单独的网卡连接到网络，或者使用单独的端口</p>
+</li>
+</ol>
+<p><img src="https://k8s.ruitong.cn:8080/Redhat/CL260-RHCS5.0-en-1-20211117/images/tuning/tuning-tuning-cephperf-network.svg"></p>
+<p>Ceph守护进程自动绑定到正确的接口，例如将MONs绑定到公共网络，将osd绑定到公共网络和集群网络</p>
+<h4 id="12-1-5-手动控制PG的主OSD"><a href="#12-1-5-手动控制PG的主OSD" class="headerlink" title="12.1.5 手动控制PG的主OSD"></a>12.1.5 手动控制PG的主OSD</h4><p>使用主亲和性设置来影响Ceph选择一个特定的OSD作为放置组的主OSD。<br>设置越高，一个OSD被选择为主OSD的可能性越大。<br>可以通过配置集群来避免主OSD使用慢盘或控制器来缓解问题或瓶颈。ceph osd primary-affinity命令用于修改osd的主亲和性。亲和力是0和1之间的一个实数</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[admin@node -)$ ceph osd primary-affinity osd-number affinity </span><br></pre></td></tr></table></figure>
+
+<h5 id="OSD恢复与回填"><a href="#OSD恢复与回填" class="headerlink" title="OSD恢复与回填"></a>OSD恢复与回填</h5><p>当Ceph在集群中添加或移除一个OSD时，Ceph会对pg进行重新平衡，使用新的OSD或重新创建存储在被移除的OSD中的副本。<br>这些回填和恢复操作会产生较高的集群网络流量负载，从而影响性能。</p>
+<p>为避免集群性能下降，请调整回填和恢复操作，使重新平衡与集群正常操作之间的关系。<br>Ceph提供参数来限制回填和回收操作的1&#x2F;0和网络活动。</p>
+<p>以下列表包括其中一些参数:</p>
+<table>
+<thead>
+<tr>
+<th align="center">参数</th>
+<th>定义</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center">osd_recovery_op_ priority</td>
+<td>恢复操作优先级</td>
+</tr>
+<tr>
+<td align="center">osd_recovery_max_active</td>
+<td>每个OSD的最大并发恢复请求数</td>
+</tr>
+<tr>
+<td align="center">osd_recovery_threads</td>
+<td>用于数据恢复的线程数</td>
+</tr>
+<tr>
+<td align="center">osd_max_backfills</td>
+<td>单个OSD的最大回填数</td>
+</tr>
+<tr>
+<td align="center">osd_backfill_scan_min</td>
+<td>每次回填扫描的最小对象数</td>
+</tr>
+<tr>
+<td align="center">osd_backfill_scan_max</td>
+<td>每次回填扫描的最大对象数</td>
+</tr>
+<tr>
+<td align="center">osd_backfill_full_ratio</td>
+<td>向OSD回填请求的阈值</td>
+</tr>
+<tr>
+<td align="center">osd_backfill_retry_interval</td>
+<td>在重新尝试回填请求之前，需要等待几秒</td>
+</tr>
+</tbody></table>
+<h4 id="12-1-6-配置硬件"><a href="#12-1-6-配置硬件" class="headerlink" title="12.1.6 配置硬件"></a>12.1.6 配置硬件</h4><p>对集群的预期工作负载使用现实的指标，构建集群的硬件配置，以提供足够的性能，但保持成本尽可能低。<br>Red Hat建议将这些硬件配置用于以下三个性能优先级:</p>
+<p><strong>IOPS优化</strong></p>
+<ol>
+<li><p>每个NVMe设备使用两个osd</p>
+</li>
+<li><p>NVMe驱动器将数据、块数据库和WAL配置在同一个存储设备上</p>
+</li>
+<li><p>假设有一个2ghz的CPU，每个NVMe使用10个核，或者每个SSD使用2个核</p>
+</li>
+<li><p>分配16gb内存作为基准，每个OSD加5gb内存</p>
+</li>
+<li><p>每2个osd使用10gbe网卡</p>
+</li>
+</ol>
+<p><strong>吞吐量的优化</strong></p>
+<ol>
+<li><p>每个硬盘使用一个OSD</p>
+</li>
+<li><p>将块数据库和WAL放置在ssd或nvme上</p>
+</li>
+<li><p>使用至少7200 RPM的硬盘驱动器</p>
+</li>
+<li><p>假设有一个2ghz的CPU，每个HDD使用半个核</p>
+</li>
+<li><p>分配16gb内存作为基准，每个OSD加5gb内存</p>
+</li>
+<li><p>每12个osd使用10个GbE网卡</p>
+</li>
+</ol>
+<p><strong>容量优化</strong></p>
+<ol>
+<li><p>每个硬盘使用一个OSD</p>
+</li>
+<li><p>hdd将数据、块数据库和WAL配置在同一个存储设备上</p>
+</li>
+<li><p>使用至少7200 RPM的硬盘驱动器</p>
+</li>
+<li><p>假设有一个2ghz的CPU，每个HDD使用半个核</p>
+</li>
+<li><p>分配16gb内存作为基准，每个OSD加5gb内存</p>
+</li>
+<li><p>每12个osd使用10个GbE网卡</p>
+</li>
+</ol>
+<h4 id="12-1-7-使用Ceph性能工具进行调优"><a href="#12-1-7-使用Ceph性能工具进行调优" class="headerlink" title="12.1.7 使用Ceph性能工具进行调优"></a>12.1.7 使用Ceph性能工具进行调优</h4><p>性能工具提供基准度量来检查集群的性能问题</p>
+<h5 id="性能计数器和指标"><a href="#性能计数器和指标" class="headerlink" title="性能计数器和指标"></a>性能计数器和指标</h5><p>每个Ceph守护进程都维护一组内部计数器和仪表。有几个工具可以访问这些计数器:</p>
+<ul>
+<li><p><strong>仪表板插件</strong><br>Dashboard插件公开了一个可以在端口8443上访问的web界面。<br>“集群OSD”菜单提供OSD的基本实时统计信息，如读字节数、写字节数、读操作次数、写操作次数等。<br>使用ceph mgr模块Enable Dashboard命令启用Dashboard插件。如果您使用cephadm bootstrap命令引导集群，那么默认情况下仪表板是启用的</p>
+</li>
+<li><p><strong>Manager (MGR) Prometheus 插件</strong><br>该插件在端口9283上公开性能指标，供外部Prometheus服务器收集。Prometheus是一个开源的系统监视和警报工具</p>
+</li>
+<li><p><strong>ceph命令行工具</strong><br>ceph命令具有查看指标和更改守护进程参数的选项</p>
+</li>
+</ul>
+<h4 id="12-1-8-性能压力工具"><a href="#12-1-8-性能压力工具" class="headerlink" title="12.1.8 性能压力工具"></a>12.1.8 性能压力工具</h4><p>Red Hat Ceph Storage提供了对Ceph集群进行压力测试和基准测试的工具。</p>
+<h5 id="RADOS-bench命令"><a href="#RADOS-bench命令" class="headerlink" title="RADOS bench命令"></a>RADOS bench命令</h5><p>RADOS bench是一个简单的测试RADOS对象存储的工具。<br>它在集群上执行写和读测试，并提供统计数据。<br>该命令的通用语法如下:</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">[admin@node -]$ rados bench \</span><br><span class="line">	 -p POOL-NAME SECONDS write|seq|rand -b objsize -t concurrency</span><br></pre></td></tr></table></figure>
+
+<p>以下是该工具的常用参数:</p>
+<ol>
+<li><p>seq和rand测试是顺序和随机读取基准测试。这些测试要求首先运行写入基准测试，并使用–no-cleanup选项。<br>默认情况下，RADOS平台会删除为编写测试创建的对象。<br>–no-cleanup选项将保留这些对象，这对于在相同的对象上执行多个测试非常有用</p>
+</li>
+<li><p>默认的对象大小是4mb</p>
+</li>
+<li><p>默认并发数为16</p>
+</li>
+</ol>
+<p>使用–no-cleanup选项，在运行rados bench命令后，必须手动删除池中保留的数据</p>
+<p>例如，rados bench命令提供的吞吐量、IOPS、时延信息如下:</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">[ceph: root@server /]<span class="comment"># rados bench \</span></span><br><span class="line">	-p testbench 10 write --no-cleanup hints = 1</span><br></pre></td></tr></table></figure>
+
+<h5 id="RBD-bench命令"><a href="#RBD-bench命令" class="headerlink" title="RBD bench命令"></a>RBD bench命令</h5><p>RBD测试在为测试创建的现有映像上测量I&#x2F;O的吞吐量和延迟</p>
+<p>这些是默认值:</p>
+<ol>
+<li><p>如果不为 size 参数提供后缀，则该命令假定以字节为单位</p>
+</li>
+<li><p>默认池名为 rbd</p>
+</li>
+<li><p>-io-size 的默认值是 4096 字节</p>
+</li>
+<li><p>–io-threads 的默认值为 16</p>
+</li>
+<li><p>–io-total 的默认值是 1gb</p>
+</li>
+<li><p>–io-mode 的默认值是 seq</p>
+</li>
+</ol>
+<p>例如，rbd bench命令提供的信息包括吞吐量和延迟:</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">[ceph: root@server /]<span class="comment"># rbd bench \</span></span><br><span class="line">	--io-type write testimage --pool=testbench </span><br></pre></td></tr></table></figure>
+
+
+
+<h2 id="博文部分内容参考"><a href="#博文部分内容参考" class="headerlink" title="博文部分内容参考"></a>博文部分内容参考</h2><p>© 文中涉及参考链接内容版权归原作者所有，如有侵权请告知，这是一个开源项目，如果你认可它，不要吝啬星星哦 :)</p>
+<hr>
+<hr>
+<p>© 2018-至今 <a href="mailto:&#108;&#x69;&#x72;&#117;&#105;&#x6c;&#111;&#x6e;&#103;&#101;&#114;&#x40;&#x67;&#109;&#x61;&#105;&#x6c;&#x2e;&#x63;&#x6f;&#x6d;">&#108;&#x69;&#x72;&#117;&#105;&#x6c;&#111;&#x6e;&#103;&#101;&#114;&#x40;&#x67;&#109;&#x61;&#105;&#x6c;&#x2e;&#x63;&#x6f;&#x6d;</a>, All rights reserved. 保持署名-非商用-相同方式共享(CC BY-NC-SA 4.0)</p>
+</div><div class="article-licensing box"><div class="licensing-title"><p>Ceph：关于Ceph 中如何优化存储性能的一些笔记整理(16)</p><p><a href="https://liruilongs.github.io/2023/06/14/rhca/CL260/Ceph：关于Ceph 中如何优化存储性能的一些笔记整理(16)/">https://liruilongs.github.io/2023/06/14/rhca/CL260/Ceph：关于Ceph 中如何优化存储性能的一些笔记整理(16)/</a></p></div><div class="licensing-meta level is-mobile"><div class="level-left"><div class="level-item is-narrow"><div><h6>作者</h6><a href="https://liruilongs.github.io"><p>山河已无恙</p></a></div></div><div class="level-item is-narrow"><div><h6>发布于</h6><p>2023-06-14</p></div></div><div class="level-item is-narrow"><div><h6>更新于</h6><p>2025-02-04</p></div></div><div class="level-item is-narrow"><div><h6>许可协议</h6><p><a class="icon" rel="noopener" target="_blank" title="Creative Commons" href="https://creativecommons.org/"><i class="fab fa-creative-commons"></i></a><a class="icon" rel="noopener" target="_blank" title="Attribution" href="https://creativecommons.org/licenses/by/4.0/"><i class="fab fa-creative-commons-by"></i></a><a class="icon" rel="noopener" target="_blank" title="Noncommercial" href="https://creativecommons.org/licenses/by-nc/4.0/"><i class="fab fa-creative-commons-nc"></i></a></p></div></div></div></div></div><div class="recommend-area"><div class="recommend-post"><span class="is-size-6 has-text-grey has-mr-7"># 相关文章</span><br><span>  1.<a class="is-size-6" href="/2023/10/16/rhca/CL260/Ceph%EF%BC%9A%E5%85%B3%E4%BA%8ECeph%20%E4%B8%AD%E5%88%9B%E5%BB%BA%E5%92%8C%E7%AE%A1%E7%90%86%E8%87%AA%E5%AE%9A%E4%B9%89%20CRUSH%20map%E7%9A%84%E4%B8%80%E4%BA%9B%E7%AC%94%E8%AE%B0%E6%95%B4%E7%90%86(11)/" target="_blank">Ceph：关于Ceph 中创建和管理自定义 CRUSH map的一些笔记整理(11)</a><br></span><span>  2.<a class="is-size-6" href="/2023/06/25/rhca/CL260/Ceph%EF%BC%9A%E5%85%B3%E4%BA%8ECeph%20%E9%9B%86%E7%BE%A4%E4%B8%AD%E6%95%B0%E6%8D%AE%E5%88%86%E5%B8%83%E5%92%8C%E5%AE%B9%E7%81%BE%E6%95%B4%E7%90%86%E7%9A%84%E4%B8%80%E4%BA%9B%E7%AC%94%E8%AE%B0(4)/" target="_blank">Ceph：关于Ceph 集群中数据分布和容灾整理的一些笔记(4)</a><br></span><span>  3.<a class="is-size-6" href="/2023/06/24/rhca/CL260/Ceph%EF%BC%9A%20Ceph%20%E5%AF%B9%E8%B1%A1%E5%AD%98%E5%82%A8%E9%9B%86%E7%BE%A4%E6%80%A7%E8%83%BD%E8%B0%83%E4%BC%98(17)/" target="_blank">Ceph： Ceph 对象存储集群性能调优(17)</a><br></span><span>  4.<a class="is-size-6" href="/2023/06/14/rhca/CL260/Ceph-%E5%85%B3%E4%BA%8ECeph-%E4%B8%AD%E4%BD%BF%E7%94%A8%E7%BA%A2%E5%B8%BD-Ceph-%E5%AD%98%E5%82%A8%E7%AE%A1%E7%90%86%E4%BA%91%E5%B9%B3%E5%8F%B0(19)/" target="_blank">Ceph:关于Ceph 中使用红帽 Ceph 存储管理云平台(19)</a><br></span><span>  5.<a class="is-size-6" href="/2023/06/14/rhca/CL260/Ceph-%E5%85%B3%E4%BA%8ECeph-%E4%B8%AD%E7%AE%A1%E7%90%86%E7%BA%A2%E5%B8%BD-Ceph-%E5%AD%98%E5%82%A8%E9%9B%86%E7%BE%A4(16)/" target="_blank">Ceph:关于Ceph 中管理红帽 Ceph 存储集群(16)</a><br></span><span>  6.<a class="is-size-6" href="/2023/06/14/rhca/CL260/Ceph%EF%BC%9A%E5%85%B3%E4%BA%8ECeph-%E4%B8%AD%E4%BD%BF%E7%94%A8-CephFS-%E6%8F%90%E4%BE%9B%E6%96%87%E4%BB%B6%E5%AD%98%E5%82%A8%E7%9A%84%E4%B8%80%E4%BA%9B%E7%AC%94%E8%AE%B0%E6%95%B4%E7%90%86(15)/" target="_blank">Ceph:关于Ceph 中使用 CephFS 提供文件存储</a><br></span><span>  7.<a class="is-size-6" href="/2023/06/13/rhca/CL260/%E5%85%B3%E4%BA%8ECeph-%E4%B8%ADRBD-%E5%9D%97%E5%AD%98%E5%82%A8%E6%89%A9%E5%B1%95%E6%93%8D%E4%BD%9C-%E8%B7%A8%E9%9B%86%E7%BE%A4RBD%E9%95%9C%E5%83%8F%E3%80%81%E5%A4%9A%E6%A8%A1%E5%BC%8F%E3%80%81iSCSI%E5%9D%97%E5%AD%98%E5%82%A8%E7%AD%89(12)/" target="_blank">关于Ceph 中RBD 块存储扩展操作(跨集群RBD镜像、多模式、iSCSI块存储等)</a><br></span><span>  8.<a class="is-size-6" href="/2023/05/29/rhca/CL260/Ceph%EF%BC%9A%E5%85%B3%E4%BA%8E%20Ceph%20%E4%B8%AD%20BlueStore%20%E6%9E%B6%E6%9E%84%E4%BB%A5%E5%8F%8A%20OSD%20%E5%88%9B%E5%BB%BA%E7%9A%84%E4%B8%80%E4%BA%9B%E7%AC%94%E8%AE%B0(8)/" target="_blank">Ceph：关于 Ceph 中 BlueStore 架构以及 OSD 创建的一些笔记(8)</a><br></span></div><div class="recommend-post"><span class="is-size-6 has-text-grey has-mr-7"># 推荐文章</span><br><span>  1.<a class="is-size-6" href="/2021/08/27/K8s/%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/%E3%80%8AKubernetes%E6%9D%83%E5%A8%81%E6%8C%87%E5%8D%97-%E4%BB%8EDocker%E5%88%B0Kubernetes%E5%AE%9E%E8%B7%B5%E5%85%A8%E6%8E%A5%E8%A7%A6%E3%80%8B%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/" target="_blank">《Kubernetes权威指南:从Docker到Kubernetes实践全接触》读书笔记</a><br></span><span>  2.<a class="is-size-6" href="/2022/11/19/Git/%E5%85%B3%E4%BA%8E-Git-%E9%87%8D%E5%86%99%E5%8E%86%E5%8F%B2%E7%9A%84%E4%B8%80%E4%BA%9B%E7%AC%94%E8%AE%B0/" target="_blank">关于 Git 重写历史的一些笔记</a><br></span><span>  3.<a class="is-size-6" href="/2022/08/02/Git/%E5%85%B3%E4%BA%8EGit%E5%88%86%E6%94%AF%E5%8F%98%E5%9F%BA%E6%93%8D%E4%BD%9C%E7%9A%84%E4%B8%80%E4%BA%9B%E7%AC%94%E8%AE%B0/" target="_blank">关于Git分支变基操作的一些笔记</a><br></span><span>  4.<a class="is-size-6" href="/2022/07/26/Git/%E5%85%B3%E4%BA%8EGit%E5%88%86%E6%94%AF%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86%E7%9A%84%E4%B8%80%E4%BA%9B%E7%AC%94%E8%AE%B0/" target="_blank">关于Git分支基础知识的一些笔记</a><br></span><span>  5.<a class="is-size-6" href="/2022/08/02/Git/%E5%85%B3%E4%BA%8EGit%E5%88%86%E6%94%AF%E5%B7%A5%E4%BD%9C%E6%B5%81%E7%9A%84%E4%B8%80%E4%BA%9B%E7%AC%94%E8%AE%B0/" target="_blank">关于Git分支工作流的一些笔记</a><br></span><span>  6.<a class="is-size-6" href="/2023/02/19/Git/%E5%85%B3%E4%BA%8EGit%E9%AB%98%E7%BA%A7%E5%90%88%E5%B9%B6%E7%9A%84%E4%B8%80%E4%BA%9B%E7%AC%94%E8%AE%B0%E6%95%B4%E7%90%86/" target="_blank">关于Git分支高级合并的一些笔记整理</a><br></span></div></div><link rel="stylesheet" href="https://cdnjs.loli.net/ajax/libs/social-share.js/1.0.16/css/share.min.css"><div class="social-share"></div><script src="https://cdnjs.loli.net/ajax/libs/social-share.js/1.0.16/js/social-share.min.js"></script></article></div><div class="card"><div class="card-content"><h3 class="menu-label has-text-centered">喜欢这篇文章？打赏一下作者吧</h3><div class="buttons is-centered"><a class="button donate" data-type="alipay"><span class="icon is-small"><i class="fab fa-alipay"></i></span><span>支付宝</span><span class="qrcode"><img src="/img/alipay%EF%BF%A5.png" alt="支付宝"></span></a><a class="button donate" data-type="wechat"><span class="icon is-small"><i class="fab fa-weixin"></i></span><span>微信</span><span class="qrcode"><img src="/img/wechat%EF%BF%A5.png" alt="微信"></span></a></div></div></div><nav class="post-navigation mt-4 level is-mobile"><div class="level-start"><a class="article-nav-prev level level-item link-muted" href="/2023/06/14/rhca/CL260/Ceph-%E5%85%B3%E4%BA%8ECeph-%E4%B8%AD%E4%BD%BF%E7%94%A8%E7%BA%A2%E5%B8%BD-Ceph-%E5%AD%98%E5%82%A8%E7%AE%A1%E7%90%86%E4%BA%91%E5%B9%B3%E5%8F%B0(19)/"><i class="level-item fas fa-chevron-left"></i><span class="level-item">Ceph:关于Ceph 中使用红帽 Ceph 存储管理云平台(19)</span></a></div><div class="level-end"><a class="article-nav-next level level-item link-muted" href="/2023/06/14/rhca/CL260/Ceph-%E5%85%B3%E4%BA%8ECeph-%E4%B8%AD%E7%AE%A1%E7%90%86%E7%BA%A2%E5%B8%BD-Ceph-%E5%AD%98%E5%82%A8%E9%9B%86%E7%BE%A4(16)/"><span class="level-item">Ceph:关于Ceph 中管理红帽 Ceph 存储集群(16)</span><i class="level-item fas fa-chevron-right"></i></a></div></nav><!--!--><div class="card"><div class="card-content"><div class="title is-5">评论</div><div id="comment-container"></div><link rel="stylesheet" href="https://cdnjs.loli.net/ajax/libs/gitalk/1.6.0/gitalk.css"><script> $.getScript('/js/gitalk.min.js', function () { 
+            var gitalk = new Gitalk({
+            language:'zh-CN',
+            id: '65be6988352995d0a487106188563889',
+            repo: 'blog_comment',
+            owner: 'LIRUILONGS',
+            clientID: '9fdc9739266d48d5f62e',
+            clientSecret: 'c1cc33697d099a2197650ec9dadcb16bd4904655',
+            admin: ["LIRUILONGS"],
+            createIssueManually: true,
+            distractionFreeMode: true,
+            perPage: 10,
+            pagerDirection: 'last',
+            proxy: 'https://cors-anywhere.azm.workers.dev/https://github.com/login/oauth/access_token',
+            
+            enableHotKey: true,
+            isLocked: false
+        })
+        gitalk.render('comment-container')});</script></div></div></div><div class="column column-left is-4-tablet is-4-desktop is-3-widescreen  order-1 is-sticky"><div class="card widget" id="toc" data-type="toc"><div class="card-content"><div class="menu"><h3 class="menu-label">目录</h3><ul class="menu-list"><li><a class="is-flex is-mobile" href="#写在前面"><span class="mr-2">1</span><span>写在前面</span></a></li><li><a class="is-flex is-mobile" href="#优化-Ceph-存储性能"><span class="mr-2">2</span><span>优化 Ceph 存储性能</span></a><ul class="menu-list"><li><a class="is-flex is-mobile" href="#定义性能调优"><span class="mr-2">2.1</span><span>定义性能调优</span></a><ul class="menu-list"><li><a class="is-flex is-mobile" href="#延迟"><span class="mr-2">2.1.1</span><span>延迟</span></a></li><li><a class="is-flex is-mobile" href="#每秒操作-IOPS"><span class="mr-2">2.1.2</span><span>每秒操作 (IOPS)</span></a></li><li><a class="is-flex is-mobile" href="#吞吐量"><span class="mr-2">2.1.3</span><span>吞吐量</span></a></li></ul></li><li><a class="is-flex is-mobile" href="#调优目标"><span class="mr-2">2.2</span><span>调优目标</span></a></li></ul></li><li><a class="is-flex is-mobile" href="#优化Ceph性能"><span class="mr-2">3</span><span>优化Ceph性能</span></a><ul class="menu-list"><li><a class="is-flex is-mobile" href="#Ceph部署优化建议"><span class="mr-2">3.1</span><span>Ceph部署优化建议</span></a></li><li><a class="is-flex is-mobile" href="#OSD的优化建议"><span class="mr-2">3.2</span><span>OSD的优化建议</span></a></li><li><a class="is-flex is-mobile" href="#Ceph-RADOS网关的优化建议"><span class="mr-2">3.3</span><span>Ceph RADOS网关的优化建议</span></a></li><li><a class="is-flex is-mobile" href="#CephFS的建议"><span class="mr-2">3.4</span><span>CephFS的建议</span></a></li></ul></li><li><a class="is-flex is-mobile" href="#PG-放置组调优"><span class="mr-2">4</span><span>PG 放置组调优</span></a><ul class="menu-list"><ul class="menu-list"><li><a class="is-flex is-mobile" href="#网络的最佳实践"><span class="mr-2">4.1.1</span><span>网络的最佳实践</span></a></li><li><a class="is-flex is-mobile" href="#OSD恢复与回填"><span class="mr-2">4.1.2</span><span>OSD恢复与回填</span></a></li><li><a class="is-flex is-mobile" href="#12-1-6-配置硬件"><span class="mr-2">4.1.3</span><span>12.1.6 配置硬件</span></a></li><li><a class="is-flex is-mobile" href="#性能计数器和指标"><span class="mr-2">4.1.4</span><span>性能计数器和指标</span></a></li><li><a class="is-flex is-mobile" href="#RBD-bench命令"><span class="mr-2">4.1.5</span><span>RBD bench命令</span></a></li></ul></ul></li><li><a class="is-flex is-mobile" href="#博文部分内容参考"><span class="mr-2">5</span><span>博文部分内容参考</span></a></li></ul></div></div><style>.menu-list > li > a.is-active + .menu-list { display: block; }.menu-list > li > a + .menu-list { display: none; }</style><script src="/js/toc.js" defer></script></div><div class="card widget" data-type="profile"><div class="card-content"><nav class=""><div class="level-item has-text-centered flex-shrink-1"><div><figure class="image is-128x128 mx-auto mb-2"><img class="avatar" src="/img/%E5%BE%AE%E4%BF%A1%E5%85%AC%E4%BC%97%E5%8F%B7.jpg" alt="山河已无恙"></figure><p class="title is-size-4 is-block" style="line-height:inherit;">山河已无恙</p><p class="is-size-6 is-block">爱自己，是终生浪漫的开始</p><p class="is-size-6 is-flex justify-content-center"><i class="fas fa-map-marker-alt mr-1"></i><span>中国·呼和浩特</span></p></div></div></nav><nav class="level is-mobile"><div class="level-item has-text-centered is-marginless"><div><p class="heading">文章</p><a href="/archives"><p class="title">421</p></a></div></div><div class="level-item has-text-centered is-marginless"><div><p class="heading">分类</p><a href="/categories"><p class="title">138</p></a></div></div><div class="level-item has-text-centered is-marginless"><div><p class="heading">标签</p><a href="/tags"><p class="title">186</p></a></div></div></nav><div class="level"><a class="level-item button is-primary is-rounded" href="https://mp.weixin.qq.com/s?__biz=MzkyNjIxNTYwMw==&amp;mid=2247496480&amp;idx=1&amp;sn=a9971fed3962ef2a1aeda1f0bda65f86&amp;chksm=c2380ffcf54f86eaba8daac6caca72a70f38e61a8d25dc2a66d3a17b87c02530e326dcaea14b#rd" target="_blank" rel="noopener">关注我</a></div><div class="level is-mobile"><a class="level-item button is-transparent is-marginless" target="_blank" rel="noopener" title="Github" href="https://github.com/LIRUILONGS"><i class="fab fa-github"></i></a><a class="level-item button is-transparent is-marginless" target="_blank" rel="noopener" title="CSDN" href="https://liruilong.blog.csdn.net/"><i class="fa fa-code"></i></a><a class="level-item button is-transparent is-marginless" target="_blank" rel="noopener" title="Email" href="mailto:1224965096@qq.com"><i class="fa fa-envelope"></i></a></div></div></div><div class="card widget" data-type="links"><div class="card-content"><div class="menu"><h3 class="menu-label">链接</h3><ul class="menu-list"><li><a class="level is-mobile" href="https://liruilong.blog.csdn.net/?t=1&amp;type=blog" target="_blank" rel="noopener"><span class="level-left"><span class="level-item">CSDN</span></span><span class="level-right"><span class="level-item tag">liruilong.blog.csdn.net</span></span></a></li><li><a class="level is-mobile" href="https://www.cnblogs.com/liruilong/" target="_blank" rel="noopener"><span class="level-left"><span class="level-item">博客园</span></span><span class="level-right"><span class="level-item tag">www.cnblogs.com</span></span></a></li><li><a class="level is-mobile" href="https://github.com/LIRUILONGS" target="_blank" rel="noopener"><span class="level-left"><span class="level-item">Githup</span></span><span class="level-right"><span class="level-item tag">github.com</span></span></a></li><li><a class="level is-mobile" href="https://gitee.com/liruilonger" target="_blank" rel="noopener"><span class="level-left"><span class="level-item">码云</span></span><span class="level-right"><span class="level-item tag">gitee.com</span></span></a></li></ul></div></div></div><div class="card widget"><div class="card-content"><h3 class="menu-label">最新评论</h3><span class="body_hot_comment">加载中，最新评论有1分钟缓存...</span></div></div><div class="card widget"><div class="card-content"><h3 class="menu-label">最新文章</h3><article class="media"><div class="media-content"><p class="date"><time dateTime="2025-02-10T03:06:02.000Z">2025-02-10</time></p><p class="title"><a href="/2025/02/10/%E5%BE%85%E5%8F%91%E5%B8%83/xxl-job-%E6%BC%8F%E6%B4%9E%E9%97%AE%E9%A2%98%E7%89%88%E6%9C%AC%E5%8D%87%E7%BA%A7%E8%AE%B0%E5%BD%95/">xxl-job 漏洞问题版本升级记录</a></p><p class="categories"><a href="/categories/xxl-job/">xxl-job</a></p></div></article><article class="media"><div class="media-content"><p class="date"><time dateTime="2025-02-06T07:06:00.000Z">2025-02-06</time></p><p class="title"><a href="/2025/02/06/%E5%BE%85%E5%8F%91%E5%B8%83/SpringBoot%20%E6%8E%A5%E5%8F%A3%E5%86%85%E5%AE%B9%E5%8A%A0%E5%AF%86%E6%96%B9%E6%A1%88(RSA+AES+HMAC%E6%A0%A1%E9%AA%8C)%E8%AE%A4%E7%9F%A5/">SpringBoot 接口内容加密方案(RSA+AES+HMAC校验)认知</a></p><p class="categories"><a href="/categories/RSA/">RSA</a> / <a href="/categories/RSA/AES/">AES</a> / <a href="/categories/RSA/AES/HMAC/">HMAC</a></p></div></article><article class="media"><div class="media-content"><p class="date"><time dateTime="2025-02-02T05:32:31.000Z">2025-02-02</time></p><p class="title"><a href="/2025/02/02/%E5%BE%85%E5%8F%91%E5%B8%83/DeepSeek%20%E5%A4%A7%E6%A8%A1%E5%9E%8B%E5%9F%BA%E6%9C%AC%E8%AE%A4%E7%9F%A5(V3%E3%80%81R1%E3%80%81Janus%E3%80%81VL2%20%E7%AE%80%E5%8D%95%E4%BB%8B%E7%BB%8D%E4%BB%A5%E5%8F%8A%E6%9C%AC%E5%9C%B0%E9%83%A8%E7%BD%B2)/">DeepSeek 大模型基本认知(V3、R1、Janus、VL2 简单介绍以及本地部署)</a></p><p class="categories"><a href="/categories/DeepSeek/">DeepSeek</a></p></div></article><article class="media"><div class="media-content"><p class="date"><time dateTime="2025-01-26T07:09:03.000Z">2025-01-26</time></p><p class="title"><a href="/2025/01/26/%E5%BE%85%E5%8F%91%E5%B8%83/AI%E5%A4%A7%E6%A8%A1%E5%9E%8B%E7%9A%84%E6%96%87%E6%9C%AC%E6%B5%81%E5%A6%82%E4%BD%95%E6%8C%81%E7%BB%AD%E5%90%90%E5%88%B0%E5%89%8D%E7%AB%AF%EF%BC%8CBS%E6%9E%B6%E6%9E%84%E5%AE%9E%E6%97%B6%E9%80%9A%E4%BF%A1%E7%9A%84%E6%8A%80%E6%9C%AF%20SSE(Server-Sent%20Events)%20%E8%AE%A4%E7%9F%A5/">AI大模型的文本流如何持续吐到前端，服务端实时通信技术 SSE(Server-Sent Events) 认知</a></p><p class="categories"><a href="/categories/SSE/">SSE</a></p></div></article><article class="media"><div class="media-content"><p class="date"><time dateTime="2025-01-13T03:55:24.000Z">2025-01-13</time></p><p class="title"><a href="/2025/01/13/%E5%BE%85%E5%8F%91%E5%B8%83/%E9%9B%AA%E8%8A%B1%E7%AE%97%E6%B3%95%E8%AE%A4%E7%9F%A5-Twitter-Snowflake/">雪花算法认知(Twitter_Snowflake)</a></p><p class="categories"><a href="/categories/%E9%9B%AA%E8%8A%B1%E7%AE%97%E6%B3%95/">雪花算法</a></p></div></article></div></div><div class="card widget"><div class="card-content"><div class="menu"><h3 class="menu-label">分类</h3><ul class="menu-list"><li><a class="level is-mobile is-marginless" href="/categories/AIGC/"><span class="level-start"><span class="level-item">AIGC</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/AdaFace/"><span class="level-start"><span class="level-item">AdaFace</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/Ajax/"><span class="level-start"><span class="level-item">Ajax</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/Ansible/"><span class="level-start"><span class="level-item">Ansible</span></span><span class="level-end"><span class="level-item tag">23</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/AppCube/"><span class="level-start"><span class="level-item">AppCube</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/BPF/"><span class="level-start"><span class="level-item">BPF</span></span><span class="level-end"><span class="level-item tag">5</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/Bind9/"><span class="level-start"><span class="level-item">Bind9</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/CI-CD/"><span class="level-start"><span class="level-item">CI/CD</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/CSS/"><span class="level-start"><span class="level-item">CSS</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/Ceph/"><span class="level-start"><span class="level-item">Ceph</span></span><span class="level-end"><span class="level-item tag">22</span></span></a></li><a class="level is-mobile is-marginless" href="/categories/"><span class="level-start"><span class="level-item">查看全部&gt;&gt;</span></span></a></ul></div></div></div><div class="card widget"><div class="card-content"><div class="menu"><h3 class="menu-label">归档</h3><ul class="menu-list"><li><a class="level is-mobile is-marginless" href="/archives/2025/02/"><span class="level-start"><span class="level-item">二月 2025</span></span><span class="level-end"><span class="level-item tag">3</span></span></a></li><li><a class="level is-mobile is-marginless" href="/archives/2025/01/"><span class="level-start"><span class="level-item">一月 2025</span></span><span class="level-end"><span class="level-item tag">2</span></span></a></li><li><a class="level is-mobile is-marginless" href="/archives/2024/12/"><span class="level-start"><span class="level-item">十二月 2024</span></span><span class="level-end"><span class="level-item tag">2</span></span></a></li><li><a class="level is-mobile is-marginless" href="/archives/2024/11/"><span class="level-start"><span class="level-item">十一月 2024</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li><li><a class="level is-mobile is-marginless" href="/archives/2024/10/"><span class="level-start"><span class="level-item">十月 2024</span></span><span class="level-end"><span class="level-item tag">4</span></span></a></li><a class="level is-mobile is-marginless" href="/archives/"><span class="level-start"><span class="level-item">查看全部&gt;&gt;</span></span></a></ul></div></div></div><div class="card widget"><div class="card-content"><div class="menu"><h3 class="menu-label">标签</h3><div class="field is-grouped is-grouped-multiline"><div class="control"><a class="tags has-addons" href="/tags/Kubernetes/"><span class="tag">Kubernetes</span><span class="tag is-grey-lightest">98</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Linux/"><span class="tag">Linux</span><span class="tag is-grey-lightest">50</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Ansible/"><span class="tag">Ansible</span><span class="tag is-grey-lightest">25</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Ceph/"><span class="tag">Ceph</span><span class="tag is-grey-lightest">22</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Python/"><span class="tag">Python</span><span class="tag is-grey-lightest">15</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Docker/"><span class="tag">Docker</span><span class="tag is-grey-lightest">9</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Git/"><span class="tag">Git</span><span class="tag is-grey-lightest">8</span></a></div><div class="control"><a class="tags has-addons" href="/tags/JAVA/"><span class="tag">JAVA</span><span class="tag is-grey-lightest">8</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%E5%8D%8E%E4%B8%BA%E4%BA%91/"><span class="tag">华为云</span><span class="tag is-grey-lightest">8</span></a></div><div class="control"><a class="tags has-addons" href="/tags/CPU/"><span class="tag">CPU</span><span class="tag is-grey-lightest">7</span></a></div><div class="control"><a class="tags has-addons" href="/tags/BPF/"><span class="tag">BPF</span><span class="tag is-grey-lightest">6</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Go/"><span class="tag">Go</span><span class="tag is-grey-lightest">6</span></a></div><div class="control"><a class="tags has-addons" href="/tags/OpenShift/"><span class="tag">OpenShift</span><span class="tag is-grey-lightest">6</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%E7%A8%8B%E5%BA%8F%E4%BA%BA%E7%94%9F/"><span class="tag">程序人生</span><span class="tag is-grey-lightest">6</span></a></div><div class="control"><a class="tags has-addons" href="/tags/DNS/"><span class="tag">DNS</span><span class="tag is-grey-lightest">5</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Mysql/"><span class="tag">Mysql</span><span class="tag is-grey-lightest">5</span></a></div><div class="control"><a class="tags has-addons" href="/tags/OKD/"><span class="tag">OKD</span><span class="tag is-grey-lightest">5</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%E6%91%84%E5%BD%B1%E6%9B%9D%E5%85%89/"><span class="tag">摄影曝光</span><span class="tag is-grey-lightest">5</span></a></div><div class="control"><a class="tags has-addons" href="/tags/selenium/"><span class="tag">selenium</span><span class="tag is-grey-lightest">4</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%E5%AE%B9%E5%99%A8/"><span class="tag">容器</span><span class="tag is-grey-lightest">4</span></a></div></div><div class="field is-grouped is-grouped-multiline"><a class="tags has-addons" href="/tags/"><span class="tag">查看全部&gt;&gt;</span></a></div></div></div></div><div class="card widget" data-type="subscribe-email"><div class="card-content"><div class="menu"><h3 class="menu-label">订阅更新</h3><form action="https://feedburner.google.com/fb/a/mailverify" method="post" target="popupwindow" onsubmit="window.open(&#039;https://feedburner.google.com/fb/a/mailverify?uri=&#039;,&#039;popupwindow&#039;,&#039;scrollbars=yes,width=550,height=520&#039;);return true"><input type="hidden" value="" name="uri"><input type="hidden" name="loc" value="en_US"><div class="field has-addons"><div class="control has-icons-left is-expanded"><input class="input" name="email" type="email" placeholder="Email"><span class="icon is-small is-left"><i class="fas fa-envelope"></i></span></div><div class="control"><input class="button" type="submit" value="订阅"></div></div></form></div></div></div><!--!--><div class="column-right-shadow is-hidden-widescreen is-sticky"></div></div></div></div></section><footer class="footer"><div class="container"><div class="level"><div class="level-start"><a class="footer-logo is-block mb-2" href="/"><img src="/img/logo.png" alt="山河已无恙" height="28"></a><p class="size-small"><span>&copy; 2025 山河已无恙</span>  Powered by <a href="https://hexo.io/" target="_blank">Hexo</a> &amp; <a href="https://github.com/ppoffice/hexo-theme-icarus" target="_blank">Icarus</a> &amp; <a href="https://github.com/removeif/hexo-theme-amazing" target="_blank">Amazing</a> <br><span>© <a href="http://www.beian.miit.gov.cn/" target="_blank">备案中</a><br></span><span>© 版权说明：[本网站所有内容均收集于互联网或自己创作,<br />&nbsp;&nbsp;&nbsp;&nbsp;方便于网友与自己学习交流，如有侵权，请<a href="/message" target="_blank">留言</a>，立即处理]<br /></span><span><span id="statistic-times">loading...</span><script>function createTime(time) {
+            var n = new Date(time);
+            now.setTime(now.getTime() + 250),
+                days = (now - n) / 1e3 / 60 / 60 / 24,
+                dnum = Math.floor(days),
+                hours = (now - n) / 1e3 / 60 / 60 - 24 * dnum,
+                hnum = Math.floor(hours),
+            1 == String(hnum).length && (hnum = "0" + hnum),
+                minutes = (now - n) / 1e3 / 60 - 1440 * dnum - 60 * hnum,
+                mnum = Math.floor(minutes),
+            1 == String(mnum).length && (mnum = "0" + mnum),
+                seconds = (now - n) / 1e3 - 86400 * dnum - 3600 * hnum - 60 * mnum,
+                snum = Math.round(seconds),
+            1 == String(snum).length && (snum = "0" + snum),
+                document.getElementById("statistic-times").innerHTML = "❤️本站自 <strong>"+time.split(" ")[0].replace(/\//g,".")+"</strong> 已运行 <strong>" + dnum + "</strong> 天 <strong>" + hnum + "</strong> 小时 <strong>" + mnum + "</strong> 分 <strong>" + snum + "</strong> 秒！❤️";
+        }var now = new Date();setInterval("createTime('2021/6/26 21:27:00')", 250,"");</script><br></span><div class="size-small"><span>❤️感谢 <strong><span id="busuanzi_value_site_uv">99+</span></strong> 小伙伴的 <strong><span id="busuanzi_value_site_pv">99+</span></strong> 次光临！❤️</span></div></p></div><div class="level-end"><div class="field has-addons"><p class="control"><a class="button is-transparent is-large" target="_blank" rel="noopener" title="Creative Commons" href="https://creativecommons.org/"><i class="fab fa-creative-commons"></i></a></p><p class="control"><a class="button is-transparent is-large" target="_blank" rel="noopener" title="Attribution 4.0 International" href="https://creativecommons.org/licenses/by/4.0/"><i class="fab fa-creative-commons-by"></i></a></p><p class="control"><a class="button is-transparent is-large" target="_blank" rel="noopener" title="Download on GitHub" href="https://github.com/removeif/hexo-theme-amazing"><i class="fab fa-github"></i></a></p></div><div class="sideMusic"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/aplayer/dist/APlayer.min.css"><script src="/js/APlayer.min.js"></script><script src="https://cdn.jsdelivr.net/npm/meting@2/dist/Meting.min.js"></script><meting-js style="width: auto;height: 2000px;" server="netease" type="playlist" id="2364053447" theme="#2980b9" loop="all" autoplay="false" order="list" storageName="aplayer-setting" lrctype="0" list-max-height="400px" fixed="true"></meting-js></div></div></div></div></footer><script src="https://cdnjs.loli.net/ajax/libs/moment.js/2.22.2/moment-with-locales.min.js"></script><script src="https://cdnjs.loli.net/ajax/libs/clipboard.js/2.0.4/clipboard.min.js" async></script><script>moment.locale("zh-CN");</script><script>var IcarusThemeSettings = {
+            article: {
+                highlight: {
+                    clipboard: true,
+                    fold: 'unfolded'
+                }
+            }
+        };</script><script src="/js/column.js"></script><!--!--><script src="/js/animation.js"></script><a id="back-to-top" title="回到顶端" href="javascript:;"><i class="fas fa-chevron-up"></i></a><script src="/js/back_to_top.js" defer></script><!--!--><script src="https://cdnjs.loli.net/ajax/libs/lightgallery/1.6.8/js/lightgallery.min.js" defer></script><script src="https://cdnjs.loli.net/ajax/libs/justifiedGallery/3.7.0/js/jquery.justifiedGallery.min.js" defer></script><script>window.addEventListener("load", () => {
+            if (typeof $.fn.lightGallery === 'function') {
+                $('.article').lightGallery({ selector: '.gallery-item' });
+            }
+            if (typeof $.fn.justifiedGallery === 'function') {
+                if ($('.justified-gallery > p > .gallery-item').length) {
+                    $('.justified-gallery > p > .gallery-item').unwrap();
+                }
+                $('.justified-gallery').justifiedGallery();
+            }
+        });</script><!--!--><!--!--><link rel="stylesheet" href="https://cdnjs.loli.net/ajax/libs/KaTeX/0.11.1/katex.min.css"><script src="https://cdnjs.loli.net/ajax/libs/KaTeX/0.11.1/katex.min.js" defer></script><script src="https://cdnjs.loli.net/ajax/libs/KaTeX/0.11.1/contrib/auto-render.min.js" defer></script><script src="https://cdnjs.loli.net/ajax/libs/KaTeX/0.11.1/contrib/mhchem.js" defer></script><script>window.addEventListener("load", function() {
+            document.querySelectorAll('[role="article"] > .content').forEach(function(element) {
+                renderMathInElement(element);
+            });
+        });</script><script type="text/x-mathjax-config">MathJax.Hub.Config({
+            'HTML-CSS': {
+                matchFontHeight: false
+            },
+            SVG: {
+                matchFontHeight: false
+            },
+            CommonHTML: {
+                matchFontHeight: false
+            },
+            tex2jax: {
+                inlineMath: [
+                    ['$','$'],
+                    ['\\(','\\)']
+                ]
+            }
+        });</script><script src="https://cdnjs.loli.net/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-MML-AM_CHTML" defer></script><div id="outdated"><h6>Your browser is out-of-date!</h6><p>Update your browser to view this website correctly.&amp;npsb;<a id="btnUpdateBrowser" target="_blank" rel="noopener" href="http://outdatedbrowser.com/">Update my browser now </a></p><p class="last"><a href="#" id="btnCloseUpdateBrowser" title="Close">×</a></p></div><script src="https://cdnjs.loli.net/ajax/libs/outdated-browser/1.1.5/outdatedbrowser.min.js" defer></script><script>window.addEventListener("load", function () {
+            outdatedBrowser({
+                bgColor: '#f25648',
+                color: '#ffffff',
+                lowerThan: 'object-fit' // display on IE11 or below
+            });
+        });</script><!--!--><script src="/js/main.js" defer></script><script>$.getScript('/js/comment-issue-data.js',function(){loadIssueData('9fdc9739266d48d5f62e','c1cc33697d099a2197650ec9dadcb16bd4904655','LIRUILONGS','blog_comment',false);})</script><div class="searchbox"><div class="searchbox-container"><div class="searchbox-header"><div class="searchbox-input-container"><input class="searchbox-input" type="text" placeholder="想要查找什么..."></div><a class="searchbox-close" href="javascript:;">×</a></div><div class="searchbox-body"></div></div></div><script src="/js/insight.js" defer></script><script>document.addEventListener('DOMContentLoaded', function () {
+            loadInsight({"contentUrl":"/content.json"}, {"hint":"想要查找什么...","untitled":"(无标题)","posts":"文章","pages":"页面","categories":"分类","tags":"标签"});
+        });</script><script src="https://cdn.jsdelivr.net/npm/pjax@0.2.8/pjax.js"></script><script type="text/javascript">var pjax = new Pjax({
+            elements: "a",//代表点击链接就更新
+            selectors: [  //代表要更新的节点
+                ".section",
+                "title"
+            ],
+            cache: true,
+            cacheBust:false
+        })
+
+        function loadBusuanzi(){
+        $.getScript("//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js", function () {});
+        }
+
+        function loadMathJax() { //加载mathjax
+            $.getScript("//cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.4/MathJax.js?config=TeX-MML-AM_CHTML", function () {
+                MathJax.Hub.Config({ tex2jax: { inlineMath: [['$', '$'], ['\(', '\)']] } });
+                var math = document.getElementsByClassName("entry-content")[0];
+                MathJax.Hub.Queue(["Typeset", MathJax.Hub, math]);
+            });
+        };
+
+        // 开始 PJAX 执行的函数
+        document.addEventListener('pjax:send', function () {
+        });
+        
+        // PJAX 完成之后执行的函数，可以和上面的重载放在一起
+        document.addEventListener('pjax:complete', function () {
+            $(".section").css({opacity:1});
+            if(true){
+                $.getScript('/js/comment-issue-data.js',function(){loadIssueData('9fdc9739266d48d5f62e','c1cc33697d099a2197650ec9dadcb16bd4904655','LIRUILONGS','blog_comment',false);});
+            }
+            if(false){
+                loadMathJax();
+            }
+            loadMainJs(jQuery, window.moment, window.ClipboardJS, window.IcarusThemeSettings);
+            loadBackTop();
+            loadBusuanzi();
+            if(typeof loadBanner == 'function'){
+                loadBanner();
+            }
+        });</script></body></html>
