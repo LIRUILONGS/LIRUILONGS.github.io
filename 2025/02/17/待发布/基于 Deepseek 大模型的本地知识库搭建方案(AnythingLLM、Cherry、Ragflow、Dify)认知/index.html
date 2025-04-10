@@ -1,0 +1,391 @@
+<!doctype html>
+<html lang="zh"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"><meta><title>基于 Deepseek LLM 的本地知识库搭建开源方案(AnythingLLM、Cherry、Ragflow、Dify)认知 - 山河已无恙</title><link rel="manifest" href="/manifest.json"><meta name="application-name" content="山河已无恙"><meta name="msapplication-TileImage" content="https://cdn.jsdelivr.net/gh/removeif/removeif-demo@latest/img/favicon.png"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="山河已无恙"><meta name="apple-mobile-web-app-status-bar-style" content="default"><meta description="我站在人潮中央，思考这日日重复的生活。我突然想，如果有一天，垂老和年轻都难以惊起心中涟漪，一潭死水的沉闷，鲜花和蛋糕也撼动不了。如果人开始不能为微小事物而感动，那么地震山洪的噩耗想必也惊闻不了。如果活着和死亡的本质无异，那便没有了存在的意义。我没有快乐，也没有痛苦，只是麻木的置身于平静的绝望之中，和世界一起下沉。我甚至病态的渴望，心中掀起一场风暴或是海啸，将我席卷撕裂。可那片黑洞里什么也没有，它"><meta property="og:type" content="blog"><meta property="og:title" content="山河已无恙"><meta property="og:url" content="https://mp.weixin.qq.com/s?__biz=MzkyNjIxNTYwMw==&amp;mid=2247496480&amp;idx=1&amp;sn=a9971fed3962ef2a1aeda1f0bda65f86&amp;chksm=c2380ffcf54f86eaba8daac6caca72a70f38e61a8d25dc2a66d3a17b87c02530e326dcaea14b#rd"><meta property="og:site_name" content="山河已无恙"><meta property="og:description" content="我站在人潮中央，思考这日日重复的生活。我突然想，如果有一天，垂老和年轻都难以惊起心中涟漪，一潭死水的沉闷，鲜花和蛋糕也撼动不了。如果人开始不能为微小事物而感动，那么地震山洪的噩耗想必也惊闻不了。如果活着和死亡的本质无异，那便没有了存在的意义。我没有快乐，也没有痛苦，只是麻木的置身于平静的绝望之中，和世界一起下沉。我甚至病态的渴望，心中掀起一场风暴或是海啸，将我席卷撕裂。可那片黑洞里什么也没有，它"><meta property="og:locale" content="zh_CN"><meta property="og:image" content="https://mp.weixin.qq.com/img/头像.jpg"><meta property="article:published_time" content="2025-02-17T14:12:23.000Z"><meta property="article:modified_time" content="2025-02-24T03:11:34.243Z"><meta property="article:author" content="LIRUILONGS"><meta property="article:tag" content="Deepseek"><meta property="twitter:card" content="summary"><meta property="twitter:image" content="/img/头像.jpg"><script type="application/ld+json">{"@context":"https://schema.org","@type":"BlogPosting","mainEntityOfPage":{"@type":"WebPage","@id":"https://liruilongs.github.io/2025/02/17/%E5%BE%85%E5%8F%91%E5%B8%83/%E5%9F%BA%E4%BA%8E%20Deepseek%20%E5%A4%A7%E6%A8%A1%E5%9E%8B%E7%9A%84%E6%9C%AC%E5%9C%B0%E7%9F%A5%E8%AF%86%E5%BA%93%E6%90%AD%E5%BB%BA%E6%96%B9%E6%A1%88(AnythingLLM%E3%80%81Cherry%E3%80%81Ragflow%E3%80%81Dify)%E8%AE%A4%E7%9F%A5/"},"headline":"山河已无恙","image":["https://i-blog.csdnimg.cn/direct/781717f8321240ae9273d1f48360d00f.png","https://i-blog.csdnimg.cn/direct/7e987791b1164ff38eacefe08ade842f.png","https://i-blog.csdnimg.cn/direct/61da177def604980989b02f98a78dc9a.png","https://i-blog.csdnimg.cn/direct/1617659cf47a4a09a1d64dbe997dde9c.png","https://i-blog.csdnimg.cn/direct/1e09c4c4f6ab492abcc82a3f05c587f7.png","https://i-blog.csdnimg.cn/direct/b8183c3eb6a84887bfb42dff83bbd937.png","https://i-blog.csdnimg.cn/direct/cc73f5b7b7f340e4a5e288ef352c98a5.png","https://i-blog.csdnimg.cn/direct/18123cb759a3466090fa6d60daf9a94e.png","https://i-blog.csdnimg.cn/direct/3c78428e32b84eb5abc9708b28b30d95.png","https://i-blog.csdnimg.cn/direct/6d9ddecaebaa4e2b9a5f19290c5d045f.png","https://i-blog.csdnimg.cn/direct/d2154b20f85f4538b84ff043e132c84a.png","https://i-blog.csdnimg.cn/direct/e7f2e5a7d5e5473b8ed29a28a3e99cfa.png","https://i-blog.csdnimg.cn/direct/e5c057fb155f49518adc0d9c121804cd.png","https://i-blog.csdnimg.cn/direct/fa4e312d67be4b09bdc06129484bfe4c.png","https://i-blog.csdnimg.cn/direct/49705dce1f9d4af186e1f8fa1a0ab318.png","https://i-blog.csdnimg.cn/direct/25f9e53f5b714782a67a58ba9c61dbc4.png","https://i-blog.csdnimg.cn/direct/db06aa2695ac4f32b77867ff774c41f6.png","https://i-blog.csdnimg.cn/direct/16424d7ff25f486b997f1aa07e9dd645.png","https://i-blog.csdnimg.cn/direct/5562e44ceaa34fa19a3adb60de8b93c6.png","https://i-blog.csdnimg.cn/direct/09cf8f60c4654157a01db2d59ddca84e.png","https://i-blog.csdnimg.cn/direct/18ab4312182e47cdbc30acef8e17aee2.png","https://i-blog.csdnimg.cn/direct/43b2d10c948d4f78bff44d5fb10e716a.png","https://i-blog.csdnimg.cn/direct/29db276cb1ef496b89f1b5eb3907a827.png","https://i-blog.csdnimg.cn/direct/1b4fd2b4139f4b48aaa08e7985f95868.png","https://i-blog.csdnimg.cn/direct/bb83d9d5263e4ec0854037fdefee2766.png","https://i-blog.csdnimg.cn/direct/c0571d63ff724b608b62303558ecdf41.png","https://i-blog.csdnimg.cn/direct/567d1b5f923648238a66ad8aff4e9ce6.png","https://i-blog.csdnimg.cn/direct/fc2ab1bf38544726b17efef7a602a88a.png","https://i-blog.csdnimg.cn/direct/d6cbc7e9e1814161b73a146ca17cc8ed.png","https://i-blog.csdnimg.cn/direct/e34cfec36dde4413b6fa934643430547.png","https://i-blog.csdnimg.cn/direct/709876cd9daa486cb996608c9b8ca8d8.png","https://i-blog.csdnimg.cn/direct/06a1054cad0a41aab33f08d2ac462a61.png","https://i-blog.csdnimg.cn/direct/d0c603acdb6544c48846ba8089c67183.png","https://i-blog.csdnimg.cn/direct/11f463a1c3554845a6b72167fd376409.png","https://i-blog.csdnimg.cn/direct/431af89055674d9fb458f21697514564.png","https://i-blog.csdnimg.cn/direct/61a91c6e36bd43a08c064f5b81dfb61c.png","https://i-blog.csdnimg.cn/direct/1603123e30d4439caa30a7cda5ac1488.png","https://i-blog.csdnimg.cn/direct/2e79509b71ac4c9f8a28ab944e68b010.png","https://i-blog.csdnimg.cn/direct/f689f9c32fef4b118cb5f637724b737f.png","https://i-blog.csdnimg.cn/direct/320217e6212549ad9db37301eb4d3383.png","https://i-blog.csdnimg.cn/direct/031bf45cd880436b87b55adfa402187b.png","https://i-blog.csdnimg.cn/direct/d429eecea1ed48c5b52db6f63a31b200.png","https://i-blog.csdnimg.cn/direct/5f127d51acc844f7af81d6763986a826.png","https://i-blog.csdnimg.cn/direct/ffa03178268842eb8f90084948d637c0.png","https://i-blog.csdnimg.cn/direct/3b3e311986074fff8c9e0636b88d3c1f.png","https://i-blog.csdnimg.cn/direct/782e206f196c422c943f97998172f066.png","https://i-blog.csdnimg.cn/direct/3c4a744fd204458aa78a9417d79746d6.png","https://i-blog.csdnimg.cn/direct/63493247ab78473a88055bae0ac2428f.png","https://i-blog.csdnimg.cn/direct/3660627734f0407189848ecc8078c9ef.png","https://i-blog.csdnimg.cn/direct/3b03437f83ba4c11900754d4ec0c0aa1.png","https://i-blog.csdnimg.cn/direct/cde359dc795b4f7d937017e6c14e44ca.png","https://i-blog.csdnimg.cn/direct/46b46ed25c2f43ac9bd79fb3f5dee92d.png","https://i-blog.csdnimg.cn/direct/449898118c054708b1dec6f366cd6ce6.png","https://i-blog.csdnimg.cn/direct/51c195fc4da845ffbdd1e270bee53020.png","https://i-blog.csdnimg.cn/direct/050b33ff0771465ebfbec70ddf4f3632.png","https://i-blog.csdnimg.cn/direct/90ea61650a85402c8cbba75a7e4b044f.png","https://i-blog.csdnimg.cn/direct/56debb7b4ced4e9b8bbd98c26b254040.png","https://i-blog.csdnimg.cn/direct/d5067eded71c42be8b19d6083e535b89.png","https://i-blog.csdnimg.cn/direct/925030c0aab74e159deaac1723e006cb.png","https://i-blog.csdnimg.cn/direct/91de2e3e9aa341ae999573f24f43a01a.png","https://i-blog.csdnimg.cn/direct/5101e49691e842658cd31ac216647687.png"],"datePublished":"2025-02-17T14:12:23.000Z","dateModified":"2025-02-24T03:11:34.243Z","author":{"@type":"Person","name":"山河已无恙"},"description":"我站在人潮中央，思考这日日重复的生活。我突然想，如果有一天，垂老和年轻都难以惊起心中涟漪，一潭死水的沉闷，鲜花和蛋糕也撼动不了。如果人开始不能为微小事物而感动，那么地震山洪的噩耗想必也惊闻不了。如果活着和死亡的本质无异，那便没有了存在的意义。我没有快乐，也没有痛苦，只是麻木的置身于平静的绝望之中，和世界一起下沉。我甚至病态的渴望，心中掀起一场风暴或是海啸，将我席卷撕裂。可那片黑洞里什么也没有，它"}</script><link rel="canonical" href="https://liruilongs.github.io/2025/02/17/%E5%BE%85%E5%8F%91%E5%B8%83/%E5%9F%BA%E4%BA%8E%20Deepseek%20%E5%A4%A7%E6%A8%A1%E5%9E%8B%E7%9A%84%E6%9C%AC%E5%9C%B0%E7%9F%A5%E8%AF%86%E5%BA%93%E6%90%AD%E5%BB%BA%E6%96%B9%E6%A1%88(AnythingLLM%E3%80%81Cherry%E3%80%81Ragflow%E3%80%81Dify)%E8%AE%A4%E7%9F%A5/"><link rel="alternate" href="/path/to/atom.xml" title="山河已无恙" type="application/atom+xml"><link rel="icon" href="https://cdn.jsdelivr.net/gh/removeif/removeif-demo@latest/img/favicon.png"><meta name="referrer" content="no-referrer-when-downgrade"><link rel="stylesheet" href="https://cdnjs.loli.net/ajax/libs/font-awesome/5.12.0/css/all.min.css"><link rel="stylesheet" href="https://cdnjs.loli.net/ajax/libs/highlight.js/9.12.0/styles/dracula.min.css"><link rel="stylesheet" href="https://fonts.loli.net/css2?family=Ubuntu:wght@400;600&amp;family=Source+Code+Pro"><link rel="stylesheet" href="/css/default.css"><link rel="stylesheet" href="https://cdnjs.loli.net/ajax/libs/font-awesome/5.12.0/css/all.min.css"><link rel="stylesheet" href="https://fonts.loli.net/css?family=Ubuntu:400,600|Source+Code+Pro|Monda:300,300italic,400,400italic,700,700italic|Roboto Slab:300,300italic,400,400italic,700,700italic|Microsoft YaHei:300,300italic,400,400italic,700,700italic|PT Mono:300,300italic,400,400italic,700,700italic&amp;amp;subset=latin,latin-ext|Inconsolata|Itim|Lobster.css"><script src="https://cdnjs.loli.net/ajax/libs/jquery/3.3.1/jquery.min.js"></script><script src="/js/globalUtils.js"></script><script src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js" defer></script><style>body>.footer,body>.navbar,body>.section{opacity:0}</style><!--!--><script>var _hmt = _hmt || [];
+        (function() {
+            var hm = document.createElement("script");
+            hm.src = "//hm.baidu.com/hm.js?3f06f2b732a5b1034c989f74e28d0eea";
+            var s = document.getElementsByTagName("script")[0];
+            s.parentNode.insertBefore(hm, s);
+        })();</script><link rel="stylesheet" href="https://cdnjs.loli.net/ajax/libs/lightgallery/1.6.8/css/lightgallery.min.css"><link rel="stylesheet" href="https://cdnjs.loli.net/ajax/libs/justifiedGallery/3.7.0/css/justifiedGallery.min.css"><!--!--><!--!--><!--!--><!--!--><link rel="stylesheet" href="https://cdnjs.loli.net/ajax/libs/outdated-browser/1.1.5/outdatedbrowser.min.css"><script src="https://cdnjs.loli.net/ajax/libs/pace/1.0.2/pace.min.js"></script><link rel="stylesheet" href="/live2d/waifu.css"><script type="text/javascript" async src="/live2d/autoload.js"></script><meta name="generator" content="Hexo 5.4.2"></head><body class="is-3-column has-navbar-fixed-top"><nav class="navbar navbar-main is-fixed-top"><div class="container"><div class="navbar-brand justify-content-center"><a class="navbar-item navbar-logo" href="/"><img src="/img/logo.png" alt="山河已无恙" height="28"></a></div><div class="navbar-menu"><div class="navbar-start"><a class="navbar-item" href="/">首页</a><a class="navbar-item" href="/archives">归档</a><a class="navbar-item" href="/categories">分类</a><a class="navbar-item" href="/tags">标签</a><a class="navbar-item" href="/media">影音</a><a class="navbar-item" href="/album">相册</a><a class="navbar-item" href="/friend">友链</a><a class="navbar-item" href="/self-talking">生活小记</a><a class="navbar-item" href="/message">留言墙</a><a class="navbar-item" href="/about">关于</a></div><div class="navbar-end"><a class="navbar-item" target="_blank" rel="noopener" title="Gitee" href="https://gitee.com/liruilonger"><i class="fab fa-git-square fa-1x"></i></a><a class="navbar-item" target="_blank" rel="noopener" title="GitHub" href="https://github.com/LIRUILONGS"><i class="fab fa-github fa-1x"></i></a><a class="navbar-item is-hidden-tablet catalogue" title="目录" href="javascript:;"><i class="fas fa-list-ul fa-1x"></i></a><a class="navbar-item search" title="搜索" href="javascript:;"><i class="fas fa-search fa-1x"></i></a><a class="navbar-item" id="night-nav" title="Night Mode" href="javascript:;"><i class="fas fa-moon fa-1x" id="night-icon"></i></a></div></div></div></nav><script type="text/javascript" src="/js/theme-setting.js"></script><section class="section"><div class="container"><div class="columns"><div class="column order-2 column-main is-8-tablet is-8-desktop is-9-widescreen"><!--!--><div class="card"><article class="card-content article" role="article"><div class="article-meta size-small is-uppercase level is-mobile"><div class="level-left"><i class="far fa-calendar-plus"> </i>2025-02-17  <a class="commentCountImg" href="/2025/02/17/%E5%BE%85%E5%8F%91%E5%B8%83/%E5%9F%BA%E4%BA%8E%20Deepseek%20%E5%A4%A7%E6%A8%A1%E5%9E%8B%E7%9A%84%E6%9C%AC%E5%9C%B0%E7%9F%A5%E8%AF%86%E5%BA%93%E6%90%AD%E5%BB%BA%E6%96%B9%E6%A1%88(AnythingLLM%E3%80%81Cherry%E3%80%81Ragflow%E3%80%81Dify)%E8%AE%A4%E7%9F%A5/#comment-container"><span class="display-none-class">07023eb060932e19209caea66e7da16d</span><i class="far fa-comment-dots"></i> <span class="commentCount" id="07023eb060932e19209caea66e7da16d">99+</span>  </a><span class="level-item"><i class="far fa-clock"> </i>39 分钟  <i class="fas fa-pencil-alt"> </i>5.9 k</span><span class="level-item" id="busuanzi_container_page_pv"><span id="busuanzi_value_page_pv">0</span>次访问</span></div></div><h1 class="title is-3 is-size-4-mobile">基于 Deepseek LLM 的本地知识库搭建开源方案(AnythingLLM、Cherry、Ragflow、Dify)认知</h1><div class="content"><p><strong><font color="009688"> 我站在人潮中央，思考这日日重复的生活。我突然想，如果有一天，垂老和年轻都难以惊起心中涟漪，一潭死水的沉闷，鲜花和蛋糕也撼动不了。如果人开始不能为微小事物而感动，那么地震山洪的噩耗想必也惊闻不了。如果活着和死亡的本质无异，那便没有了存在的意义。我没有快乐，也没有痛苦，只是麻木的置身于平静的绝望之中，和世界一起下沉。我甚至病态的渴望，心中掀起一场风暴或是海啸，将我席卷撕裂。可那片黑洞里什么也没有，它吞噬万物，它带走了我的生命 情绪 活力，我眼睁睁的看着，我对此无能为力。 这一刻我明白了我看远山，远山悲悯。远山知道我的苦闷，却改变不了什么，只能悲悯，悲悯我的麻木，悲悯我的无奈</strong></font></p>
+<span id="more"></span>
+<h2 id="写在前面"><a href="#写在前面" class="headerlink" title="写在前面"></a>写在前面</h2><hr>
+<ul>
+<li>博文内容涉及 基于 Deepseek LLM 的本地知识库搭建</li>
+<li>使用  ollama 部署 Deepseek-R1 LLM </li>
+<li>知识库能力通过 Ragflow、Dify 、AnythingLLM、Cherry 提供</li>
+<li>理解不足小伙伴帮忙指正 :),生活加油</li>
+</ul>
+<p><strong><font color="009688"> 我站在人潮中央，思考这日日重复的生活。我突然想，如果有一天，垂老和年轻都难以惊起心中涟漪，一潭死水的沉闷，鲜花和蛋糕也撼动不了。如果人开始不能为微小事物而感动，那么地震山洪的噩耗想必也惊闻不了。如果活着和死亡的本质无异，那便没有了存在的意义。我没有快乐，也没有痛苦，只是麻木的置身于平静的绝望之中，和世界一起下沉。我甚至病态的渴望，心中掀起一场风暴或是海啸，将我席卷撕裂。可那片黑洞里什么也没有，它吞噬万物，它带走了我的生命 情绪 活力，我眼睁睁的看着，我对此无能为力。 这一刻我明白了我看远山，远山悲悯。远山知道我的苦闷，却改变不了什么，只能悲悯，悲悯我的麻木，悲悯我的无奈</strong></font></p>
+<p>持续分享技术干货，感兴趣小伙伴可以关注下 ^_^</p>
+<hr>
+<h2 id="本地-LLM-部署"><a href="#本地-LLM-部署" class="headerlink" title="本地 LLM 部署"></a>本地 LLM 部署</h2><p>LLM 本身只是一些 <code>神经网络参数</code>, 就拿 DeepSeek-R1 来讲，模型本身存储了 <code>权重矩阵，以及 混合专家（MoE）架构</code>， 实际运行起来需要行业级别的服务器配置， 消费级别的个人电脑不能直接运行，实际还涉及到硬件适配，需手动配置 <code>CUDA/PyTorch</code> 环境，编写分布式推理代码，处理量化与内存溢出问题</p>
+<p>现在通过 <code>ollama</code> 可以在消费级别电脑部署，上面涉及到的问题 <code>ollama</code> 帮我们完成，同时还涉及模型的管理，推理服务构建</p>
+<p><code>ollama</code> 开源项目地址：  <a target="_blank" rel="noopener" href="https://github.com/ollama/ollama">https://github.com/ollama/ollama</a></p>
+<p>它在项目中这样介绍自己：<code>Get up and running with large language models.</code></p>
+<h3 id="ollama安装"><a href="#ollama安装" class="headerlink" title="ollama安装"></a>ollama安装</h3><p>下载 ollama：之后直接安装就可以，下载地址， <a target="_blank" rel="noopener" href="https://ollama.com/download">https://ollama.com/download</a></p>
+<p>ollama 专注于在本地设备（如个人电脑或服务器）快速部署和运行开源大语言模型（如 DeepSeek-R1），支持模型下载、环境配置及基础推理服务。</p>
+<p>适用需本地化运行 LLM 的场景，<code>强调数据隐私与低成本（无需高性能服务器）</code>，但是<code>不提供知识库管理、RAG 或应用开发功能</code>，需配合其他工具使用</p>
+<p>安装成功会自动配置环境变量</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line">PS C:\Users\Administrator&gt; ollama -h</span><br><span class="line">Large language model runner</span><br><span class="line"></span><br><span class="line">Usage:</span><br><span class="line">  ollama [flags]</span><br><span class="line">  ollama [<span class="built_in">command</span>]</span><br><span class="line"></span><br><span class="line">Available Commands:</span><br><span class="line">  serve       Start ollama</span><br><span class="line">  create      Create a model from a Modelfile</span><br><span class="line">  show        Show information <span class="keyword">for</span> a model</span><br><span class="line">  run         Run a model</span><br><span class="line">  stop        Stop a running model</span><br><span class="line">  pull        Pull a model from a registry</span><br><span class="line">  push        Push a model to a registry</span><br><span class="line">  list        List models</span><br><span class="line">  ps          List running models</span><br><span class="line">  cp          Copy a model</span><br><span class="line">  rm          Remove a model</span><br><span class="line">  <span class="built_in">help</span>        Help about any <span class="built_in">command</span></span><br><span class="line">。。。。。。</span><br></pre></td></tr></table></figure>
+<p>Ollama 采用 Client-Server（C&#x2F;S）架构,C 端通过命令行（CLI）或桌面应用与用户交互，发起模型请求。S 端负责处理客户端请求，管理模型下载与元数据，推理引擎，负责加载模型并执行计算</p>
+<p><code>Ollama</code> 资源优化技术: </p>
+<ul>
+<li><code>权重量化</code>：支持 INT8&#x2F;INT4 量化，显存占用降低至原始模型的 1&#x2F;2 至 1&#x2F;4，使 65B 参数模型可在 16GB 内存设备运行</li>
+<li><code>分块加载</code>：长文本分块处理，避免显存溢出</li>
+<li><code>GPU/CPU 调度</code>：优先调用 NVIDIA&#x2F;AMD GPU 加速，无 GPU 时通过 Metal 或分布式计算优化 CPU 模式</li>
+</ul>
+<p>模型管理机制：</p>
+<ul>
+<li><code>本地存储</code>：模型文件（如 blobs 数据）和元数据（如 manifests）默认存储在 $HOME&#x2F;.ollama，支持离线使用,数据无需上传云端，适合医疗、金融等隐私敏感场景。</li>
+<li><code>模型拉取</code>：客户端通过 ollama run &lt;模型名&gt; 触发服务端从远程仓库下载并缓存模型</li>
+</ul>
+<p>通过下面的地址选择对应的参数的模型即可：</p>
+<p><a target="_blank" rel="noopener" href="https://ollama.com/library/deepseek-r1">https://ollama.com/library/deepseek-r1</a></p>
+<p><img src="https://i-blog.csdnimg.cn/direct/781717f8321240ae9273d1f48360d00f.png"></p>
+<h3 id="deepseek-R1-蒸馏模型部署"><a href="#deepseek-R1-蒸馏模型部署" class="headerlink" title="deepseek R1 蒸馏模型部署"></a>deepseek R1 蒸馏模型部署</h3><p>关于什么是蒸馏模型，小伙伴可以看我之前的文章</p>
+<p>模型下载成功就可以用了，默认会自动下载 <code>DeepSeek-R1-Distill-Qwen-7B</code> 模型</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">PS C:\Users\Administrator&gt; ollama run deepseek-r1</span><br><span class="line">pulling manifest</span><br><span class="line">pulling 96c415656d37... 100% ▕████████████████████████████████████████████████████████▏ 4.7 GB</span><br><span class="line">pulling 369ca498f347... 100% ▕████████████████████████████████████████████████████████▏  387 B</span><br><span class="line">pulling 6e4c38e1172f... 100% ▕████████████████████████████████████████████████████████▏ 1.1 KB</span><br><span class="line">pulling f4d24e9138dd... 100% ▕████████████████████████████████████████████████████████▏  148 B</span><br><span class="line">pulling 40fb844194b2... 100% ▕████████████████████████████████████████████████████████▏  487 B</span><br><span class="line">verifying sha256 digest</span><br><span class="line">writing manifest</span><br><span class="line">success</span><br></pre></td></tr></table></figure>
+
+<p>直接命令行就可以交互了，算一道数学题</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br></pre></td><td class="code"><pre><span class="line">PS C:\Users\Administrator&gt; ollama run deepseek-r1</span><br><span class="line">&gt;&gt;&gt; 1+2+3+4+54654+213=？</span><br><span class="line">&lt;think&gt;</span><br><span class="line">To solve the equation \(1 + 2 + 3 + 4 + 54654 + 213\), I will follow these steps:</span><br><span class="line"></span><br><span class="line">First, add the numbers from 1 to 4.</span><br><span class="line"></span><br><span class="line">Next, add the result to 54654.</span><br><span class="line"></span><br><span class="line">Finally, add this sum to 213 to get the final answer.</span><br><span class="line">&lt;/think&gt;</span><br><span class="line"></span><br><span class="line">To solve the equation \(1 + 2 + 3 + 4 + 54654 + 213\), follow these steps:</span><br><span class="line"></span><br><span class="line">1. **Add the numbers from 1 to 4:**</span><br><span class="line"></span><br><span class="line">   \[</span><br><span class="line">   1 + 2 + 3 + 4 = 10</span><br><span class="line">   \]</span><br><span class="line"></span><br><span class="line">2. **Add this sum to 54654:**</span><br><span class="line"></span><br><span class="line">   \[</span><br><span class="line">   10 + 54654 = 54664</span><br><span class="line">   \]</span><br><span class="line"></span><br><span class="line">3. **Finally, add the result to 213:**</span><br><span class="line"></span><br><span class="line">   \[</span><br><span class="line">   54664 + 213 = 54877</span><br><span class="line">   \]</span><br><span class="line"></span><br><span class="line">**Final Answer:**</span><br><span class="line"></span><br><span class="line">\boxed&#123;54877&#125;</span><br><span class="line"></span><br><span class="line">&gt;&gt;&gt; Send a message</span><br></pre></td></tr></table></figure>
+
+<p>这里通过命令行的方式启动服务端，配置，<code>$env:OLLAMA_HOST=&quot;0.0.0.0&quot;</code> 的作用是 将 Ollama 服务绑定到所有网络接口,因为后面涉及到和其他工具交互。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">PS C:\Users\Administrator&gt; <span class="variable">$env</span>:OLLAMA_HOST=<span class="string">&quot;0.0.0.0&quot;</span>  <span class="comment"># 设置环境变量</span></span><br></pre></td></tr></table></figure>
+
+<p>服务启动涉及到的环境变量在项目中位置： </p>
+<p><a target="_blank" rel="noopener" href="https://github.com/ollama/ollama/blob/main/envconfig/config.go">https://github.com/ollama/ollama/blob/main/envconfig/config.go</a></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">PS C:\Users\Administrator&gt; ollama serve                 <span class="comment"># 启动服务</span></span><br><span class="line">2025/02/20 08:47:44 routes.go:1187: INFO server config env=<span class="string">&quot;map[CUDA_VISIBLE_DEVICES: GPU_DEVICE_ORDINAL: HIP_VISIBLE_DEVICES: HSA_OVERRIDE_GFX_VERSION: HTTPS_PROXY: HTTP_PROXY: NO_PROXY: OLLAMA_DEBUG:false OLLAMA_FLASH_ATTENTION:false OLLAMA_GPU_OVERHEAD:0 OLLAMA_HOST:http://0.0.0.0:11434 OLLAMA_INTEL_GPU:false OLLAMA_KEEP_ALIVE:5m0s OLLAMA_KV_CACHE_TYPE: OLLAMA_LLM_LIBRARY: OLLAMA_LOAD_TIMEOUT:5m0s OLLAMA_MAX_LOADED_MODELS:0 OLLAMA_MAX_QUEUE:512 OLLAMA_MODELS:C:\\Users\\Administrator\\.ollama\\models OLLAMA_MULTIUSER_CACHE:false OLLAMA_NOHISTORY:false OLLAMA_NOPRUNE:false OLLAMA_NUM_PARALLEL:0 OLLAMA_ORIGINS:[http://localhost https://localhost http://localhost:* https://localhost:* http://127.0.0.1 https://127.0.0.1 http://127.0.0.1:* https://127.0.0.1:* http://0.0.0.0 https://0.0.0.0 http://0.0.0.0:* https://0.0.0.0:* app://* file://* tauri://* vscode-webview://*] OLLAMA_SCHED_SPREAD:false ROCR_VISIBLE_DEVICES:]&quot;</span></span><br><span class="line">time=2025-02-20T08:47:44.747+08:00 level=INFO <span class="built_in">source</span>=images.go:432 msg=<span class="string">&quot;total blobs: 14&quot;</span></span><br><span class="line">time=2025-02-20T08:47:44.748+08:00 level=INFO <span class="built_in">source</span>=images.go:439 msg=<span class="string">&quot;total unused blobs removed: 0&quot;</span></span><br><span class="line">time=2025-02-20T08:47:44.748+08:00 level=INFO <span class="built_in">source</span>=routes.go:1238 msg=<span class="string">&quot;Listening on [::]:11434 (version 0.5.7)&quot;</span></span><br><span class="line">time=2025-02-20T08:47:44.749+08:00 level=INFO <span class="built_in">source</span>=routes.go:1267 msg=<span class="string">&quot;Dynamic LLM libraries&quot;</span> runners=<span class="string">&quot;[cpu_avx cpu_avx2 cuda_v11_avx cuda_v12_avx rocm_avx cpu]&quot;</span></span><br><span class="line">time=2025-02-20T08:47:44.749+08:00 level=INFO <span class="built_in">source</span>=gpu.go:226 msg=<span class="string">&quot;looking for compatible GPUs&quot;</span></span><br><span class="line">time=2025-02-20T08:47:44.749+08:00 level=INFO <span class="built_in">source</span>=gpu_windows.go:167 msg=packages count=1</span><br><span class="line">time=2025-02-20T08:47:44.749+08:00 level=INFO <span class="built_in">source</span>=gpu_windows.go:183 msg=<span class="string">&quot;efficiency cores detected&quot;</span> maxEfficiencyClass=1</span><br><span class="line">time=2025-02-20T08:47:44.749+08:00 level=INFO <span class="built_in">source</span>=gpu_windows.go:214 msg=<span class="string">&quot;&quot;</span> package=0 cores=12 efficiency=4 threads=20</span><br><span class="line">time=2025-02-20T08:47:44.872+08:00 level=INFO <span class="built_in">source</span>=types.go:131 msg=<span class="string">&quot;inference compute&quot;</span> id=GPU-e65029a6-c2f9-44b1-bd76-c12e4083fa4c library=cuda variant=v12 compute=8.6 driver=12.8 name=<span class="string">&quot;NVIDIA GeForce RTX 3060&quot;</span> total=<span class="string">&quot;12.0 GiB&quot;</span> available=<span class="string">&quot;11.0 GiB&quot;</span></span><br><span class="line">[GIN] 2025/02/20 - 08:47:57 | 200 |            0s |     172.19.16.1 | GET      <span class="string">&quot;/&quot;</span></span><br><span class="line">[GIN] 2025/02/20 - 08:47:57 | 404 |            0s |     172.19.16.1 | GET      <span class="string">&quot;/favicon.ico&quot;</span></span><br></pre></td></tr></table></figure>
+
+<p>同时项目启动之后会输出当前推理服务的环境变量</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">2025/02/20 08:47:44 routes.go:1187: INFO server config env=<span class="string">&quot;map[CUDA_VISIBLE_DEVICES: GPU_DEVICE_ORDINAL: HIP_VISIBLE_DEVICES: HSA_OVERRIDE_GFX_VERSION: HTTPS_PROXY: HTTP_PROXY: NO_PROXY: OLLAMA_DEBUG:false OLLAMA_FLASH_ATTENTION:false OLLAMA_GPU_OVERHEAD:0 OLLAMA_HOST:http://0.0.0.0:11434 OLLAMA_INTEL_GPU:false OLLAMA_KEEP_ALIVE:5m0s OLLAMA_KV_CACHE_TYPE: OLLAMA_LLM_LIBRARY: OLLAMA_LOAD_TIMEOUT:5m0s OLLAMA_MAX_LOADED_MODELS:0 OLLAMA_MAX_QUEUE:512 OLLAMA_MODELS:C:\\Users\\Administrator\\.ollama\\models OLLAMA_MULTIUSER_CACHE:false OLLAMA_NOHISTORY:false OLLAMA_NOPRUNE:false OLLAMA_NUM_PARALLEL:0 OLLAMA_ORIGINS:[http://localhost https://localhost http://localhost:* https://localhost:* http://127.0.0.1 https://127.0.0.1 http://127.0.0.1:* https://127.0.0.1:* http://0.0.0.0 https://0.0.0.0 http://0.0.0.0:* https://0.0.0.0:* app://* file://* tauri://* vscode-webview://*] OLLAMA_SCHED_SPREAD:false ROCR_VISIBLE_DEVICES:]&quot;</span></span><br></pre></td></tr></table></figure>
+
+<p>如果有需要部署生产级别的小伙伴需要详细了解，这里简单看几个常用的：</p>
+<p><strong>OLLAMA_HOST</strong> </p>
+<ul>
+<li>作用：指定服务器监听的 IP 地址和端口。它定义了客户端可以访问服务器的地址。</li>
+<li>当前值：<a href="http://0.0.0.0:11434，表示服务器将监听所有可用的网络接口，端口为">http://0.0.0.0:11434，表示服务器将监听所有可用的网络接口，端口为</a> 11434，使用 HTTP 协议。</li>
+</ul>
+<p><strong>OLLAMA_KEEP_ALIVE</strong></p>
+<ul>
+<li>作用：设置模型在内存中保持加载的时间。如果在这个时间内没有新的请求，模型可能会被卸载以释放内存。</li>
+<li>当前值：5m0s，即 5 分钟，意味着模型在 5 分钟内没有被使用就可能会被卸载。</li>
+</ul>
+<p><strong>OLLAMA_LOAD_TIMEOUT</strong></p>
+<ul>
+<li>作用：设置模型加载的超时时间。如果模型在这个时间内没有加载完成，服务器可能会放弃加载操作。</li>
+<li>当前值：5m0s，表示模型加载的最长时间为 5 分钟。</li>
+</ul>
+<p><strong>OLLAMA_MAX_LOADED_MODELS</strong></p>
+<ul>
+<li>作用：限制每个 GPU 上最多可以加载的模型数量。这有助于控制 GPU 的资源使用。</li>
+<li>当前值：0，表示没有对每个 GPU 加载的模型数量进行限制。</li>
+</ul>
+<p><strong>OLLAMA_MAX_QUEUE</strong></p>
+<ul>
+<li>作用：设置请<code>求队列的最大长度</code>。当请求数量超过这个值时，新的请求可能会被拒绝。</li>
+<li>当前值：512，表示请求队列最多可以容纳 512 个请求。</li>
+</ul>
+<p><strong>OLLAMA_MODELS</strong></p>
+<ul>
+<li>作用：指定模型文件存储的目录。服务器会从这个目录中加载模型。</li>
+<li>当前值：C:\Users\Administrator.ollama\models，表示模型文件存储在该 Windows 用户目录下的 .<br>ollama\models 文件夹中。</li>
+</ul>
+<p><strong>OLLAMA_NUM_PARALLEL</strong></p>
+<ul>
+<li>作用：设置服务器<code>可以同时处理的并行模型请求数量</code>。</li>
+<li>当前值：0，表示没有对并行请求数量进行限制。</li>
+</ul>
+<h2 id="知识库搭建"><a href="#知识库搭建" class="headerlink" title="知识库搭建"></a>知识库搭建</h2><p>在知识库搭建的时候，我们还需要一个基本的嵌入模型，用于理解分析已有的知识库内容</p>
+<p><strong>嵌入模型</strong></p>
+<p>这里我们使用的是 <code>BGE-M3</code> ，嵌入模型是什么，通俗的话讲，它把文本信息翻译成计算机能够理解和处理的数字形式，也就是向量。它就像是给每一段文本生成了一个独一无二的 “数字指纹”，凭借这个 “指纹”，计算机就能对文本进行各种分析和操作。</p>
+<p>有了嵌入模型分析知识库的文本内容，那么是如何和问答结合的，这就需要 <code>RAG</code></p>
+<p><strong>RAG</strong></p>
+<p><code>检索增强生成（RAG）</code>是一种<code>将外部知识检索与大语言模型（LLM）相结合的技术</code>。传统的大语言模型虽然拥有丰富的知识，但知识更新可能不及时，或者在特定领域的知识储备不足。RAG 通过在生成回答之前，先从外部知识源（如文档数据库、网页等）中检索相关信息，然后将这些信息与用户的问题一起输入到大语言模型中，从而生成更准确、更具时效性的回答。</p>
+<p><strong>需要注意的事项</strong></p>
+<p>知识库的搭建部分使用的是容器的方式，所以调用 <code>ollama</code> 提供的推理能力的时候，通过 <code>127.0.0.0:11434</code> 访问是访问不通的，所以需要一个能代表宿主机但是IP地址或者域名不是 127.0.0.0或localhost 的地址。</p>
+<p>在windos 上面会有这个一个虚拟交换设备， 在其他服务调用 ollama 的时候，需要本地ID：11434 的方式访问，这里我们选用这个 IP ， <code>172.29.176.1:11434</code>,至于这个 设备如何创建的，一般开启虚拟化 Hyper - V 的时候会自动创建</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">以太网适配器 vEthernet (Default Switch):</span><br><span class="line"></span><br><span class="line">   连接特定的 DNS 后缀 . . . . . . . :</span><br><span class="line">   本地链接 IPv6 地址. . . . . . . . : fe80::c872:92b3:b00a:6ce0%25</span><br><span class="line">   IPv4 地址 . . . . . . . . . . . . : 172.29.176.1</span><br><span class="line">   子网掩码  . . . . . . . . . . . . : 255.255.240.0</span><br><span class="line">   默认网关. . . . . . . . . . . . . :</span><br></pre></td></tr></table></figure>
+
+<p>对于通过客户端的方式直接部署的，我们可以之间使用 <code>127.0.0.0:11434</code>  或者 localhost 来访问推理服务</p>
+<h3 id="Ragflow-DeepSeek"><a href="#Ragflow-DeepSeek" class="headerlink" title="Ragflow + DeepSeek"></a>Ragflow + DeepSeek</h3><p><code>RAGFlow</code> 是一款基于<code>深度文档理解</code>构建的<code>开源 RAG（Retrieval-Augmented Generation，检索增强生成）引擎</code>。RAGFlow 可以为各种规模的企业及个人提供一套精简的 <code>RAG</code> 工作流程，<code>结合大语言模型（LLM）</code>针对用户各类不同的复杂格式数据提供可靠的问答以及有理有据的引用。</p>
+<p>官网地址：<a target="_blank" rel="noopener" href="https://ragflow.io/">https://ragflow.io</a></p>
+<p>项目地址： <a target="_blank" rel="noopener" href="https://github.com/infiniflow/ragflow">https://github.com/infiniflow/ragflow</a></p>
+<p>这里需要使用 docker 来部署，安装dockr， 克隆项目，执行 <code>docker-compose</code> 就可以了</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">git <span class="built_in">clone</span> https://github.com/infiniflow/ragflow.git</span><br></pre></td></tr></table></figure>
+
+
+<p><img src="https://i-blog.csdnimg.cn/direct/7e987791b1164ff38eacefe08ade842f.png"></p>
+<p>然后参考 readme 部署即可</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ <span class="built_in">cd</span> ragflow/docker</span><br><span class="line">$ docker compose -f docker-compose.yml up -d</span><br></pre></td></tr></table></figure>
+
+
+<p>这里需要说明一下，有些 <code>docker-compose</code> 维护不及时，可能部署有问题，所以我们用  readme 推荐的方式</p>
+<p><img src="https://i-blog.csdnimg.cn/direct/61da177def604980989b02f98a78dc9a.png"></p>
+<p>上面截图中 GPU 版本的 我尝试了好久，server 启动链接 es 报错，未果，用了默认的 compose。</p>
+<p><img src="https://i-blog.csdnimg.cn/direct/1617659cf47a4a09a1d64dbe997dde9c.png"></p>
+<p>部署成功之后可以在docker 桌面版中看到容器，核心服务是一个 server</p>
+<p><img src="https://i-blog.csdnimg.cn/direct/1e09c4c4f6ab492abcc82a3f05c587f7.png"></p>
+<p>默认 80 端口，需要注册账号登陆</p>
+<p><img src="https://i-blog.csdnimg.cn/direct/b8183c3eb6a84887bfb42dff83bbd937.png"></p>
+<p>需要先配置基础模型，需要注意这里的地址不能写 127.0.0.1</p>
+<p><img src="https://i-blog.csdnimg.cn/direct/cc73f5b7b7f340e4a5e288ef352c98a5.png"></p>
+<p>选择本地模型 LLM 模型</p>
+<p><img src="https://i-blog.csdnimg.cn/direct/18123cb759a3466090fa6d60daf9a94e.png"></p>
+<p>选择嵌入模型</p>
+<p><img src="https://i-blog.csdnimg.cn/direct/3c78428e32b84eb5abc9708b28b30d95.png"></p>
+<p>在系统模型设置添加对应的模型</p>
+<p><img src="https://i-blog.csdnimg.cn/direct/6d9ddecaebaa4e2b9a5f19290c5d045f.png"></p>
+<p>选择知识库</p>
+<p><img src="https://i-blog.csdnimg.cn/direct/d2154b20f85f4538b84ff043e132c84a.png"></p>
+<p>创建知识库</p>
+<p><img src="https://i-blog.csdnimg.cn/direct/e7f2e5a7d5e5473b8ed29a28a3e99cfa.png"></p>
+<p>在配置中配置需要的数据</p>
+<p><img src="https://i-blog.csdnimg.cn/direct/e5c057fb155f49518adc0d9c121804cd.png"></p>
+<p>上传本地的知识库内容</p>
+<p><img src="https://i-blog.csdnimg.cn/direct/fa4e312d67be4b09bdc06129484bfe4c.png"></p>
+<p>全选，解析启用</p>
+<p><img src="https://i-blog.csdnimg.cn/direct/49705dce1f9d4af186e1f8fa1a0ab318.png"></p>
+<p>之后在聊天配置中选择对应的知识库</p>
+<p><img src="https://i-blog.csdnimg.cn/direct/25f9e53f5b714782a67a58ba9c61dbc4.png"></p>
+<p>模型参数调整</p>
+<p><img src="https://i-blog.csdnimg.cn/direct/db06aa2695ac4f32b77867ff774c41f6.png"></p>
+<p>简单测试</p>
+<p><img src="https://i-blog.csdnimg.cn/direct/16424d7ff25f486b997f1aa07e9dd645.png"></p>
+<p>每次提问会显示对应的文本内容</p>
+<p><img src="https://i-blog.csdnimg.cn/direct/5562e44ceaa34fa19a3adb60de8b93c6.png"></p>
+<h3 id="Dify-DeepSeek"><a href="#Dify-DeepSeek" class="headerlink" title="Dify + DeepSeek"></a>Dify + DeepSeek</h3><p>Dify 是一个开源的 <code>LLM 应用开发平台</code>。其直观的界面结合了 AI 工作流、RAG 管道、Agent、模型管理、可观测性功能等，可以快速从原型到生产。</p>
+<p>官网地址： <a target="_blank" rel="noopener" href="https://dify.ai/zh">https://dify.ai/zh</a></p>
+<p>项目地址：  <a target="_blank" rel="noopener" href="https://github.com/langgenius/dify/blob/main/README_CN.md">https://github.com/langgenius/dify/blob/main/README_CN.md</a></p>
+<p>和上面的部署一眼，克隆项目，然后通过 docker 部署</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">git <span class="built_in">clone</span>  https://github.com/langgenius/dify.git</span><br></pre></td></tr></table></figure>
+
+<p><img src="https://i-blog.csdnimg.cn/direct/09cf8f60c4654157a01db2d59ddca84e.png"></p>
+<p>运行项目中的  docker-compose.yml</p>
+<p><img src="https://i-blog.csdnimg.cn/direct/18ab4312182e47cdbc30acef8e17aee2.png"></p>
+<p>这里直接通过 vs code 运行</p>
+<p><img src="https://i-blog.csdnimg.cn/direct/43b2d10c948d4f78bff44d5fb10e716a.png"></p>
+<p>docker  中观察容器运行情况</p>
+<p><img src="https://i-blog.csdnimg.cn/direct/29db276cb1ef496b89f1b5eb3907a827.png"></p>
+<p>同样是 80 端口，需要注册一个账号</p>
+<p><img src="https://i-blog.csdnimg.cn/direct/1b4fd2b4139f4b48aaa08e7985f95868.png"></p>
+<p>用注册的账号登陆即可</p>
+<p><img src="https://i-blog.csdnimg.cn/direct/bb83d9d5263e4ec0854037fdefee2766.png"></p>
+<p>选择知识库 </p>
+<p><img src="https://i-blog.csdnimg.cn/direct/c0571d63ff724b608b62303558ecdf41.png"></p>
+<p>在用户中心设置中配置模型相关配置</p>
+<p><img src="https://i-blog.csdnimg.cn/direct/567d1b5f923648238a66ad8aff4e9ce6.png"></p>
+<p>配置本地模型，需要注意这里的地址</p>
+<p><img src="https://i-blog.csdnimg.cn/direct/fc2ab1bf38544726b17efef7a602a88a.png"></p>
+<p>配置嵌入模型 </p>
+<p><img src="https://i-blog.csdnimg.cn/direct/d6cbc7e9e1814161b73a146ca17cc8ed.png"></p>
+<p>然后中模型配置中添加</p>
+<p><img src="https://i-blog.csdnimg.cn/direct/e34cfec36dde4413b6fa934643430547.png"></p>
+<p>选择创建知识库</p>
+<p><img src="https://i-blog.csdnimg.cn/direct/709876cd9daa486cb996608c9b8ca8d8.png"></p>
+<p>导入本地知识库</p>
+<p><img src="https://i-blog.csdnimg.cn/direct/06a1054cad0a41aab33f08d2ac462a61.png"></p>
+<p>分段相关配置</p>
+<p><img src="https://i-blog.csdnimg.cn/direct/d0c603acdb6544c48846ba8089c67183.png"></p>
+<p>保存设置</p>
+<p><img src="https://i-blog.csdnimg.cn/direct/11f463a1c3554845a6b72167fd376409.png"></p>
+<p>等待文档解析完成</p>
+<p><img src="https://i-blog.csdnimg.cn/direct/431af89055674d9fb458f21697514564.png"></p>
+<p>知识库创建完成</p>
+<p><img src="https://i-blog.csdnimg.cn/direct/61a91c6e36bd43a08c064f5b81dfb61c.png"></p>
+<p>创建聊天助手</p>
+<p><img src="https://i-blog.csdnimg.cn/direct/1603123e30d4439caa30a7cda5ac1488.png"></p>
+<p>上下文选择之前创建的知识库</p>
+<p><img src="https://i-blog.csdnimg.cn/direct/2e79509b71ac4c9f8a28ab944e68b010.png"></p>
+<p>做简单的问答测试，可以看到最下面引用的文档</p>
+<p><img src="https://i-blog.csdnimg.cn/direct/f689f9c32fef4b118cb5f637724b737f.png"></p>
+<p>点击发布，知识库机器人创建完成</p>
+<p><img src="https://i-blog.csdnimg.cn/direct/320217e6212549ad9db37301eb4d3383.png"></p>
+<h3 id="Cherry-Studio-DeepSeek"><a href="#Cherry-Studio-DeepSeek" class="headerlink" title="Cherry Studio + DeepSeek"></a>Cherry Studio + DeepSeek</h3><p><code>Cherry Studio</code> 是一款开源、跨平台（支持 Windows&#x2F;macOS&#x2F;Linux）的 AI 桌面客户端，专注于聚合多模型服务并提供本地化 AI 应用开发支持。</p>
+<p>官网地址： <a target="_blank" rel="noopener" href="https://cherry-ai.com/">https://cherry-ai.com/</a></p>
+<p>下载地址： <a target="_blank" rel="noopener" href="https://cherry-ai.com/download">https://cherry-ai.com/download</a></p>
+<p>项目地址： <a target="_blank" rel="noopener" href="https://github.com/CherryHQ/cherry-studio">https://github.com/CherryHQ/cherry-studio</a></p>
+<p>它的这样介绍自己： <code>Cherry Studio</code> 是一款支持多个大语言模型（LLM）服务商的桌面客户端，兼容 Windows、Mac 和 Linux 系统。</p>
+<p><img src="https://i-blog.csdnimg.cn/direct/031bf45cd880436b87b55adfa402187b.png"></p>
+<p>以下是其核心功能与使用要点：</p>
+<ul>
+<li><code>多模型集成</code>：支持 300+ 主流大语言模型，包括 DeepSeek、OpenAI、Gemini、Claude 等，通过 API 密钥接入云端服务，也支持本地部署模型（如 Ollama）</li>
+<li><code>知识库管理</code>:可上传 PDF、Word、Excel、网页链接等文件，构建本地结构化数据库，通过 RAG 技术实现智能检索，支持向量化处理和来源标注</li>
+<li><code>预置智能体</code>: 内置 300+ 行业助手（如翻译、编程、营销），支持自定义提示词（Prompt）创建专属 AI 应用</li>
+<li><code>多模态处理</code>: 支持文本生成、图像生成（集成硅基流动等平台）、代码高亮、Markdown 渲染及文件格式转换</li>
+</ul>
+<p>下面我们看看如何搭建</p>
+<p>下载安装</p>
+<p><img src="https://i-blog.csdnimg.cn/direct/d429eecea1ed48c5b52db6f63a31b200.png"></p>
+<p>设置图标选择模型服务，选择本地的 <code>ollama</code> 服务,</p>
+<p><img src="https://i-blog.csdnimg.cn/direct/5f127d51acc844f7af81d6763986a826.png"></p>
+<p>模型配置</p>
+<p><img src="https://i-blog.csdnimg.cn/direct/ffa03178268842eb8f90084948d637c0.png"></p>
+<p>选择我们之前  pull 的模型</p>
+<p><img src="https://i-blog.csdnimg.cn/direct/3b3e311986074fff8c9e0636b88d3c1f.png"></p>
+<p>然后在默认助手中作简单测试</p>
+<p><img src="https://i-blog.csdnimg.cn/direct/782e206f196c422c943f97998172f066.png"></p>
+<p>选择知识库图标，创建知识库，添加嵌入模型 </p>
+<p><img src="https://i-blog.csdnimg.cn/direct/3c4a744fd204458aa78a9417d79746d6.png"></p>
+<p>然后上传要创建知识库的文件，可以通过搜索知识库简单测试</p>
+<p><img src="https://i-blog.csdnimg.cn/direct/63493247ab78473a88055bae0ac2428f.png"></p>
+<p>然后就可以提问了，选择一开始添加的本地模型，提问的时候选择知识库</p>
+<p><img src="https://i-blog.csdnimg.cn/direct/3660627734f0407189848ecc8078c9ef.png"></p>
+<p>文档中的内容做简单问答测试</p>
+<p><img src="https://i-blog.csdnimg.cn/direct/3b03437f83ba4c11900754d4ec0c0aa1.png"></p>
+<p>引用知识库中的内容</p>
+<h3 id="AnythingLLM-DeepSeek"><a href="#AnythingLLM-DeepSeek" class="headerlink" title="AnythingLLM + DeepSeek"></a>AnythingLLM + DeepSeek</h3><p>AnythingLLM 同样是一个全栈应用程序，可以使用现成的商业大语言模型或流行的开源大语言模型，再结合向量数据库解决方案构建一个私有ChatGPT，不再受制于人：您可以本地运行，也可以远程托管，并能够与您提供的任何文档智能聊天。</p>
+<p>官网下载地址： <a target="_blank" rel="noopener" href="https://anythingllm.com/">https://anythingllm.com/</a> </p>
+<p>文档地址： <a target="_blank" rel="noopener" href="https://docs.anythingllm.com/">https://docs.anythingllm.com/</a></p>
+<p>项目地址： <a target="_blank" rel="noopener" href="https://github.com/Mintplex-Labs/anything-llm/blob/master/locales/README.zh-CN.md">https://github.com/Mintplex-Labs/anything-llm/blob/master/locales/README.zh-CN.md</a></p>
+<p>下载安装包：</p>
+<p><img src="https://i-blog.csdnimg.cn/direct/cde359dc795b4f7d937017e6c14e44ca.png"></p>
+<p>直接安装即可，安装完后会有如下的界面</p>
+<p><img src="https://i-blog.csdnimg.cn/direct/46b46ed25c2f43ac9bd79fb3f5dee92d.png"></p>
+<p>选择本地的模型</p>
+<p><img src="https://i-blog.csdnimg.cn/direct/449898118c054708b1dec6f366cd6ce6.png"></p>
+<p>之后一直下一步，创建工作区</p>
+<p><img src="https://i-blog.csdnimg.cn/direct/51c195fc4da845ffbdd1e270bee53020.png"></p>
+<p>然后在新工作区，选择下面的箭头</p>
+<p><img src="https://i-blog.csdnimg.cn/direct/050b33ff0771465ebfbec70ddf4f3632.png"></p>
+<p>导入知识库文档 </p>
+<p><img src="https://i-blog.csdnimg.cn/direct/90ea61650a85402c8cbba75a7e4b044f.png"></p>
+<p>添加到工作区</p>
+<p><img src="https://i-blog.csdnimg.cn/direct/56debb7b4ced4e9b8bbd98c26b254040.png"></p>
+<p>选择启用</p>
+<p><img src="https://i-blog.csdnimg.cn/direct/d5067eded71c42be8b19d6083e535b89.png"></p>
+<p>问一个知识库相关的问题测试</p>
+<p><img src="https://i-blog.csdnimg.cn/direct/925030c0aab74e159deaac1723e006cb.png"></p>
+<p>最下面会列出引用的文档</p>
+<p><img src="https://i-blog.csdnimg.cn/direct/91de2e3e9aa341ae999573f24f43a01a.png"></p>
+<p>LLM 相关配置可以在设置中设置</p>
+<p><img src="https://i-blog.csdnimg.cn/direct/5101e49691e842658cd31ac216647687.png"></p>
+<p><code>AnythingLLM</code> 和 <code>Cherry Studio</code>  都是客户端，所以 ollama 的推理模型直接设置 本地回环地址就可以</p>
+<hr>
+<p>整体来看，Ragflow  相对专业一点，其次是 Dify ，Cherry Studio ，AnythingLLM ，但是前两个相对部署较重，后两个客户端，可以直接客户端部署。</p>
+<h2 id="博文部分内容参考"><a href="#博文部分内容参考" class="headerlink" title="博文部分内容参考"></a>博文部分内容参考</h2><p>© 文中涉及参考链接内容版权归原作者所有，如有侵权请告知 :)</p>
+<hr>
+<p><a target="_blank" rel="noopener" href="https://ragflow.io/">https://ragflow.io</a></p>
+<p><a target="_blank" rel="noopener" href="https://dify.ai/zh">https://dify.ai/zh</a></p>
+<p><a target="_blank" rel="noopener" href="https://cherry-ai.com/">https://cherry-ai.com/</a></p>
+<p><a target="_blank" rel="noopener" href="https://anythingllm.com/">https://anythingllm.com/</a></p>
+<hr>
+<p>© 2018-至今 <a href="mailto:&#108;&#x69;&#114;&#117;&#105;&#108;&#x6f;&#x6e;&#x67;&#x65;&#x72;&#x40;&#x67;&#x6d;&#x61;&#x69;&#108;&#46;&#99;&#x6f;&#109;">&#108;&#x69;&#114;&#117;&#105;&#108;&#x6f;&#x6e;&#x67;&#x65;&#x72;&#x40;&#x67;&#x6d;&#x61;&#x69;&#108;&#46;&#99;&#x6f;&#109;</a>, 保持署名-非商用-相同方式共享(CC BY-NC-SA 4.0)</p>
+</div><div class="article-licensing box"><div class="licensing-title"><p>基于 Deepseek LLM 的本地知识库搭建开源方案(AnythingLLM、Cherry、Ragflow、Dify)认知</p><p><a href="https://liruilongs.github.io/2025/02/17/待发布/基于 Deepseek 大模型的本地知识库搭建方案(AnythingLLM、Cherry、Ragflow、Dify)认知/">https://liruilongs.github.io/2025/02/17/待发布/基于 Deepseek 大模型的本地知识库搭建方案(AnythingLLM、Cherry、Ragflow、Dify)认知/</a></p></div><div class="licensing-meta level is-mobile"><div class="level-left"><div class="level-item is-narrow"><div><h6>作者</h6><a href="https://liruilongs.github.io"><p>山河已无恙</p></a></div></div><div class="level-item is-narrow"><div><h6>发布于</h6><p>2025-02-17</p></div></div><div class="level-item is-narrow"><div><h6>更新于</h6><p>2025-02-24</p></div></div><div class="level-item is-narrow"><div><h6>许可协议</h6><p><a class="icon" rel="noopener" target="_blank" title="Creative Commons" href="https://creativecommons.org/"><i class="fab fa-creative-commons"></i></a><a class="icon" rel="noopener" target="_blank" title="Attribution" href="https://creativecommons.org/licenses/by/4.0/"><i class="fab fa-creative-commons-by"></i></a><a class="icon" rel="noopener" target="_blank" title="Noncommercial" href="https://creativecommons.org/licenses/by-nc/4.0/"><i class="fab fa-creative-commons-nc"></i></a></p></div></div></div></div></div><div class="recommend-area"><div class="recommend-post"><span class="is-size-6 has-text-grey has-mr-7"># 推荐文章</span><br><span>  1.<a class="is-size-6" href="/2021/08/27/K8s/%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/%E3%80%8AKubernetes%E6%9D%83%E5%A8%81%E6%8C%87%E5%8D%97-%E4%BB%8EDocker%E5%88%B0Kubernetes%E5%AE%9E%E8%B7%B5%E5%85%A8%E6%8E%A5%E8%A7%A6%E3%80%8B%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/" target="_blank">《Kubernetes权威指南:从Docker到Kubernetes实践全接触》读书笔记</a><br></span><span>  2.<a class="is-size-6" href="/2022/11/19/Git/%E5%85%B3%E4%BA%8E-Git-%E9%87%8D%E5%86%99%E5%8E%86%E5%8F%B2%E7%9A%84%E4%B8%80%E4%BA%9B%E7%AC%94%E8%AE%B0/" target="_blank">关于 Git 重写历史的一些笔记</a><br></span><span>  3.<a class="is-size-6" href="/2022/08/02/Git/%E5%85%B3%E4%BA%8EGit%E5%88%86%E6%94%AF%E5%8F%98%E5%9F%BA%E6%93%8D%E4%BD%9C%E7%9A%84%E4%B8%80%E4%BA%9B%E7%AC%94%E8%AE%B0/" target="_blank">关于Git分支变基操作的一些笔记</a><br></span><span>  4.<a class="is-size-6" href="/2022/07/26/Git/%E5%85%B3%E4%BA%8EGit%E5%88%86%E6%94%AF%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86%E7%9A%84%E4%B8%80%E4%BA%9B%E7%AC%94%E8%AE%B0/" target="_blank">关于Git分支基础知识的一些笔记</a><br></span><span>  5.<a class="is-size-6" href="/2022/08/02/Git/%E5%85%B3%E4%BA%8EGit%E5%88%86%E6%94%AF%E5%B7%A5%E4%BD%9C%E6%B5%81%E7%9A%84%E4%B8%80%E4%BA%9B%E7%AC%94%E8%AE%B0/" target="_blank">关于Git分支工作流的一些笔记</a><br></span><span>  6.<a class="is-size-6" href="/2023/02/19/Git/%E5%85%B3%E4%BA%8EGit%E9%AB%98%E7%BA%A7%E5%90%88%E5%B9%B6%E7%9A%84%E4%B8%80%E4%BA%9B%E7%AC%94%E8%AE%B0%E6%95%B4%E7%90%86/" target="_blank">关于Git分支高级合并的一些笔记整理</a><br></span></div></div><link rel="stylesheet" href="https://cdnjs.loli.net/ajax/libs/social-share.js/1.0.16/css/share.min.css"><div class="social-share"></div><script src="https://cdnjs.loli.net/ajax/libs/social-share.js/1.0.16/js/social-share.min.js"></script></article></div><div class="card"><div class="card-content"><h3 class="menu-label has-text-centered">喜欢这篇文章？打赏一下作者吧</h3><div class="buttons is-centered"><a class="button donate" data-type="alipay"><span class="icon is-small"><i class="fab fa-alipay"></i></span><span>支付宝</span><span class="qrcode"><img src="/img/alipay%EF%BF%A5.png" alt="支付宝"></span></a><a class="button donate" data-type="wechat"><span class="icon is-small"><i class="fab fa-weixin"></i></span><span>微信</span><span class="qrcode"><img src="/img/wechat%EF%BF%A5.png" alt="微信"></span></a></div></div></div><nav class="post-navigation mt-4 level is-mobile"><div class="level-start"><a class="article-nav-prev level level-item link-muted" href="/2025/02/23/%E5%BE%85%E5%8F%91%E5%B8%83/LLM%20%E5%A4%A7%E8%AF%AD%E8%A8%80%E6%A8%A1%E5%9E%8B%E5%85%B3%E9%94%AE%E6%8A%80%E6%9C%AF%E6%9C%AF%E8%AF%AD%E8%AE%A4%E7%9F%A5/"><i class="level-item fas fa-chevron-left"></i><span class="level-item">LLM 大语言模型定义以及关键技术术语认知</span></a></div><div class="level-end"><a class="article-nav-next level level-item link-muted" href="/2025/02/10/%E5%BE%85%E5%8F%91%E5%B8%83/xxl-job-%E6%BC%8F%E6%B4%9E%E9%97%AE%E9%A2%98%E7%89%88%E6%9C%AC%E5%8D%87%E7%BA%A7%E8%AE%B0%E5%BD%95/"><span class="level-item">xxl-job 漏洞问题版本升级记录</span><i class="level-item fas fa-chevron-right"></i></a></div></nav><!--!--><div class="card"><div class="card-content"><div class="title is-5">评论</div><div id="comment-container"></div><link rel="stylesheet" href="https://cdnjs.loli.net/ajax/libs/gitalk/1.6.0/gitalk.css"><script> $.getScript('/js/gitalk.min.js', function () { 
+            var gitalk = new Gitalk({
+            language:'zh-CN',
+            id: '07023eb060932e19209caea66e7da16d',
+            repo: 'blog_comment',
+            owner: 'LIRUILONGS',
+            clientID: '9fdc9739266d48d5f62e',
+            clientSecret: 'c1cc33697d099a2197650ec9dadcb16bd4904655',
+            admin: ["LIRUILONGS"],
+            createIssueManually: true,
+            distractionFreeMode: true,
+            perPage: 10,
+            pagerDirection: 'last',
+            proxy: 'https://cors-anywhere.azm.workers.dev/https://github.com/login/oauth/access_token',
+            
+            enableHotKey: true,
+            isLocked: false
+        })
+        gitalk.render('comment-container')});</script></div></div></div><div class="column column-left is-4-tablet is-4-desktop is-3-widescreen  order-1 is-sticky"><div class="card widget" id="toc" data-type="toc"><div class="card-content"><div class="menu"><h3 class="menu-label">目录</h3><ul class="menu-list"><li><a class="is-flex is-mobile" href="#写在前面"><span class="mr-2">1</span><span>写在前面</span></a></li><li><a class="is-flex is-mobile" href="#本地-LLM-部署"><span class="mr-2">2</span><span>本地 LLM 部署</span></a><ul class="menu-list"><li><a class="is-flex is-mobile" href="#ollama安装"><span class="mr-2">2.1</span><span>ollama安装</span></a></li><li><a class="is-flex is-mobile" href="#deepseek-R1-蒸馏模型部署"><span class="mr-2">2.2</span><span>deepseek R1 蒸馏模型部署</span></a></li></ul></li><li><a class="is-flex is-mobile" href="#知识库搭建"><span class="mr-2">3</span><span>知识库搭建</span></a><ul class="menu-list"><li><a class="is-flex is-mobile" href="#Ragflow-DeepSeek"><span class="mr-2">3.1</span><span>Ragflow + DeepSeek</span></a></li><li><a class="is-flex is-mobile" href="#Dify-DeepSeek"><span class="mr-2">3.2</span><span>Dify + DeepSeek</span></a></li><li><a class="is-flex is-mobile" href="#Cherry-Studio-DeepSeek"><span class="mr-2">3.3</span><span>Cherry Studio + DeepSeek</span></a></li><li><a class="is-flex is-mobile" href="#AnythingLLM-DeepSeek"><span class="mr-2">3.4</span><span>AnythingLLM + DeepSeek</span></a></li></ul></li><li><a class="is-flex is-mobile" href="#博文部分内容参考"><span class="mr-2">4</span><span>博文部分内容参考</span></a></li></ul></div></div><style>.menu-list > li > a.is-active + .menu-list { display: block; }.menu-list > li > a + .menu-list { display: none; }</style><script src="/js/toc.js" defer></script></div><div class="card widget" data-type="profile"><div class="card-content"><nav class=""><div class="level-item has-text-centered flex-shrink-1"><div><figure class="image is-128x128 mx-auto mb-2"><img class="avatar" src="/img/%E5%BE%AE%E4%BF%A1%E5%85%AC%E4%BC%97%E5%8F%B7.jpg" alt="山河已无恙"></figure><p class="title is-size-4 is-block" style="line-height:inherit;">山河已无恙</p><p class="is-size-6 is-block">爱自己，是终生浪漫的开始</p><p class="is-size-6 is-flex justify-content-center"><i class="fas fa-map-marker-alt mr-1"></i><span>中国·呼和浩特</span></p></div></div></nav><nav class="level is-mobile"><div class="level-item has-text-centered is-marginless"><div><p class="heading">文章</p><a href="/archives"><p class="title">434</p></a></div></div><div class="level-item has-text-centered is-marginless"><div><p class="heading">分类</p><a href="/categories"><p class="title">144</p></a></div></div><div class="level-item has-text-centered is-marginless"><div><p class="heading">标签</p><a href="/tags"><p class="title">191</p></a></div></div></nav><div class="level"><a class="level-item button is-primary is-rounded" href="https://mp.weixin.qq.com/s?__biz=MzkyNjIxNTYwMw==&amp;mid=2247496480&amp;idx=1&amp;sn=a9971fed3962ef2a1aeda1f0bda65f86&amp;chksm=c2380ffcf54f86eaba8daac6caca72a70f38e61a8d25dc2a66d3a17b87c02530e326dcaea14b#rd" target="_blank" rel="noopener">关注我</a></div><div class="level is-mobile"><a class="level-item button is-transparent is-marginless" target="_blank" rel="noopener" title="Github" href="https://github.com/LIRUILONGS"><i class="fab fa-github"></i></a><a class="level-item button is-transparent is-marginless" target="_blank" rel="noopener" title="CSDN" href="https://liruilong.blog.csdn.net/"><i class="fa fa-code"></i></a><a class="level-item button is-transparent is-marginless" target="_blank" rel="noopener" title="Email" href="mailto:1224965096@qq.com"><i class="fa fa-envelope"></i></a></div></div></div><div class="card widget" data-type="links"><div class="card-content"><div class="menu"><h3 class="menu-label">链接</h3><ul class="menu-list"><li><a class="level is-mobile" href="https://liruilong.blog.csdn.net/?t=1&amp;type=blog" target="_blank" rel="noopener"><span class="level-left"><span class="level-item">CSDN</span></span><span class="level-right"><span class="level-item tag">liruilong.blog.csdn.net</span></span></a></li><li><a class="level is-mobile" href="https://www.cnblogs.com/liruilong/" target="_blank" rel="noopener"><span class="level-left"><span class="level-item">博客园</span></span><span class="level-right"><span class="level-item tag">www.cnblogs.com</span></span></a></li><li><a class="level is-mobile" href="https://github.com/LIRUILONGS" target="_blank" rel="noopener"><span class="level-left"><span class="level-item">Githup</span></span><span class="level-right"><span class="level-item tag">github.com</span></span></a></li><li><a class="level is-mobile" href="https://gitee.com/liruilonger" target="_blank" rel="noopener"><span class="level-left"><span class="level-item">码云</span></span><span class="level-right"><span class="level-item tag">gitee.com</span></span></a></li></ul></div></div></div><div class="card widget"><div class="card-content"><h3 class="menu-label">最新评论</h3><span class="body_hot_comment">加载中，最新评论有1分钟缓存...</span></div></div><div class="card widget"><div class="card-content"><h3 class="menu-label">最新文章</h3><article class="media"><div class="media-content"><p class="date"><time dateTime="2025-03-26T15:29:15.000Z">2025-03-26</time></p><p class="title"><a href="/2025/03/26/%E5%BE%85%E5%8F%91%E5%B8%83/LangChain-%E6%95%B0%E6%8D%AE%E5%A2%9E%E5%BC%BA%E6%A8%A1%E5%9D%97-Ollama-DeepSeek-R1-%E6%9E%84%E5%BB%BA-K8s-%E6%9C%AC%E5%9C%B0%E7%9F%A5%E8%AF%86%E5%BA%93Demo/">本地化智能运维助手：基于 LangChain 数据增强 和 DeepSeek-R1 的K8s运维文档检索与问答系统 Demo</a></p><p class="categories"><a href="/categories/LLM/">LLM</a></p></div></article><article class="media"><div class="media-content"><p class="date"><time dateTime="2025-03-21T09:11:01.000Z">2025-03-21</time></p><p class="title"><a href="/2025/03/21/%E5%BE%85%E5%8F%91%E5%B8%83/SpringBoot-SSE-rabbitMQ-%E5%AE%9E%E7%8E%B0%E6%9C%8D%E5%8A%A1%E7%AB%AF%E5%B9%BF%E6%92%AD%E6%8E%A8%E9%80%81/">SpringBoot + SSE + rabbitMQ 实现服务端分布式广播推送</a></p><p class="categories"><a href="/categories/SSE/">SSE</a></p></div></article><article class="media"><div class="media-content"><p class="date"><time dateTime="2025-03-12T02:52:50.000Z">2025-03-12</time></p><p class="title"><a href="/2025/03/12/%E5%BE%85%E5%8F%91%E5%B8%83/LangChain+Ollama+DeepSeek%20%E5%85%A8%E9%93%BE%E8%B7%AF%E8%AE%A4%E7%9F%A5%EF%BC%9ALangChain%20%E6%A8%A1%E5%9E%8B%20IO%20%E6%A8%A1%E5%9D%97%E5%AE%9E%E6%88%98/">LangChain+Ollama+DeepSeek 全链路认知：LangChain 模型 IO 模块实战</a></p><p class="categories"><a href="/categories/LLM/">LLM</a></p></div></article><article class="media"><div class="media-content"><p class="date"><time dateTime="2025-03-10T03:14:31.000Z">2025-03-10</time></p><p class="title"><a href="/2025/03/10/%E5%BE%85%E5%8F%91%E5%B8%83/LangChain-Ollama-DeepSeek-%E5%85%A8%E9%93%BE%E8%B7%AF%E8%AE%A4%E7%9F%A5%EF%BC%9A%E4%BB%8E%E6%A8%A1%E5%9E%8B%E5%8C%85%E8%A3%85%E5%99%A8%E5%88%B0%E6%8F%90%E7%A4%BA%E8%AF%8D%E6%A8%A1%E7%89%88-Agent-Demo/">LangChain + Ollama + DeepSeek 全链路认知：从模型包装器到提示词模版 Agent Demo</a></p><p class="categories"><a href="/categories/LLM/">LLM</a></p></div></article><article class="media"><div class="media-content"><p class="date"><time dateTime="2025-03-04T08:19:39.000Z">2025-03-04</time></p><p class="title"><a href="/2025/03/04/%E5%BE%85%E5%8F%91%E5%B8%83/Spring%20AI%20Alibaba%20+%20Ollama%EF%BC%9A%E5%9B%BD%E4%BA%A7%E5%A4%A7%E6%A8%A1%E5%9E%8BDeepSeek%20LLM%E7%9A%84%E4%BD%8E%E6%88%90%E6%9C%ACAI%E5%BA%94%E7%94%A8%E5%BC%80%E5%8F%91%E8%AE%A4%E7%9F%A5/">Spring AI Alibaba + Ollama：国产大模型DeepSeek LLM的低成本AI应用开发认知</a></p><p class="categories"><a href="/categories/LLM/">LLM</a></p></div></article></div></div><div class="card widget"><div class="card-content"><div class="menu"><h3 class="menu-label">分类</h3><ul class="menu-list"><li><a class="level is-mobile is-marginless" href="/categories/AIGC/"><span class="level-start"><span class="level-item">AIGC</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/AdaFace/"><span class="level-start"><span class="level-item">AdaFace</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/Ajax/"><span class="level-start"><span class="level-item">Ajax</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/Ansible/"><span class="level-start"><span class="level-item">Ansible</span></span><span class="level-end"><span class="level-item tag">23</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/AppCube/"><span class="level-start"><span class="level-item">AppCube</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/BPF/"><span class="level-start"><span class="level-item">BPF</span></span><span class="level-end"><span class="level-item tag">5</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/Bind9/"><span class="level-start"><span class="level-item">Bind9</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/CI-CD/"><span class="level-start"><span class="level-item">CI/CD</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/CSS/"><span class="level-start"><span class="level-item">CSS</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/Ceph/"><span class="level-start"><span class="level-item">Ceph</span></span><span class="level-end"><span class="level-item tag">22</span></span></a></li><a class="level is-mobile is-marginless" href="/categories/"><span class="level-start"><span class="level-item">查看全部&gt;&gt;</span></span></a></ul></div></div></div><div class="card widget"><div class="card-content"><div class="menu"><h3 class="menu-label">归档</h3><ul class="menu-list"><li><a class="level is-mobile is-marginless" href="/archives/2025/03/"><span class="level-start"><span class="level-item">三月 2025</span></span><span class="level-end"><span class="level-item tag">6</span></span></a></li><li><a class="level is-mobile is-marginless" href="/archives/2025/02/"><span class="level-start"><span class="level-item">二月 2025</span></span><span class="level-end"><span class="level-item tag">7</span></span></a></li><li><a class="level is-mobile is-marginless" href="/archives/2025/01/"><span class="level-start"><span class="level-item">一月 2025</span></span><span class="level-end"><span class="level-item tag">2</span></span></a></li><li><a class="level is-mobile is-marginless" href="/archives/2024/12/"><span class="level-start"><span class="level-item">十二月 2024</span></span><span class="level-end"><span class="level-item tag">4</span></span></a></li><li><a class="level is-mobile is-marginless" href="/archives/2024/11/"><span class="level-start"><span class="level-item">十一月 2024</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li><a class="level is-mobile is-marginless" href="/archives/"><span class="level-start"><span class="level-item">查看全部&gt;&gt;</span></span></a></ul></div></div></div><div class="card widget"><div class="card-content"><div class="menu"><h3 class="menu-label">标签</h3><div class="field is-grouped is-grouped-multiline"><div class="control"><a class="tags has-addons" href="/tags/Kubernetes/"><span class="tag">Kubernetes</span><span class="tag is-grey-lightest">98</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Linux/"><span class="tag">Linux</span><span class="tag is-grey-lightest">51</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Ansible/"><span class="tag">Ansible</span><span class="tag is-grey-lightest">25</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Ceph/"><span class="tag">Ceph</span><span class="tag is-grey-lightest">22</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Python/"><span class="tag">Python</span><span class="tag is-grey-lightest">15</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Docker/"><span class="tag">Docker</span><span class="tag is-grey-lightest">9</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Git/"><span class="tag">Git</span><span class="tag is-grey-lightest">8</span></a></div><div class="control"><a class="tags has-addons" href="/tags/JAVA/"><span class="tag">JAVA</span><span class="tag is-grey-lightest">8</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%E5%8D%8E%E4%B8%BA%E4%BA%91/"><span class="tag">华为云</span><span class="tag is-grey-lightest">8</span></a></div><div class="control"><a class="tags has-addons" href="/tags/CPU/"><span class="tag">CPU</span><span class="tag is-grey-lightest">7</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Mysql/"><span class="tag">Mysql</span><span class="tag is-grey-lightest">7</span></a></div><div class="control"><a class="tags has-addons" href="/tags/BPF/"><span class="tag">BPF</span><span class="tag is-grey-lightest">6</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Go/"><span class="tag">Go</span><span class="tag is-grey-lightest">6</span></a></div><div class="control"><a class="tags has-addons" href="/tags/LLM/"><span class="tag">LLM</span><span class="tag is-grey-lightest">6</span></a></div><div class="control"><a class="tags has-addons" href="/tags/OpenShift/"><span class="tag">OpenShift</span><span class="tag is-grey-lightest">6</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%E7%A8%8B%E5%BA%8F%E4%BA%BA%E7%94%9F/"><span class="tag">程序人生</span><span class="tag is-grey-lightest">6</span></a></div><div class="control"><a class="tags has-addons" href="/tags/DNS/"><span class="tag">DNS</span><span class="tag is-grey-lightest">5</span></a></div><div class="control"><a class="tags has-addons" href="/tags/OKD/"><span class="tag">OKD</span><span class="tag is-grey-lightest">5</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%E6%91%84%E5%BD%B1%E6%9B%9D%E5%85%89/"><span class="tag">摄影曝光</span><span class="tag is-grey-lightest">5</span></a></div><div class="control"><a class="tags has-addons" href="/tags/selenium/"><span class="tag">selenium</span><span class="tag is-grey-lightest">4</span></a></div></div><div class="field is-grouped is-grouped-multiline"><a class="tags has-addons" href="/tags/"><span class="tag">查看全部&gt;&gt;</span></a></div></div></div></div><div class="card widget" data-type="subscribe-email"><div class="card-content"><div class="menu"><h3 class="menu-label">订阅更新</h3><form action="https://feedburner.google.com/fb/a/mailverify" method="post" target="popupwindow" onsubmit="window.open(&#039;https://feedburner.google.com/fb/a/mailverify?uri=&#039;,&#039;popupwindow&#039;,&#039;scrollbars=yes,width=550,height=520&#039;);return true"><input type="hidden" value="" name="uri"><input type="hidden" name="loc" value="en_US"><div class="field has-addons"><div class="control has-icons-left is-expanded"><input class="input" name="email" type="email" placeholder="Email"><span class="icon is-small is-left"><i class="fas fa-envelope"></i></span></div><div class="control"><input class="button" type="submit" value="订阅"></div></div></form></div></div></div><!--!--><div class="column-right-shadow is-hidden-widescreen is-sticky"></div></div></div></div></section><footer class="footer"><div class="container"><div class="level"><div class="level-start"><a class="footer-logo is-block mb-2" href="/"><img src="/img/logo.png" alt="山河已无恙" height="28"></a><p class="size-small"><span>&copy; 2025 山河已无恙</span>  Powered by <a href="https://hexo.io/" target="_blank">Hexo</a> &amp; <a href="https://github.com/ppoffice/hexo-theme-icarus" target="_blank">Icarus</a> &amp; <a href="https://github.com/removeif/hexo-theme-amazing" target="_blank">Amazing</a> <br><span>© <a href="http://www.beian.miit.gov.cn/" target="_blank">备案中</a><br></span><span>© 版权说明：[本网站所有内容均收集于互联网或自己创作,<br />&nbsp;&nbsp;&nbsp;&nbsp;方便于网友与自己学习交流，如有侵权，请<a href="/message" target="_blank">留言</a>，立即处理]<br /></span><span><span id="statistic-times">loading...</span><script>function createTime(time) {
+            var n = new Date(time);
+            now.setTime(now.getTime() + 250),
+                days = (now - n) / 1e3 / 60 / 60 / 24,
+                dnum = Math.floor(days),
+                hours = (now - n) / 1e3 / 60 / 60 - 24 * dnum,
+                hnum = Math.floor(hours),
+            1 == String(hnum).length && (hnum = "0" + hnum),
+                minutes = (now - n) / 1e3 / 60 - 1440 * dnum - 60 * hnum,
+                mnum = Math.floor(minutes),
+            1 == String(mnum).length && (mnum = "0" + mnum),
+                seconds = (now - n) / 1e3 - 86400 * dnum - 3600 * hnum - 60 * mnum,
+                snum = Math.round(seconds),
+            1 == String(snum).length && (snum = "0" + snum),
+                document.getElementById("statistic-times").innerHTML = "❤️本站自 <strong>"+time.split(" ")[0].replace(/\//g,".")+"</strong> 已运行 <strong>" + dnum + "</strong> 天 <strong>" + hnum + "</strong> 小时 <strong>" + mnum + "</strong> 分 <strong>" + snum + "</strong> 秒！❤️";
+        }var now = new Date();setInterval("createTime('2021/6/26 21:27:00')", 250,"");</script><br></span><div class="size-small"><span>❤️感谢 <strong><span id="busuanzi_value_site_uv">99+</span></strong> 小伙伴的 <strong><span id="busuanzi_value_site_pv">99+</span></strong> 次光临！❤️</span></div></p></div><div class="level-end"><div class="field has-addons"><p class="control"><a class="button is-transparent is-large" target="_blank" rel="noopener" title="Creative Commons" href="https://creativecommons.org/"><i class="fab fa-creative-commons"></i></a></p><p class="control"><a class="button is-transparent is-large" target="_blank" rel="noopener" title="Attribution 4.0 International" href="https://creativecommons.org/licenses/by/4.0/"><i class="fab fa-creative-commons-by"></i></a></p><p class="control"><a class="button is-transparent is-large" target="_blank" rel="noopener" title="Download on GitHub" href="https://github.com/removeif/hexo-theme-amazing"><i class="fab fa-github"></i></a></p></div><div class="sideMusic"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/aplayer/dist/APlayer.min.css"><script src="/js/APlayer.min.js"></script><script src="https://cdn.jsdelivr.net/npm/meting@2/dist/Meting.min.js"></script><meting-js style="width: auto;height: 2000px;" server="netease" type="playlist" id="2364053447" theme="#2980b9" loop="all" autoplay="false" order="list" storageName="aplayer-setting" lrctype="0" list-max-height="400px" fixed="true"></meting-js></div></div></div></div></footer><script src="https://cdnjs.loli.net/ajax/libs/moment.js/2.22.2/moment-with-locales.min.js"></script><script src="https://cdnjs.loli.net/ajax/libs/clipboard.js/2.0.4/clipboard.min.js" async></script><script>moment.locale("zh-CN");</script><script>var IcarusThemeSettings = {
+            article: {
+                highlight: {
+                    clipboard: true,
+                    fold: 'unfolded'
+                }
+            }
+        };</script><script src="/js/column.js"></script><!--!--><script src="/js/animation.js"></script><a id="back-to-top" title="回到顶端" href="javascript:;"><i class="fas fa-chevron-up"></i></a><script src="/js/back_to_top.js" defer></script><!--!--><script src="https://cdnjs.loli.net/ajax/libs/lightgallery/1.6.8/js/lightgallery.min.js" defer></script><script src="https://cdnjs.loli.net/ajax/libs/justifiedGallery/3.7.0/js/jquery.justifiedGallery.min.js" defer></script><script>window.addEventListener("load", () => {
+            if (typeof $.fn.lightGallery === 'function') {
+                $('.article').lightGallery({ selector: '.gallery-item' });
+            }
+            if (typeof $.fn.justifiedGallery === 'function') {
+                if ($('.justified-gallery > p > .gallery-item').length) {
+                    $('.justified-gallery > p > .gallery-item').unwrap();
+                }
+                $('.justified-gallery').justifiedGallery();
+            }
+        });</script><!--!--><!--!--><link rel="stylesheet" href="https://cdnjs.loli.net/ajax/libs/KaTeX/0.11.1/katex.min.css"><script src="https://cdnjs.loli.net/ajax/libs/KaTeX/0.11.1/katex.min.js" defer></script><script src="https://cdnjs.loli.net/ajax/libs/KaTeX/0.11.1/contrib/auto-render.min.js" defer></script><script src="https://cdnjs.loli.net/ajax/libs/KaTeX/0.11.1/contrib/mhchem.js" defer></script><script>window.addEventListener("load", function() {
+            document.querySelectorAll('[role="article"] > .content').forEach(function(element) {
+                renderMathInElement(element);
+            });
+        });</script><script type="text/x-mathjax-config">MathJax.Hub.Config({
+            'HTML-CSS': {
+                matchFontHeight: false
+            },
+            SVG: {
+                matchFontHeight: false
+            },
+            CommonHTML: {
+                matchFontHeight: false
+            },
+            tex2jax: {
+                inlineMath: [
+                    ['$','$'],
+                    ['\\(','\\)']
+                ]
+            }
+        });</script><script src="https://cdnjs.loli.net/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-MML-AM_CHTML" defer></script><div id="outdated"><h6>Your browser is out-of-date!</h6><p>Update your browser to view this website correctly.&amp;npsb;<a id="btnUpdateBrowser" target="_blank" rel="noopener" href="http://outdatedbrowser.com/">Update my browser now </a></p><p class="last"><a href="#" id="btnCloseUpdateBrowser" title="Close">×</a></p></div><script src="https://cdnjs.loli.net/ajax/libs/outdated-browser/1.1.5/outdatedbrowser.min.js" defer></script><script>window.addEventListener("load", function () {
+            outdatedBrowser({
+                bgColor: '#f25648',
+                color: '#ffffff',
+                lowerThan: 'object-fit' // display on IE11 or below
+            });
+        });</script><!--!--><script src="/js/main.js" defer></script><script>$.getScript('/js/comment-issue-data.js',function(){loadIssueData('9fdc9739266d48d5f62e','c1cc33697d099a2197650ec9dadcb16bd4904655','LIRUILONGS','blog_comment',false);})</script><div class="searchbox"><div class="searchbox-container"><div class="searchbox-header"><div class="searchbox-input-container"><input class="searchbox-input" type="text" placeholder="想要查找什么..."></div><a class="searchbox-close" href="javascript:;">×</a></div><div class="searchbox-body"></div></div></div><script src="/js/insight.js" defer></script><script>document.addEventListener('DOMContentLoaded', function () {
+            loadInsight({"contentUrl":"/content.json"}, {"hint":"想要查找什么...","untitled":"(无标题)","posts":"文章","pages":"页面","categories":"分类","tags":"标签"});
+        });</script><script src="https://cdn.jsdelivr.net/npm/pjax@0.2.8/pjax.js"></script><script type="text/javascript">var pjax = new Pjax({
+            elements: "a",//代表点击链接就更新
+            selectors: [  //代表要更新的节点
+                ".section",
+                "title"
+            ],
+            cache: true,
+            cacheBust:false
+        })
+
+        function loadBusuanzi(){
+        $.getScript("//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js", function () {});
+        }
+
+        function loadMathJax() { //加载mathjax
+            $.getScript("//cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.4/MathJax.js?config=TeX-MML-AM_CHTML", function () {
+                MathJax.Hub.Config({ tex2jax: { inlineMath: [['$', '$'], ['\(', '\)']] } });
+                var math = document.getElementsByClassName("entry-content")[0];
+                MathJax.Hub.Queue(["Typeset", MathJax.Hub, math]);
+            });
+        };
+
+        // 开始 PJAX 执行的函数
+        document.addEventListener('pjax:send', function () {
+        });
+        
+        // PJAX 完成之后执行的函数，可以和上面的重载放在一起
+        document.addEventListener('pjax:complete', function () {
+            $(".section").css({opacity:1});
+            if(true){
+                $.getScript('/js/comment-issue-data.js',function(){loadIssueData('9fdc9739266d48d5f62e','c1cc33697d099a2197650ec9dadcb16bd4904655','LIRUILONGS','blog_comment',false);});
+            }
+            if(false){
+                loadMathJax();
+            }
+            loadMainJs(jQuery, window.moment, window.ClipboardJS, window.IcarusThemeSettings);
+            loadBackTop();
+            loadBusuanzi();
+            if(typeof loadBanner == 'function'){
+                loadBanner();
+            }
+        });</script></body></html>

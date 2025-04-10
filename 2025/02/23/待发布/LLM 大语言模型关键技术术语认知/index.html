@@ -1,0 +1,434 @@
+<!doctype html>
+<html lang="zh"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"><meta><title>LLM 大语言模型定义以及关键技术术语认知 - 山河已无恙</title><link rel="manifest" href="/manifest.json"><meta name="application-name" content="山河已无恙"><meta name="msapplication-TileImage" content="https://cdn.jsdelivr.net/gh/removeif/removeif-demo@latest/img/favicon.png"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="山河已无恙"><meta name="apple-mobile-web-app-status-bar-style" content="default"><meta description="我看远山，远山悲悯"><meta property="og:type" content="blog"><meta property="og:title" content="山河已无恙"><meta property="og:url" content="https://mp.weixin.qq.com/s?__biz=MzkyNjIxNTYwMw==&amp;mid=2247496480&amp;idx=1&amp;sn=a9971fed3962ef2a1aeda1f0bda65f86&amp;chksm=c2380ffcf54f86eaba8daac6caca72a70f38e61a8d25dc2a66d3a17b87c02530e326dcaea14b#rd"><meta property="og:site_name" content="山河已无恙"><meta property="og:description" content="我看远山，远山悲悯"><meta property="og:locale" content="zh_CN"><meta property="og:image" content="https://mp.weixin.qq.com/img/头像.jpg"><meta property="article:published_time" content="2025-02-23T15:32:37.000Z"><meta property="article:modified_time" content="2025-03-03T05:41:07.719Z"><meta property="article:author" content="LIRUILONGS"><meta property="article:tag" content="LLM"><meta property="twitter:card" content="summary"><meta property="twitter:image" content="/img/头像.jpg"><script type="application/ld+json">{"@context":"https://schema.org","@type":"BlogPosting","mainEntityOfPage":{"@type":"WebPage","@id":"https://liruilongs.github.io/2025/02/23/%E5%BE%85%E5%8F%91%E5%B8%83/LLM%20%E5%A4%A7%E8%AF%AD%E8%A8%80%E6%A8%A1%E5%9E%8B%E5%85%B3%E9%94%AE%E6%8A%80%E6%9C%AF%E6%9C%AF%E8%AF%AD%E8%AE%A4%E7%9F%A5/"},"headline":"山河已无恙","image":["https://liruilongs.github.io/img/og_image.png"],"datePublished":"2025-02-23T15:32:37.000Z","dateModified":"2025-03-03T05:41:07.719Z","author":{"@type":"Person","name":"山河已无恙"},"description":"我看远山，远山悲悯"}</script><link rel="canonical" href="https://liruilongs.github.io/2025/02/23/%E5%BE%85%E5%8F%91%E5%B8%83/LLM%20%E5%A4%A7%E8%AF%AD%E8%A8%80%E6%A8%A1%E5%9E%8B%E5%85%B3%E9%94%AE%E6%8A%80%E6%9C%AF%E6%9C%AF%E8%AF%AD%E8%AE%A4%E7%9F%A5/"><link rel="alternate" href="/path/to/atom.xml" title="山河已无恙" type="application/atom+xml"><link rel="icon" href="https://cdn.jsdelivr.net/gh/removeif/removeif-demo@latest/img/favicon.png"><meta name="referrer" content="no-referrer-when-downgrade"><link rel="stylesheet" href="https://cdnjs.loli.net/ajax/libs/font-awesome/5.12.0/css/all.min.css"><link rel="stylesheet" href="https://cdnjs.loli.net/ajax/libs/highlight.js/9.12.0/styles/dracula.min.css"><link rel="stylesheet" href="https://fonts.loli.net/css2?family=Ubuntu:wght@400;600&amp;family=Source+Code+Pro"><link rel="stylesheet" href="/css/default.css"><link rel="stylesheet" href="https://cdnjs.loli.net/ajax/libs/font-awesome/5.12.0/css/all.min.css"><link rel="stylesheet" href="https://fonts.loli.net/css?family=Ubuntu:400,600|Source+Code+Pro|Monda:300,300italic,400,400italic,700,700italic|Roboto Slab:300,300italic,400,400italic,700,700italic|Microsoft YaHei:300,300italic,400,400italic,700,700italic|PT Mono:300,300italic,400,400italic,700,700italic&amp;amp;subset=latin,latin-ext|Inconsolata|Itim|Lobster.css"><script src="https://cdnjs.loli.net/ajax/libs/jquery/3.3.1/jquery.min.js"></script><script src="/js/globalUtils.js"></script><script src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js" defer></script><style>body>.footer,body>.navbar,body>.section{opacity:0}</style><!--!--><script>var _hmt = _hmt || [];
+        (function() {
+            var hm = document.createElement("script");
+            hm.src = "//hm.baidu.com/hm.js?3f06f2b732a5b1034c989f74e28d0eea";
+            var s = document.getElementsByTagName("script")[0];
+            s.parentNode.insertBefore(hm, s);
+        })();</script><link rel="stylesheet" href="https://cdnjs.loli.net/ajax/libs/lightgallery/1.6.8/css/lightgallery.min.css"><link rel="stylesheet" href="https://cdnjs.loli.net/ajax/libs/justifiedGallery/3.7.0/css/justifiedGallery.min.css"><!--!--><!--!--><!--!--><!--!--><link rel="stylesheet" href="https://cdnjs.loli.net/ajax/libs/outdated-browser/1.1.5/outdatedbrowser.min.css"><script src="https://cdnjs.loli.net/ajax/libs/pace/1.0.2/pace.min.js"></script><link rel="stylesheet" href="/live2d/waifu.css"><script type="text/javascript" async src="/live2d/autoload.js"></script><meta name="generator" content="Hexo 5.4.2"></head><body class="is-3-column has-navbar-fixed-top"><nav class="navbar navbar-main is-fixed-top"><div class="container"><div class="navbar-brand justify-content-center"><a class="navbar-item navbar-logo" href="/"><img src="/img/logo.png" alt="山河已无恙" height="28"></a></div><div class="navbar-menu"><div class="navbar-start"><a class="navbar-item" href="/">首页</a><a class="navbar-item" href="/archives">归档</a><a class="navbar-item" href="/categories">分类</a><a class="navbar-item" href="/tags">标签</a><a class="navbar-item" href="/media">影音</a><a class="navbar-item" href="/album">相册</a><a class="navbar-item" href="/friend">友链</a><a class="navbar-item" href="/self-talking">生活小记</a><a class="navbar-item" href="/message">留言墙</a><a class="navbar-item" href="/about">关于</a></div><div class="navbar-end"><a class="navbar-item" target="_blank" rel="noopener" title="Gitee" href="https://gitee.com/liruilonger"><i class="fab fa-git-square fa-1x"></i></a><a class="navbar-item" target="_blank" rel="noopener" title="GitHub" href="https://github.com/LIRUILONGS"><i class="fab fa-github fa-1x"></i></a><a class="navbar-item is-hidden-tablet catalogue" title="目录" href="javascript:;"><i class="fas fa-list-ul fa-1x"></i></a><a class="navbar-item search" title="搜索" href="javascript:;"><i class="fas fa-search fa-1x"></i></a><a class="navbar-item" id="night-nav" title="Night Mode" href="javascript:;"><i class="fas fa-moon fa-1x" id="night-icon"></i></a></div></div></div></nav><script type="text/javascript" src="/js/theme-setting.js"></script><section class="section"><div class="container"><div class="columns"><div class="column order-2 column-main is-8-tablet is-8-desktop is-9-widescreen"><!--!--><div class="card"><article class="card-content article" role="article"><div class="article-meta size-small is-uppercase level is-mobile"><div class="level-left"><i class="far fa-calendar-plus"> </i>2025-02-23  <a class="commentCountImg" href="/2025/02/23/%E5%BE%85%E5%8F%91%E5%B8%83/LLM%20%E5%A4%A7%E8%AF%AD%E8%A8%80%E6%A8%A1%E5%9E%8B%E5%85%B3%E9%94%AE%E6%8A%80%E6%9C%AF%E6%9C%AF%E8%AF%AD%E8%AE%A4%E7%9F%A5/#comment-container"><span class="display-none-class">5d4a68ba5bb1566807cacc57b87cb65a</span><i class="far fa-comment-dots"></i> <span class="commentCount" id="5d4a68ba5bb1566807cacc57b87cb65a">99+</span>  </a><span class="level-item"><i class="far fa-clock"> </i>41 分钟  <i class="fas fa-pencil-alt"> </i>6.2 k</span><span class="level-item" id="busuanzi_container_page_pv"><span id="busuanzi_value_page_pv">0</span>次访问</span></div></div><h1 class="title is-3 is-size-4-mobile">LLM 大语言模型定义以及关键技术术语认知</h1><div class="content"><p><strong><font color="009688"> 我看远山，远山悲悯</strong></font></p>
+<span id="more"></span>
+<h1 id="写在前面"><a href="#写在前面" class="headerlink" title="写在前面"></a>写在前面</h1><hr>
+<ul>
+<li>博文内容涉及通过通俗的易懂的方式理解认知大语言模型定义，关键技术术语，以及历史演进简述</li>
+<li>理解不足小伙伴帮忙指正 :),生活加油</li>
+</ul>
+<p><strong><font color="009688"> 我看远山，远山悲悯</strong></font></p>
+<hr>
+<h2 id="大语言模型定义"><a href="#大语言模型定义" class="headerlink" title="大语言模型定义"></a>大语言模型定义</h2><hr>
+<p><code>LLM（Large Language Models）</code>是基于 <code>Transformer</code> 架构(可以理解为不同寻常的大脑)的深度神经网络，通过<code>海量文本数据训练</code>获得<code>语言理解</code>和<code>生成能力</code>。其核心特征包括：</p>
+<p><strong>参数规模达数十亿级别（GPT-3 175B参数）</strong></p>
+<p>知识储备惊人，可以理解为脑细胞数量是普通人的千亿倍（1750亿参数），相当于把整个图书馆的书都装进大脑</p>
+<p><strong>自回归生成机制（逐词预测）</strong></p>
+<p>说话方式像接龙,当它写作文时，就像我们玩词语接龙：先写”今天”，然后根据”今天”想”天气”，接着根据”今天天气”想”晴朗”，逐字逐句生成内容。</p>
+<p><strong>注意力机制实现长程依赖建模</strong></p>
+<p>特别会抓重点就像我们读小说时，会自动记住关键人物关系（比如注意到”陈平安喜欢宁姚”），它能自动捕捉文字间的深层联系。</p>
+<p><strong>涌现能力（Emergent Abilities）</strong></p>
+<p>无师自通的学霸，腹有诗书气自华，典型案例：GPT-3在未专门训练情况下通过上下文学习掌握翻译、数学运算等能力，展示出突破性的零样本学习能力。</p>
+<h2 id="关键技术术语"><a href="#关键技术术语" class="headerlink" title="关键技术术语"></a>关键技术术语</h2><hr>
+<h3 id="Transformer架构"><a href="#Transformer架构" class="headerlink" title="Transformer架构"></a><strong>Transformer架构</strong></h3><hr>
+<h4 id="1-核心创新：自注意力机制突破序列建模瓶颈"><a href="#1-核心创新：自注意力机制突破序列建模瓶颈" class="headerlink" title="1. 核心创新：自注意力机制突破序列建模瓶颈"></a><strong>1. 核心创新：自注意力机制突破序列建模瓶颈</strong></h4><ul>
+<li><strong>传统 RNN 的缺陷</strong>：<br>类似快递站分拣员逐个处理包裹（单词），RNN 必须按顺序处理序列。当处理长序列时（如第 50 个词），早期信息易丢失（如忘记“我”还是“他”），导致长距离依赖失效。  </li>
+<li><strong>Transformer 的革新</strong>：<br>通过<strong>自注意力机制</strong>（Self-Attention），所有包裹（单词）同时被“透视扫描”，每个词直接关联全局信息（如“苹果”关联到“水果店”“红富士”），彻底解决长序列依赖问题。</li>
+</ul>
+<h4 id="2-关键架构特点"><a href="#2-关键架构特点" class="headerlink" title="2. 关键架构特点"></a><strong>2. 关键架构特点</strong></h4><p><strong>（1）并行化计算架构</strong>  </p>
+<ul>
+<li><strong>传统 RNN</strong>：需按顺序处理（如包裹1→2→3），效率低下。  </li>
+<li><strong>Transformer</strong>：所有词通过矩阵运算并行处理（如同时拆包扫描），计算速度提升百倍。</li>
+</ul>
+<p><strong>（2）编码器-解码器协作</strong>  </p>
+<ul>
+<li><strong>编码器（理解部）</strong>：分析输入序列的全局语义（如将“我想吃苹果”解析为人物、动作、对象）。  </li>
+<li><strong>解码器（生成部）</strong>：基于编码器信息生成输出（如翻译为英文），GPT 系列仅用解码器实现文本生成。</li>
+</ul>
+<p><strong>（3）位置编码与多头注意力</strong>  </p>
+<ul>
+<li><strong>位置编码</strong>：为词嵌入添加位置信息（如“苹果”是第3个词），弥补并行计算丢失的顺序性。  </li>
+<li><strong>多头注意力</strong>：多个“专家”并行分析不同语义维度（语法、情感、事实），综合结果增强模型理解能力。</li>
+</ul>
+<h4 id="3-典型应用场景"><a href="#3-典型应用场景" class="headerlink" title="3. 典型应用场景"></a><strong>3. 典型应用场景</strong></h4><ul>
+<li><strong>生成式模型</strong>：GPT 系列（仅解码器）用于文本创作、对话。  </li>
+<li><strong>理解式模型</strong>：BERT（仅编码器）用于文本分类、问答。  </li>
+<li><strong>跨模态任务</strong>：图像生成（如 DALL·E）、视频生成（如 Sora）、代码生成（如 GitHub Copilot）。</li>
+</ul>
+<p><strong>技术价值总结</strong></p>
+<p>Transformer 通过<strong>自注意力全局建模</strong>和<strong>并行计算架构</strong>，解决了 RNN 的长序列依赖与低效问题，成为大模型时代的核心技术。其模块化设计（编码器&#x2F;解码器可拆分）和灵活扩展性（如多头注意力），使其在 NLP、CV 等领域实现突破性应用。</p>
+<h3 id="语言建模（Language-Modeling）"><a href="#语言建模（Language-Modeling）" class="headerlink" title="语言建模（Language Modeling）"></a><strong>语言建模（Language Modeling）</strong></h3><h4 id="核心目标"><a href="#核心目标" class="headerlink" title="核心目标"></a><strong>核心目标</strong></h4><p>语言建模的核心是通过学习自然语言的统计规律，建立<code>词序列(token)</code>的概率分布模型，实现<code>基于上下文预测序列中下一个词的能力</code>。</p>
+<hr>
+<h4 id="主要方法"><a href="#主要方法" class="headerlink" title="主要方法"></a><strong>主要方法</strong></h4><ol>
+<li><p><strong>自回归语言模型（如GPT，DeepSeek）</strong>  </p>
+<ul>
+<li><strong>特点</strong>：以单向上下文建模为基础，通过序列生成方式逐词预测（即当前预测依赖已生成的全部历史信息）  </li>
+<li><strong>典型应用</strong>：文本生成（如对话系统、故事创作）、开放式任务（无需特定任务标注数据）</li>
+</ul>
+</li>
+<li><p><strong>掩码语言模型（如BERT）</strong>  </p>
+<ul>
+<li><strong>特点</strong>：基于双向上下文建模，通过随机掩码部分词汇并预测被遮蔽内容，捕捉全局语义关系  </li>
+<li><strong>典型应用</strong>：语义理解任务（如文本分类、问答系统）、需要深层语义推理的场景</li>
+</ul>
+</li>
+</ol>
+<hr>
+<h4 id="技术演进"><a href="#技术演进" class="headerlink" title="技术演进"></a><strong>技术演进</strong></h4><ul>
+<li><strong>传统方法</strong>：基于<code>N-gram</code>统计模型，依赖局部词频统计，但无法捕捉长距离依赖  </li>
+<li><strong>深度学习方法</strong>：  <ul>
+<li>循环神经网络（RNN&#x2F;LSTM）解决序列建模的时序依赖问题  </li>
+<li>Transformer架构突破性引入自注意力机制，实现并行化计算与全局上下文建模</li>
+</ul>
+</li>
+<li><strong>预训练范式</strong>：通过大规模无监督预训练（如GPT-3、BERT）学习通用语言表示，再通过微调适配下游任务</li>
+</ul>
+<p><strong>预训练范式</strong>是当前人工智能领域（尤其是自然语言处理）的核心技术之一。它的核心思想是通过两个阶段的学习，让模型从“通用语言理解”逐步过渡到“特定任务适配”。</p>
+<h3 id="分词（Tokenization）"><a href="#分词（Tokenization）" class="headerlink" title="分词（Tokenization）"></a><strong>分词（Tokenization）</strong></h3><p>将文本分割成一个个小的单元，即 <code>token</code>。比如，<code>“I love apples”</code> 这句话可能被分成 <code>【“I”“love”“apples”】 </code>这三个 <code>token</code> ，<code>我是中国人</code>被分解成 <code>【我，是，中国人】三个 token</code> 以便模型进行处理。</p>
+<p><code>子词分词（Byte-Pair Encoding等）</code>,遇到”乐高飞船”时，拆成”底座+翅膀+驾驶舱”标准组件， <strong>为什么要分词</strong>：</p>
+<ul>
+<li>影响模型词汇表大小:控制词汇表大小,就像用1000个基础乐高块，能拼出10万种造型</li>
+<li>处理未登录词能力:应对意外情况,遇到陌生词”抗核抗体”：拆成”抗”+”核”+”抗体”（医学常见组件）</li>
+<li>跨语言统一表示: 跨语言通用,<code>中文&quot;人工智能&quot; → [&quot;人工&quot;,&quot;智能&quot;]</code>,<code>英文&quot;Artificial Intelligence&quot; → [&quot;Artificial&quot;,&quot;Intelligence&quot;]</code></li>
+</ul>
+<h3 id="嵌入（Embeddings）"><a href="#嵌入（Embeddings）" class="headerlink" title="嵌入（Embeddings）"></a><strong>嵌入（Embeddings）</strong></h3><p>嵌入是指将离散 <code>token</code> 映射为<code>连续向量，高维，捕获语义和语法关系</code>，通过模型训练学习分布，通俗的话讲，就是把 <code>token</code> 转化为 <code>Transformer</code> 可以理解的数据</p>
+<p><code>通俗解释：</code> <strong>嵌入就像给每个乐高零件贴上”属性条形码”</strong>  当AI拿到”color”这个乐高块时，不是直接使用塑料块本身，而是扫描它身上的隐形条形码：</p>
+<ul>
+<li>红色 → 0.87</li>
+<li>动词属性 → 0.92</li>
+<li>与”paint”相似度 → 0.85</li>
+<li>与”dark”关联度 → 0.63</li>
+<li>…（总共12,000种属性）</li>
+</ul>
+<p>就像每个乐高块的固有指纹或者属性的,<strong>颜色代码</strong>（决定能拼什么风格的建筑），<strong>形状指纹</strong>（决定能连接哪些零件），<strong>材质DNA</strong>（决定适合做飞船还是城堡），比如我需要做一个红色的房子，那么我就会考虑选择所有 红色的乐高零件</p>
+<p><strong>嵌入的特点</strong>：<code>高维度</code>（如GPT-3使用12,000维）,捕获语义&#x2F;语法关系（相似词<code>向量距离近</code>）,通过模型自动学习<code>语义空间分布</code></p>
+<p><code>通俗解释：</code></p>
+<p><strong>高维度&#x3D;超能力观察镜</strong>  </p>
+<p>人类看乐高：只能分辨颜色&#x2F;形状&#x2F;大小,AI的12,000维”观察镜”能看到：适合做机甲关节的弧度（维度127）,与中世纪套装的兼容性（维度582）,儿童抓握舒适度评分（维度7048）</p>
+<p><strong>自动学习零件属性</strong> </p>
+<p>初期：AI以为”红色块”只适合做消防车,看多了图纸后发现,红色也能做苹果（维度202→水果关联+0.7）,还能做超级英雄披风（维度916→动态感+0.8）,类似人类发现回形针除了夹文件，还能当手机支架</p>
+<p><strong>捕获语义</strong></p>
+<p>当AI看到”硅谷创业公司融资千万美元”时：</p>
+<ol>
+<li>“硅谷” → 科技&#x3D;0.95，美国&#x3D;0.88，创新&#x3D;0.93…</li>
+<li>“融资” → 金钱&#x3D;0.97，风险&#x3D;0.85，增长&#x3D;0.91…</li>
+<li>自动联想到：<ul>
+<li>相似案例：维度2048与”字节跳动早期融资”匹配度89%</li>
+<li>潜在风险：维度6975与”估值泡沫”关联度76%</li>
+<li>就像乐高大师看到几个零件，立刻知道能拼出直升机还是潜水艇</li>
+</ul>
+</li>
+</ol>
+<p>这相当于给每个词语装上GPS定位器，让AI在12,000维的语义宇宙中，精确找到它们所在的星座位置！</p>
+<h3 id="训练与微调"><a href="#训练与微调" class="headerlink" title="训练与微调"></a><strong>训练与微调</strong></h3><p><code>预训练</code>就像<code>九年义务教育+3年中学</code>，什么都学，掌握文理科基础知识，有认知世界的能力，<code>微调</code>就像<code>读高中，分文理，读大学分专业</code>，最终变成某个领域的打工人（落地应用）</p>
+<p><strong>预训练</strong>：</p>
+<ul>
+<li>海量通用文本（如CommonCrawl）</li>
+<li>目标：基础语言理解能力</li>
+</ul>
+<p>用做饭来比喻：<strong>预训练</strong> 就像是 <strong>大厨的基本功训练</strong>，让厨师学徒先吃遍全国各种菜系<code>（通用文本）</code>，掌握切菜、火候、调味的基础规律<code>（语言规律）</code>。这时候他不懂做具体菜品，但能凭经验判断”西红柿炒蛋应该先放蛋”这类常识（基础理解能力）。</p>
+<p><strong>微调</strong>：</p>
+<ul>
+<li>领域特定数据（如医学&#x2F;金融文本）</li>
+<li>任务特定训练（如翻译&#x2F;摘要）</li>
+</ul>
+<p><strong>微调</strong>，<strong>开餐厅前的专项培训</strong>，比如要开川菜馆：先给学徒看10本川菜菜谱<code>（领域数据）</code>，记住豆瓣酱和花椒的使用场景<code>（领域知识）</code>，再手把手教他做宫保鸡丁<code>（任务训练）</code>，直到他能稳定复刻这个菜<code>（任务适配）</code>,最终他既保留通用厨艺，又成为川菜专家<code>（领域专家模型）</code></p>
+<h3 id="预测生成"><a href="#预测生成" class="headerlink" title="预测生成"></a><strong>预测生成</strong></h3><p>预测生成（Autoregressive Generation）是指大型语言模型（LLM）<code>基于已输入的上下文逐词生成后续内容的过程</code>。</p>
+<p><strong>预测过程</strong>：</p>
+<ol>
+<li>输入序列编码</li>
+<li>自回归生成（逐token预测）</li>
+<li>采样策略（贪婪搜索&#x2F;核采样等）</li>
+<li><strong>限制条件</strong>：受上下文窗口约束</li>
+</ol>
+<p>还是使用用做菜流程比喻预测生成，连限制条件都容易记：<strong>预测生成</strong>，<strong>大厨现炒客制化菜品</strong>  </p>
+<ol>
+<li><strong>看订单</strong>（输入编码）：客人说”微辣的水煮牛肉加莴笋”，大厨先拆解需求（把文本转成向量）  </li>
+<li><strong>颠勺式推进</strong>（自回归生成）：  <ul>
+<li>先热油→爆香辣椒→下牛肉→… 每个步骤都基于前序动作决定下一步（逐token预测）  </li>
+<li>类似菜谱接龙：每次只写下一句，但必须和前文连贯</li>
+</ul>
+</li>
+<li><strong>调味自由度</strong>（采样策略）：  <ul>
+<li>严格派：必须按经典菜谱放3克盐（<code>贪婪搜索，选最高概率token</code>）  </li>
+<li>创意派：允许随机从”2-4克盐+半勺糖”里选（<code>核采样，增加多样性</code>）</li>
+</ul>
+</li>
+</ol>
+<p><strong>限制</strong>： <strong>厨房工作台太小</strong>（上下文窗口）</p>
+<ul>
+<li>比喻：灶台只能同时摆5种食材，如果客人突然加需求”顺便做个鱼香肉丝”，大厨可能忘记最初要微辣（<code>长文本生成时可能丢失前文信息</code>）  </li>
+<li>实际表现：生成到3000字时，模型可能<code>复读调料比例（重复生成）</code>或突然开始<code>炒西兰花（逻辑漂移）</code></li>
+</ul>
+<p>就像厨师不会无限度记住两小时前的订单细节，模型也无法突破上下文窗口的记忆极限</p>
+<h3 id="上下文窗口（Context-Window）"><a href="#上下文窗口（Context-Window）" class="headerlink" title="上下文窗口（Context Window）"></a><strong>上下文窗口（Context Window）</strong></h3><p><strong>定义</strong>：模型单次处理的最大token数，直接影响其对长文本的连贯理解和多轮对话的记忆能力</p>
+<ul>
+<li><strong>典型值</strong>：<ul>
+<li>GPT-4：32K tokens（约50页）</li>
+<li>Claude 3：200K tokens</li>
+<li>DeepSeek-V3： 128K tokens</li>
+</ul>
+</li>
+<li><strong>优化技术</strong>：<ul>
+<li>FlashAttention</li>
+<li>稀疏注意力</li>
+<li>位置编码改进（如ALiBi）</li>
+</ul>
+</li>
+</ul>
+<p>大模型的“上下文窗口”就像一个人同时能记住的对话内容范围。举个例子，假设你在读一本小说，可以理解为AI的“短期记忆容量”。比如GPT-4能记住约32页书的内容（32K token），而DeepSeek-V3能记住128页（128K token），Claude 3更是能记住整本中篇小说（200K token）。这直接影响AI能否连贯分析长文章，或者在聊天时不忘记你10分钟前提过的事情。</p>
+<p><strong>技术优化类比</strong>：</p>
+<ol>
+<li><strong>FlashAttention</strong>：像快速翻书时用荧光笔标重点，只关注关键部分，既快又省脑力（减少计算量）。</li>
+<li><strong>稀疏注意力</strong>：类似读书时跳着看目录和章节标题，忽略无关段落（只处理部分内容）。</li>
+<li><strong>位置编码改进</strong>：相当于给书本每页编号+贴彩色标签，防止记混页数顺序（解决长文本位置错乱问题）。比如DeepSeek用“分段页码法”，前一半页码正常标，后一半自动扩展，还能无限续写。</li>
+</ol>
+<h3 id="扩展法则（Scaling-Laws）"><a href="#扩展法则（Scaling-Laws）" class="headerlink" title="扩展法则（Scaling Laws）"></a><strong>扩展法则（Scaling Laws）</strong></h3><p><strong>扩展法则三要素</strong>：</p>
+<ol>
+<li>参数量（N）</li>
+<li>训练数据量（D）</li>
+<li>计算量（FLOPs）</li>
+</ol>
+<p><strong>扩展法则的三要素</strong>可以想象成做菜：</p>
+<ol>
+<li><strong>参数量（N）</strong>：相当于厨师的厨艺水平。就像经验丰富的厨师能处理更多复杂菜品，模型参数越多，”经验”越丰富，能处理更复杂的任务。</li>
+<li><strong>训练数据量（D）</strong>：相当于食材的数量。要做一锅够百人吃的佛跳墙，食材必须足够多，否则再好的厨师也会”巧妇难为无米之炊”。</li>
+<li><strong>计算量（FLOPs）</strong>：相当于厨具的性能。用柴火灶做菜可能需要10小时，但用高压锅1小时就能完成，计算量就是这口”锅”的做饭效率。</li>
+</ol>
+<p><strong>Chinchilla法则（N×20≈D</strong> 可以理解为厨师和食材的黄金配比。假设你请了70位厨师（70B参数），按照法则需要准备1.4吨食材（1.4T tokens），也就是每位厨师分配20公斤食材。这背后的逻辑是：</p>
+<ul>
+<li>如果只给10公斤食材（数据不足），厨师们会互相抢食材，导致浪费才华（模型欠拟合）</li>
+<li>如果给100公斤食材（数据过多），厨师们累死也处理不完（训练效率低下）</li>
+</ul>
+<p>这个法则颠覆了以往”厨师越多越好”的认知。比如过去大家觉得1750亿参数的GPT-3（相当于175位厨师），用3000亿token（相当于1.7吨食材）已经很多，但Chinchilla指出应该配3.5万亿token（35吨食材），相当于每位厨师分到200公斤——这说明之前的训练其实让厨师们”饿着肚子工作”。</p>
+<h3 id="涌现能力（Emergent-Abilities）"><a href="#涌现能力（Emergent-Abilities）" class="headerlink" title="涌现能力（Emergent Abilities）"></a><strong>涌现能力（Emergent Abilities）</strong></h3><p>用苏轼的一句诗最能表达 <code>腹有诗书气自华。</code> 涌现能力很容易理解，不多讲</p>
+<p><strong>涌现能力表现</strong>：</p>
+<ul>
+<li>算术运算</li>
+<li>复杂推理（如思维链）</li>
+<li>跨任务泛化</li>
+</ul>
+<p>重点需要关注一下 评估基准</p>
+<p><strong>评估基准</strong>：</p>
+<ul>
+<li>BIG-Bench（200+任务）</li>
+<li>MMLU（57学科测试）</li>
+<li>TruthfulQA（真实性评估）</li>
+</ul>
+<p><strong>如何评估这些能力？</strong> 科学家用各种“考题”测试模型，类似人类考试：</p>
+<ol>
+<li><strong>BIG-Bench（200+任务）</strong> ：像是综合题库，包含数学、语言游戏（比如从乱序字母猜单词）、冷知识（比如波斯语问答）。大模型在这些任务中突然“开窍”，小模型却像学渣一样蒙圈。</li>
+<li><strong>MMLU（57学科测试）</strong>  ： 考法律、历史、数学等学科知识。大模型像突然变成“百科全书”，而小模型连基础题都答不对。</li>
+<li><strong>TruthfulQA（真实性测试）</strong>  比如问“地球是平的吗？”大模型能避开陷阱，诚实回答“地球是球体”，而小模型可能被错误问题带偏。</li>
+</ol>
+<p><strong>为什么会有争议？</strong></p>
+<p>有人质疑：“涌现能力可能只是统计假象！”比如斯坦福研究发现，某些评估指标（如非线性的打分方式）会让能力看起来是“突然出现”，实际上模型进步是连续的。但无论如何，大模型表现出的“类人智能”确实让研究者惊喜，也推动着技术发展。</p>
+<p>简而言之，<strong>涌现能力&#x3D;大数据+大模型+意外惊喜</strong>，就像给AI喂了“知识酵母”，让它发酵出超乎预料的本领。</p>
+<h3 id="提示工程（Prompting）"><a href="#提示工程（Prompting）" class="headerlink" title="提示工程（Prompting）"></a><strong>提示工程（Prompting）</strong></h3><p><code>提示工程（Prompting）</code>是指通过设计<code>有效的输入提示（Prompt）来引导大语言模型（如GPT）生成符合预期的输出</code>。通俗来说，就是“怎么问问题，才能让AI更好地回答你”。</p>
+<p><strong>设计原则</strong>：</p>
+<ul>
+<li>明确性（”写500字关于…”）</li>
+<li>上下文提供（时代&#x2F;场景设定）</li>
+<li>示例引导（few-shot learning）</li>
+</ul>
+<ol>
+<li><p><strong>明确性</strong>：简单来说，就是“问得清楚”。比如，如果你想让AI写一篇500字的文章，直接告诉它“写500字关于气候变化的文章”，而不是模糊地问“写点关于气候变化的东西”。明确的指令能帮助AI更准确地理解你的需求。</p>
+</li>
+<li><p><strong>上下文提供</strong>：  就是“给AI一些背景信息”。比如，如果你想让它写一篇关于19世纪工业革命的文章，可以告诉它“假设你是19世纪的历史学家，写一篇关于工业革命的文章”。这样AI就能更好地代入场景，生成更符合你期望的内容。</p>
+</li>
+<li><p><strong>示例引导（few-shot learning）</strong>：  就是“给AI举例子”。比如，如果你想让它写一段产品描述，可以先给它几个例子：“这是一款轻便的笔记本电脑，适合商务人士。”、“这是一款高性价比的智能手机，适合学生。”然后让它根据这些例子生成新的描述。这样AI更容易理解你的要求。</p>
+</li>
+</ol>
+<p><strong>高级技巧</strong>：</p>
+<ul>
+<li>思维链（Chain-of-Thought）</li>
+<li>自洽性（Self-Consistency）</li>
+</ul>
+<p>简单来说：</p>
+<ol>
+<li><p><strong>思维链（Chain-of-Thought）</strong>：  就是“让AI一步步思考”。比如，如果你问AI“一个商店有350个苹果，第一天卖出40%，第二天卖出剩余的30%，还剩多少个苹果？”，AI可能会直接给出答案。但如果你让它“一步步思考：先算第一天卖了多少，再算第二天卖了多少，最后算剩下的”，AI会更准确地解决问题。</p>
+</li>
+<li><p><strong>自洽性（Self-Consistency）</strong>：  就是“让AI多试几次，选最靠谱的答案”。比如，如果你让AI解一个数学题，它可以尝试用不同的方法（如因式分解、求根公式）来解，然后比较结果是否一致。如果几种方法得出的答案一样，那这个答案就更可信。</p>
+</li>
+</ol>
+<h3 id="幻觉与偏见"><a href="#幻觉与偏见" class="headerlink" title="幻觉与偏见"></a><strong>幻觉与偏见</strong></h3><p><strong>幻觉</strong>：生成事实错误内容</p>
+<p>幻觉在心理学中指“没有客观刺激时的虚假知觉体验”，如幻听、幻视等。而在AI领域，幻觉表现为模型生成与事实不符的内容，例如虚构事件、错误数据或逻辑矛盾。</p>
+<p><strong>成因与影响</strong>  </p>
+<ul>
+<li><strong>数据局限性</strong>：训练数据覆盖不足或存在噪声，导致模型“脑补”信息。  </li>
+<li><strong>生成机制缺陷</strong>：模型过度依赖概率预测，缺乏真实世界验证机制。  </li>
+<li><strong>影响</strong>：可能误导用户决策，降低可信度（如医疗建议中的错误信息）。</li>
+</ul>
+<p><strong>缓解方法</strong>  </p>
+<ol>
+<li><strong>RAG（检索增强生成）</strong>：通过外部知识库实时检索事实数据，约束生成内容的准确性。  </li>
+<li><strong>事实核查与后处理</strong>：引入第三方验证工具（如知识图谱）或人工审核流程，修正错误输出。  </li>
+<li><strong>多模态输入</strong>：结合图像、文本等多源信息，减少单一模态的歧义。</li>
+</ol>
+<p><strong>偏见</strong>：训练数据偏差导致输出偏颇</p>
+<p>偏见是“基于片面或不正确信息形成的偏颇态度”。AI中的偏见表现为输出隐含性别、种族、职业等刻板印象，例如将“护士”关联为女性、“程序员”关联为男性。</p>
+<p><strong>成因与影响</strong>  </p>
+<ul>
+<li><strong>数据偏差</strong>：训练数据反映社会历史偏见（如性别不平等）。  </li>
+<li><strong>算法放大效应</strong>：模型可能强化数据中的少数群体负面标签。  </li>
+<li><strong>影响</strong>：加剧社会歧视，损害公平性（如招聘算法中的性别歧视）。</li>
+</ul>
+<p><strong>缓解方法</strong>  </p>
+<ol>
+<li><strong>数据去偏</strong>：  <ul>
+<li><strong>重采样与平衡</strong>：增加少数群体数据比例（如女性工程师案例）。  </li>
+<li><strong>语义过滤</strong>：识别并删除含偏见的语料（如贬义词汇）。</li>
+</ul>
+</li>
+<li><strong>RLHF（人类反馈强化学习）</strong>：  <ul>
+<li>通过人工标注修正偏颇输出，引导模型学习公平表达。</li>
+</ul>
+</li>
+<li><strong>公平性评估框架</strong>：  <ul>
+<li>开发评估指标（如群体平等性分数），监控模型输出的偏差程度。</li>
+</ul>
+</li>
+</ol>
+<hr>
+<h2 id="历史演进脉络"><a href="#历史演进脉络" class="headerlink" title="历史演进脉络"></a>历史演进脉络</h2><h3 id="2017：Transformer架构革命"><a href="#2017：Transformer架构革命" class="headerlink" title="2017：Transformer架构革命"></a>2017：Transformer架构革命</h3><ul>
+<li>自注意力机制替代RNN，建立全局语义关联</li>
+<li>奠定现代大模型的核心架构基础</li>
+</ul>
+<h3 id="2018：BERT引领预训练时代"><a href="#2018：BERT引领预训练时代" class="headerlink" title="2018：BERT引领预训练时代"></a>2018：BERT引领预训练时代</h3><ul>
+<li>双向编码器突破单向建模局限</li>
+<li>开启”预训练+微调”范式</li>
+</ul>
+<h3 id="2020：GPT-3展示涌现能力"><a href="#2020：GPT-3展示涌现能力" class="headerlink" title="2020：GPT-3展示涌现能力"></a>2020：GPT-3展示涌现能力</h3><ul>
+<li>175B参数规模验证scaling law</li>
+<li>小样本学习能力突破引发行业震动</li>
+</ul>
+<h3 id="2022：ChatGPT引爆应用革命"><a href="#2022：ChatGPT引爆应用革命" class="headerlink" title="2022：ChatGPT引爆应用革命"></a>2022：ChatGPT引爆应用革命</h3><ul>
+<li>RLHF技术实现人类偏好对齐</li>
+<li>对话式交互开启AI平民化时代</li>
+</ul>
+<h3 id="2024：架构创新加速"><a href="#2024：架构创新加速" class="headerlink" title="2024：架构创新加速"></a>2024：架构创新加速</h3><ul>
+<li><strong>Gemini 1.5</strong>：MoE架构+百万token上下文</li>
+<li><strong>DeepSeek-V2&#x2F;V3</strong>：第二代开源MoE模型，支持动态专家路由与万亿级稀疏激活（）</li>
+<li>模型推理成本降至GPT-4的1&#x2F;30（）</li>
+</ul>
+<p>DeepSeek的最新进展印证了AI发展的三大定律——模型架构创新驱动性能突破、系统工程决定落地成本、开源生态重塑产业格局。其技术路线已形成”基础研究-工程实现-行业渗透”的完整闭环。</p>
+<h1 id="博文部分内容参考"><a href="#博文部分内容参考" class="headerlink" title="博文部分内容参考"></a>博文部分内容参考</h1><p>© 文中涉及参考链接内容版权归原作者所有，如有侵权请告知 :)</p>
+<hr>
+<p>&lt;《Enhancing LLM Abilities and Reliability with Prompting, Fine-Tuning, and RAG》&gt;</p>
+<hr>
+<p>© 2018-至今 <a href="mailto:&#108;&#x69;&#114;&#117;&#x69;&#x6c;&#111;&#110;&#103;&#x65;&#x72;&#x40;&#x67;&#109;&#x61;&#x69;&#108;&#46;&#x63;&#x6f;&#109;">&#108;&#x69;&#114;&#117;&#x69;&#x6c;&#111;&#110;&#103;&#x65;&#x72;&#x40;&#x67;&#109;&#x61;&#x69;&#108;&#46;&#x63;&#x6f;&#109;</a>, All rights reserved. 保持署名-非商用-相同方式共享(CC BY-NC-SA 4.0)</p>
+</div><div class="article-licensing box"><div class="licensing-title"><p>LLM 大语言模型定义以及关键技术术语认知</p><p><a href="https://liruilongs.github.io/2025/02/23/待发布/LLM 大语言模型关键技术术语认知/">https://liruilongs.github.io/2025/02/23/待发布/LLM 大语言模型关键技术术语认知/</a></p></div><div class="licensing-meta level is-mobile"><div class="level-left"><div class="level-item is-narrow"><div><h6>作者</h6><a href="https://liruilongs.github.io"><p>山河已无恙</p></a></div></div><div class="level-item is-narrow"><div><h6>发布于</h6><p>2025-02-23</p></div></div><div class="level-item is-narrow"><div><h6>更新于</h6><p>2025-03-03</p></div></div><div class="level-item is-narrow"><div><h6>许可协议</h6><p><a class="icon" rel="noopener" target="_blank" title="Creative Commons" href="https://creativecommons.org/"><i class="fab fa-creative-commons"></i></a><a class="icon" rel="noopener" target="_blank" title="Attribution" href="https://creativecommons.org/licenses/by/4.0/"><i class="fab fa-creative-commons-by"></i></a><a class="icon" rel="noopener" target="_blank" title="Noncommercial" href="https://creativecommons.org/licenses/by-nc/4.0/"><i class="fab fa-creative-commons-nc"></i></a></p></div></div></div></div></div><div class="recommend-area"><div class="recommend-post"><span class="is-size-6 has-text-grey has-mr-7"># 相关文章</span><br><span>  1.<a class="is-size-6" href="/2025/03/26/%E5%BE%85%E5%8F%91%E5%B8%83/LangChain-%E6%95%B0%E6%8D%AE%E5%A2%9E%E5%BC%BA%E6%A8%A1%E5%9D%97-Ollama-DeepSeek-R1-%E6%9E%84%E5%BB%BA-K8s-%E6%9C%AC%E5%9C%B0%E7%9F%A5%E8%AF%86%E5%BA%93Demo/" target="_blank">本地化智能运维助手：基于 LangChain 数据增强 和 DeepSeek-R1 的K8s运维文档检索与问答系统 Demo</a><br></span><span>  2.<a class="is-size-6" href="/2025/03/12/%E5%BE%85%E5%8F%91%E5%B8%83/LangChain+Ollama+DeepSeek%20%E5%85%A8%E9%93%BE%E8%B7%AF%E8%AE%A4%E7%9F%A5%EF%BC%9ALangChain%20%E6%A8%A1%E5%9E%8B%20IO%20%E6%A8%A1%E5%9D%97%E5%AE%9E%E6%88%98/" target="_blank">LangChain+Ollama+DeepSeek 全链路认知：LangChain 模型 IO 模块实战</a><br></span><span>  3.<a class="is-size-6" href="/2025/03/10/%E5%BE%85%E5%8F%91%E5%B8%83/LangChain-Ollama-DeepSeek-%E5%85%A8%E9%93%BE%E8%B7%AF%E8%AE%A4%E7%9F%A5%EF%BC%9A%E4%BB%8E%E6%A8%A1%E5%9E%8B%E5%8C%85%E8%A3%85%E5%99%A8%E5%88%B0%E6%8F%90%E7%A4%BA%E8%AF%8D%E6%A8%A1%E7%89%88-Agent-Demo/" target="_blank">LangChain + Ollama + DeepSeek 全链路认知：从模型包装器到提示词模版 Agent Demo</a><br></span><span>  4.<a class="is-size-6" href="/2025/03/04/%E5%BE%85%E5%8F%91%E5%B8%83/Spring%20AI%20Alibaba%20+%20Ollama%EF%BC%9A%E5%9B%BD%E4%BA%A7%E5%A4%A7%E6%A8%A1%E5%9E%8BDeepSeek%20LLM%E7%9A%84%E4%BD%8E%E6%88%90%E6%9C%ACAI%E5%BA%94%E7%94%A8%E5%BC%80%E5%8F%91%E8%AE%A4%E7%9F%A5/" target="_blank">Spring AI Alibaba + Ollama：国产大模型DeepSeek LLM的低成本AI应用开发认知</a><br></span><span>  5.<a class="is-size-6" href="/2025/03/03/%E5%BE%85%E5%8F%91%E5%B8%83/%E5%A6%82%E4%BD%95%E9%AB%98%E6%95%88%E4%BD%BF%E7%94%A8DeepSeek-R1%EF%BC%9A%E6%8E%A8%E7%90%86%E5%A4%A7%E6%A8%A1%E5%9E%8B%E6%A0%B8%E5%BF%83%E8%B0%83%E4%BC%98%E6%8C%87%E5%8D%97/" target="_blank">如何高效使用DeepSeek-R1：推理大模型核心调优指南</a><br></span></div><div class="recommend-post"><span class="is-size-6 has-text-grey has-mr-7"># 推荐文章</span><br><span>  1.<a class="is-size-6" href="/2021/08/27/K8s/%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/%E3%80%8AKubernetes%E6%9D%83%E5%A8%81%E6%8C%87%E5%8D%97-%E4%BB%8EDocker%E5%88%B0Kubernetes%E5%AE%9E%E8%B7%B5%E5%85%A8%E6%8E%A5%E8%A7%A6%E3%80%8B%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/" target="_blank">《Kubernetes权威指南:从Docker到Kubernetes实践全接触》读书笔记</a><br></span><span>  2.<a class="is-size-6" href="/2022/11/19/Git/%E5%85%B3%E4%BA%8E-Git-%E9%87%8D%E5%86%99%E5%8E%86%E5%8F%B2%E7%9A%84%E4%B8%80%E4%BA%9B%E7%AC%94%E8%AE%B0/" target="_blank">关于 Git 重写历史的一些笔记</a><br></span><span>  3.<a class="is-size-6" href="/2022/08/02/Git/%E5%85%B3%E4%BA%8EGit%E5%88%86%E6%94%AF%E5%8F%98%E5%9F%BA%E6%93%8D%E4%BD%9C%E7%9A%84%E4%B8%80%E4%BA%9B%E7%AC%94%E8%AE%B0/" target="_blank">关于Git分支变基操作的一些笔记</a><br></span><span>  4.<a class="is-size-6" href="/2022/07/26/Git/%E5%85%B3%E4%BA%8EGit%E5%88%86%E6%94%AF%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86%E7%9A%84%E4%B8%80%E4%BA%9B%E7%AC%94%E8%AE%B0/" target="_blank">关于Git分支基础知识的一些笔记</a><br></span><span>  5.<a class="is-size-6" href="/2022/08/02/Git/%E5%85%B3%E4%BA%8EGit%E5%88%86%E6%94%AF%E5%B7%A5%E4%BD%9C%E6%B5%81%E7%9A%84%E4%B8%80%E4%BA%9B%E7%AC%94%E8%AE%B0/" target="_blank">关于Git分支工作流的一些笔记</a><br></span><span>  6.<a class="is-size-6" href="/2023/02/19/Git/%E5%85%B3%E4%BA%8EGit%E9%AB%98%E7%BA%A7%E5%90%88%E5%B9%B6%E7%9A%84%E4%B8%80%E4%BA%9B%E7%AC%94%E8%AE%B0%E6%95%B4%E7%90%86/" target="_blank">关于Git分支高级合并的一些笔记整理</a><br></span></div></div><link rel="stylesheet" href="https://cdnjs.loli.net/ajax/libs/social-share.js/1.0.16/css/share.min.css"><div class="social-share"></div><script src="https://cdnjs.loli.net/ajax/libs/social-share.js/1.0.16/js/social-share.min.js"></script></article></div><div class="card"><div class="card-content"><h3 class="menu-label has-text-centered">喜欢这篇文章？打赏一下作者吧</h3><div class="buttons is-centered"><a class="button donate" data-type="alipay"><span class="icon is-small"><i class="fab fa-alipay"></i></span><span>支付宝</span><span class="qrcode"><img src="/img/alipay%EF%BF%A5.png" alt="支付宝"></span></a><a class="button donate" data-type="wechat"><span class="icon is-small"><i class="fab fa-weixin"></i></span><span>微信</span><span class="qrcode"><img src="/img/wechat%EF%BF%A5.png" alt="微信"></span></a></div></div></div><nav class="post-navigation mt-4 level is-mobile"><div class="level-start"><a class="article-nav-prev level level-item link-muted" href="/2025/02/25/%E5%BE%85%E5%8F%91%E5%B8%83/Prometheus%E3%80%81node-exporter%E3%80%81Grafana-%E5%AE%B9%E5%99%A8%E5%8C%96%E9%83%A8%E7%BD%B2%E6%96%B9%E6%A1%88%E7%9F%A5%E6%A1%88/"><i class="level-item fas fa-chevron-left"></i><span class="level-item">Prometheus、node-exporter、Grafana 容器化部署方案认知</span></a></div><div class="level-end"><a class="article-nav-next level level-item link-muted" href="/2025/02/17/%E5%BE%85%E5%8F%91%E5%B8%83/%E5%9F%BA%E4%BA%8E%20Deepseek%20%E5%A4%A7%E6%A8%A1%E5%9E%8B%E7%9A%84%E6%9C%AC%E5%9C%B0%E7%9F%A5%E8%AF%86%E5%BA%93%E6%90%AD%E5%BB%BA%E6%96%B9%E6%A1%88(AnythingLLM%E3%80%81Cherry%E3%80%81Ragflow%E3%80%81Dify)%E8%AE%A4%E7%9F%A5/"><span class="level-item">基于 Deepseek LLM 的本地知识库搭建开源方案(AnythingLLM、Cherry、Ragflow、Dify)认知</span><i class="level-item fas fa-chevron-right"></i></a></div></nav><!--!--><div class="card"><div class="card-content"><div class="title is-5">评论</div><div id="comment-container"></div><link rel="stylesheet" href="https://cdnjs.loli.net/ajax/libs/gitalk/1.6.0/gitalk.css"><script> $.getScript('/js/gitalk.min.js', function () { 
+            var gitalk = new Gitalk({
+            language:'zh-CN',
+            id: '5d4a68ba5bb1566807cacc57b87cb65a',
+            repo: 'blog_comment',
+            owner: 'LIRUILONGS',
+            clientID: '9fdc9739266d48d5f62e',
+            clientSecret: 'c1cc33697d099a2197650ec9dadcb16bd4904655',
+            admin: ["LIRUILONGS"],
+            createIssueManually: true,
+            distractionFreeMode: true,
+            perPage: 10,
+            pagerDirection: 'last',
+            proxy: 'https://cors-anywhere.azm.workers.dev/https://github.com/login/oauth/access_token',
+            
+            enableHotKey: true,
+            isLocked: false
+        })
+        gitalk.render('comment-container')});</script></div></div></div><div class="column column-left is-4-tablet is-4-desktop is-3-widescreen  order-1 is-sticky"><div class="card widget" id="toc" data-type="toc"><div class="card-content"><div class="menu"><h3 class="menu-label">目录</h3><ul class="menu-list"><li><a class="is-flex is-mobile" href="#写在前面"><span class="mr-2">1</span><span>写在前面</span></a><ul class="menu-list"><li><a class="is-flex is-mobile" href="#大语言模型定义"><span class="mr-2">1.1</span><span>大语言模型定义</span></a></li><li><a class="is-flex is-mobile" href="#关键技术术语"><span class="mr-2">1.2</span><span>关键技术术语</span></a><ul class="menu-list"><li><a class="is-flex is-mobile" href="#3-典型应用场景"><span class="mr-2">1.2.1</span><span>3. 典型应用场景</span></a></li><li><a class="is-flex is-mobile" href="#技术演进"><span class="mr-2">1.2.2</span><span>技术演进</span></a></li><li><a class="is-flex is-mobile" href="#分词（Tokenization）"><span class="mr-2">1.2.3</span><span>分词（Tokenization）</span></a></li><li><a class="is-flex is-mobile" href="#嵌入（Embeddings）"><span class="mr-2">1.2.4</span><span>嵌入（Embeddings）</span></a></li><li><a class="is-flex is-mobile" href="#训练与微调"><span class="mr-2">1.2.5</span><span>训练与微调</span></a></li><li><a class="is-flex is-mobile" href="#预测生成"><span class="mr-2">1.2.6</span><span>预测生成</span></a></li><li><a class="is-flex is-mobile" href="#上下文窗口（Context-Window）"><span class="mr-2">1.2.7</span><span>上下文窗口（Context Window）</span></a></li><li><a class="is-flex is-mobile" href="#扩展法则（Scaling-Laws）"><span class="mr-2">1.2.8</span><span>扩展法则（Scaling Laws）</span></a></li><li><a class="is-flex is-mobile" href="#涌现能力（Emergent-Abilities）"><span class="mr-2">1.2.9</span><span>涌现能力（Emergent Abilities）</span></a></li><li><a class="is-flex is-mobile" href="#提示工程（Prompting）"><span class="mr-2">1.2.10</span><span>提示工程（Prompting）</span></a></li><li><a class="is-flex is-mobile" href="#幻觉与偏见"><span class="mr-2">1.2.11</span><span>幻觉与偏见</span></a></li></ul></li><li><a class="is-flex is-mobile" href="#历史演进脉络"><span class="mr-2">1.3</span><span>历史演进脉络</span></a><ul class="menu-list"><li><a class="is-flex is-mobile" href="#2017：Transformer架构革命"><span class="mr-2">1.3.1</span><span>2017：Transformer架构革命</span></a></li><li><a class="is-flex is-mobile" href="#2018：BERT引领预训练时代"><span class="mr-2">1.3.2</span><span>2018：BERT引领预训练时代</span></a></li><li><a class="is-flex is-mobile" href="#2020：GPT-3展示涌现能力"><span class="mr-2">1.3.3</span><span>2020：GPT-3展示涌现能力</span></a></li><li><a class="is-flex is-mobile" href="#2022：ChatGPT引爆应用革命"><span class="mr-2">1.3.4</span><span>2022：ChatGPT引爆应用革命</span></a></li><li><a class="is-flex is-mobile" href="#2024：架构创新加速"><span class="mr-2">1.3.5</span><span>2024：架构创新加速</span></a></li></ul></li></ul></li><li><a class="is-flex is-mobile" href="#博文部分内容参考"><span class="mr-2">2</span><span>博文部分内容参考</span></a></li></ul></div></div><style>.menu-list > li > a.is-active + .menu-list { display: block; }.menu-list > li > a + .menu-list { display: none; }</style><script src="/js/toc.js" defer></script></div><div class="card widget" data-type="profile"><div class="card-content"><nav class=""><div class="level-item has-text-centered flex-shrink-1"><div><figure class="image is-128x128 mx-auto mb-2"><img class="avatar" src="/img/%E5%BE%AE%E4%BF%A1%E5%85%AC%E4%BC%97%E5%8F%B7.jpg" alt="山河已无恙"></figure><p class="title is-size-4 is-block" style="line-height:inherit;">山河已无恙</p><p class="is-size-6 is-block">爱自己，是终生浪漫的开始</p><p class="is-size-6 is-flex justify-content-center"><i class="fas fa-map-marker-alt mr-1"></i><span>中国·呼和浩特</span></p></div></div></nav><nav class="level is-mobile"><div class="level-item has-text-centered is-marginless"><div><p class="heading">文章</p><a href="/archives"><p class="title">434</p></a></div></div><div class="level-item has-text-centered is-marginless"><div><p class="heading">分类</p><a href="/categories"><p class="title">144</p></a></div></div><div class="level-item has-text-centered is-marginless"><div><p class="heading">标签</p><a href="/tags"><p class="title">191</p></a></div></div></nav><div class="level"><a class="level-item button is-primary is-rounded" href="https://mp.weixin.qq.com/s?__biz=MzkyNjIxNTYwMw==&amp;mid=2247496480&amp;idx=1&amp;sn=a9971fed3962ef2a1aeda1f0bda65f86&amp;chksm=c2380ffcf54f86eaba8daac6caca72a70f38e61a8d25dc2a66d3a17b87c02530e326dcaea14b#rd" target="_blank" rel="noopener">关注我</a></div><div class="level is-mobile"><a class="level-item button is-transparent is-marginless" target="_blank" rel="noopener" title="Github" href="https://github.com/LIRUILONGS"><i class="fab fa-github"></i></a><a class="level-item button is-transparent is-marginless" target="_blank" rel="noopener" title="CSDN" href="https://liruilong.blog.csdn.net/"><i class="fa fa-code"></i></a><a class="level-item button is-transparent is-marginless" target="_blank" rel="noopener" title="Email" href="mailto:1224965096@qq.com"><i class="fa fa-envelope"></i></a></div></div></div><div class="card widget" data-type="links"><div class="card-content"><div class="menu"><h3 class="menu-label">链接</h3><ul class="menu-list"><li><a class="level is-mobile" href="https://liruilong.blog.csdn.net/?t=1&amp;type=blog" target="_blank" rel="noopener"><span class="level-left"><span class="level-item">CSDN</span></span><span class="level-right"><span class="level-item tag">liruilong.blog.csdn.net</span></span></a></li><li><a class="level is-mobile" href="https://www.cnblogs.com/liruilong/" target="_blank" rel="noopener"><span class="level-left"><span class="level-item">博客园</span></span><span class="level-right"><span class="level-item tag">www.cnblogs.com</span></span></a></li><li><a class="level is-mobile" href="https://github.com/LIRUILONGS" target="_blank" rel="noopener"><span class="level-left"><span class="level-item">Githup</span></span><span class="level-right"><span class="level-item tag">github.com</span></span></a></li><li><a class="level is-mobile" href="https://gitee.com/liruilonger" target="_blank" rel="noopener"><span class="level-left"><span class="level-item">码云</span></span><span class="level-right"><span class="level-item tag">gitee.com</span></span></a></li></ul></div></div></div><div class="card widget"><div class="card-content"><h3 class="menu-label">最新评论</h3><span class="body_hot_comment">加载中，最新评论有1分钟缓存...</span></div></div><div class="card widget"><div class="card-content"><h3 class="menu-label">最新文章</h3><article class="media"><div class="media-content"><p class="date"><time dateTime="2025-03-26T15:29:15.000Z">2025-03-26</time></p><p class="title"><a href="/2025/03/26/%E5%BE%85%E5%8F%91%E5%B8%83/LangChain-%E6%95%B0%E6%8D%AE%E5%A2%9E%E5%BC%BA%E6%A8%A1%E5%9D%97-Ollama-DeepSeek-R1-%E6%9E%84%E5%BB%BA-K8s-%E6%9C%AC%E5%9C%B0%E7%9F%A5%E8%AF%86%E5%BA%93Demo/">本地化智能运维助手：基于 LangChain 数据增强 和 DeepSeek-R1 的K8s运维文档检索与问答系统 Demo</a></p><p class="categories"><a href="/categories/LLM/">LLM</a></p></div></article><article class="media"><div class="media-content"><p class="date"><time dateTime="2025-03-21T09:11:01.000Z">2025-03-21</time></p><p class="title"><a href="/2025/03/21/%E5%BE%85%E5%8F%91%E5%B8%83/SpringBoot-SSE-rabbitMQ-%E5%AE%9E%E7%8E%B0%E6%9C%8D%E5%8A%A1%E7%AB%AF%E5%B9%BF%E6%92%AD%E6%8E%A8%E9%80%81/">SpringBoot + SSE + rabbitMQ 实现服务端分布式广播推送</a></p><p class="categories"><a href="/categories/SSE/">SSE</a></p></div></article><article class="media"><div class="media-content"><p class="date"><time dateTime="2025-03-12T02:52:50.000Z">2025-03-12</time></p><p class="title"><a href="/2025/03/12/%E5%BE%85%E5%8F%91%E5%B8%83/LangChain+Ollama+DeepSeek%20%E5%85%A8%E9%93%BE%E8%B7%AF%E8%AE%A4%E7%9F%A5%EF%BC%9ALangChain%20%E6%A8%A1%E5%9E%8B%20IO%20%E6%A8%A1%E5%9D%97%E5%AE%9E%E6%88%98/">LangChain+Ollama+DeepSeek 全链路认知：LangChain 模型 IO 模块实战</a></p><p class="categories"><a href="/categories/LLM/">LLM</a></p></div></article><article class="media"><div class="media-content"><p class="date"><time dateTime="2025-03-10T03:14:31.000Z">2025-03-10</time></p><p class="title"><a href="/2025/03/10/%E5%BE%85%E5%8F%91%E5%B8%83/LangChain-Ollama-DeepSeek-%E5%85%A8%E9%93%BE%E8%B7%AF%E8%AE%A4%E7%9F%A5%EF%BC%9A%E4%BB%8E%E6%A8%A1%E5%9E%8B%E5%8C%85%E8%A3%85%E5%99%A8%E5%88%B0%E6%8F%90%E7%A4%BA%E8%AF%8D%E6%A8%A1%E7%89%88-Agent-Demo/">LangChain + Ollama + DeepSeek 全链路认知：从模型包装器到提示词模版 Agent Demo</a></p><p class="categories"><a href="/categories/LLM/">LLM</a></p></div></article><article class="media"><div class="media-content"><p class="date"><time dateTime="2025-03-04T08:19:39.000Z">2025-03-04</time></p><p class="title"><a href="/2025/03/04/%E5%BE%85%E5%8F%91%E5%B8%83/Spring%20AI%20Alibaba%20+%20Ollama%EF%BC%9A%E5%9B%BD%E4%BA%A7%E5%A4%A7%E6%A8%A1%E5%9E%8BDeepSeek%20LLM%E7%9A%84%E4%BD%8E%E6%88%90%E6%9C%ACAI%E5%BA%94%E7%94%A8%E5%BC%80%E5%8F%91%E8%AE%A4%E7%9F%A5/">Spring AI Alibaba + Ollama：国产大模型DeepSeek LLM的低成本AI应用开发认知</a></p><p class="categories"><a href="/categories/LLM/">LLM</a></p></div></article></div></div><div class="card widget"><div class="card-content"><div class="menu"><h3 class="menu-label">分类</h3><ul class="menu-list"><li><a class="level is-mobile is-marginless" href="/categories/AIGC/"><span class="level-start"><span class="level-item">AIGC</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/AdaFace/"><span class="level-start"><span class="level-item">AdaFace</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/Ajax/"><span class="level-start"><span class="level-item">Ajax</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/Ansible/"><span class="level-start"><span class="level-item">Ansible</span></span><span class="level-end"><span class="level-item tag">23</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/AppCube/"><span class="level-start"><span class="level-item">AppCube</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/BPF/"><span class="level-start"><span class="level-item">BPF</span></span><span class="level-end"><span class="level-item tag">5</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/Bind9/"><span class="level-start"><span class="level-item">Bind9</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/CI-CD/"><span class="level-start"><span class="level-item">CI/CD</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/CSS/"><span class="level-start"><span class="level-item">CSS</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/Ceph/"><span class="level-start"><span class="level-item">Ceph</span></span><span class="level-end"><span class="level-item tag">22</span></span></a></li><a class="level is-mobile is-marginless" href="/categories/"><span class="level-start"><span class="level-item">查看全部&gt;&gt;</span></span></a></ul></div></div></div><div class="card widget"><div class="card-content"><div class="menu"><h3 class="menu-label">归档</h3><ul class="menu-list"><li><a class="level is-mobile is-marginless" href="/archives/2025/03/"><span class="level-start"><span class="level-item">三月 2025</span></span><span class="level-end"><span class="level-item tag">6</span></span></a></li><li><a class="level is-mobile is-marginless" href="/archives/2025/02/"><span class="level-start"><span class="level-item">二月 2025</span></span><span class="level-end"><span class="level-item tag">7</span></span></a></li><li><a class="level is-mobile is-marginless" href="/archives/2025/01/"><span class="level-start"><span class="level-item">一月 2025</span></span><span class="level-end"><span class="level-item tag">2</span></span></a></li><li><a class="level is-mobile is-marginless" href="/archives/2024/12/"><span class="level-start"><span class="level-item">十二月 2024</span></span><span class="level-end"><span class="level-item tag">4</span></span></a></li><li><a class="level is-mobile is-marginless" href="/archives/2024/11/"><span class="level-start"><span class="level-item">十一月 2024</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li><a class="level is-mobile is-marginless" href="/archives/"><span class="level-start"><span class="level-item">查看全部&gt;&gt;</span></span></a></ul></div></div></div><div class="card widget"><div class="card-content"><div class="menu"><h3 class="menu-label">标签</h3><div class="field is-grouped is-grouped-multiline"><div class="control"><a class="tags has-addons" href="/tags/Kubernetes/"><span class="tag">Kubernetes</span><span class="tag is-grey-lightest">98</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Linux/"><span class="tag">Linux</span><span class="tag is-grey-lightest">51</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Ansible/"><span class="tag">Ansible</span><span class="tag is-grey-lightest">25</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Ceph/"><span class="tag">Ceph</span><span class="tag is-grey-lightest">22</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Python/"><span class="tag">Python</span><span class="tag is-grey-lightest">15</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Docker/"><span class="tag">Docker</span><span class="tag is-grey-lightest">9</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Git/"><span class="tag">Git</span><span class="tag is-grey-lightest">8</span></a></div><div class="control"><a class="tags has-addons" href="/tags/JAVA/"><span class="tag">JAVA</span><span class="tag is-grey-lightest">8</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%E5%8D%8E%E4%B8%BA%E4%BA%91/"><span class="tag">华为云</span><span class="tag is-grey-lightest">8</span></a></div><div class="control"><a class="tags has-addons" href="/tags/CPU/"><span class="tag">CPU</span><span class="tag is-grey-lightest">7</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Mysql/"><span class="tag">Mysql</span><span class="tag is-grey-lightest">7</span></a></div><div class="control"><a class="tags has-addons" href="/tags/BPF/"><span class="tag">BPF</span><span class="tag is-grey-lightest">6</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Go/"><span class="tag">Go</span><span class="tag is-grey-lightest">6</span></a></div><div class="control"><a class="tags has-addons" href="/tags/LLM/"><span class="tag">LLM</span><span class="tag is-grey-lightest">6</span></a></div><div class="control"><a class="tags has-addons" href="/tags/OpenShift/"><span class="tag">OpenShift</span><span class="tag is-grey-lightest">6</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%E7%A8%8B%E5%BA%8F%E4%BA%BA%E7%94%9F/"><span class="tag">程序人生</span><span class="tag is-grey-lightest">6</span></a></div><div class="control"><a class="tags has-addons" href="/tags/DNS/"><span class="tag">DNS</span><span class="tag is-grey-lightest">5</span></a></div><div class="control"><a class="tags has-addons" href="/tags/OKD/"><span class="tag">OKD</span><span class="tag is-grey-lightest">5</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%E6%91%84%E5%BD%B1%E6%9B%9D%E5%85%89/"><span class="tag">摄影曝光</span><span class="tag is-grey-lightest">5</span></a></div><div class="control"><a class="tags has-addons" href="/tags/selenium/"><span class="tag">selenium</span><span class="tag is-grey-lightest">4</span></a></div></div><div class="field is-grouped is-grouped-multiline"><a class="tags has-addons" href="/tags/"><span class="tag">查看全部&gt;&gt;</span></a></div></div></div></div><div class="card widget" data-type="subscribe-email"><div class="card-content"><div class="menu"><h3 class="menu-label">订阅更新</h3><form action="https://feedburner.google.com/fb/a/mailverify" method="post" target="popupwindow" onsubmit="window.open(&#039;https://feedburner.google.com/fb/a/mailverify?uri=&#039;,&#039;popupwindow&#039;,&#039;scrollbars=yes,width=550,height=520&#039;);return true"><input type="hidden" value="" name="uri"><input type="hidden" name="loc" value="en_US"><div class="field has-addons"><div class="control has-icons-left is-expanded"><input class="input" name="email" type="email" placeholder="Email"><span class="icon is-small is-left"><i class="fas fa-envelope"></i></span></div><div class="control"><input class="button" type="submit" value="订阅"></div></div></form></div></div></div><!--!--><div class="column-right-shadow is-hidden-widescreen is-sticky"></div></div></div></div></section><footer class="footer"><div class="container"><div class="level"><div class="level-start"><a class="footer-logo is-block mb-2" href="/"><img src="/img/logo.png" alt="山河已无恙" height="28"></a><p class="size-small"><span>&copy; 2025 山河已无恙</span>  Powered by <a href="https://hexo.io/" target="_blank">Hexo</a> &amp; <a href="https://github.com/ppoffice/hexo-theme-icarus" target="_blank">Icarus</a> &amp; <a href="https://github.com/removeif/hexo-theme-amazing" target="_blank">Amazing</a> <br><span>© <a href="http://www.beian.miit.gov.cn/" target="_blank">备案中</a><br></span><span>© 版权说明：[本网站所有内容均收集于互联网或自己创作,<br />&nbsp;&nbsp;&nbsp;&nbsp;方便于网友与自己学习交流，如有侵权，请<a href="/message" target="_blank">留言</a>，立即处理]<br /></span><span><span id="statistic-times">loading...</span><script>function createTime(time) {
+            var n = new Date(time);
+            now.setTime(now.getTime() + 250),
+                days = (now - n) / 1e3 / 60 / 60 / 24,
+                dnum = Math.floor(days),
+                hours = (now - n) / 1e3 / 60 / 60 - 24 * dnum,
+                hnum = Math.floor(hours),
+            1 == String(hnum).length && (hnum = "0" + hnum),
+                minutes = (now - n) / 1e3 / 60 - 1440 * dnum - 60 * hnum,
+                mnum = Math.floor(minutes),
+            1 == String(mnum).length && (mnum = "0" + mnum),
+                seconds = (now - n) / 1e3 - 86400 * dnum - 3600 * hnum - 60 * mnum,
+                snum = Math.round(seconds),
+            1 == String(snum).length && (snum = "0" + snum),
+                document.getElementById("statistic-times").innerHTML = "❤️本站自 <strong>"+time.split(" ")[0].replace(/\//g,".")+"</strong> 已运行 <strong>" + dnum + "</strong> 天 <strong>" + hnum + "</strong> 小时 <strong>" + mnum + "</strong> 分 <strong>" + snum + "</strong> 秒！❤️";
+        }var now = new Date();setInterval("createTime('2021/6/26 21:27:00')", 250,"");</script><br></span><div class="size-small"><span>❤️感谢 <strong><span id="busuanzi_value_site_uv">99+</span></strong> 小伙伴的 <strong><span id="busuanzi_value_site_pv">99+</span></strong> 次光临！❤️</span></div></p></div><div class="level-end"><div class="field has-addons"><p class="control"><a class="button is-transparent is-large" target="_blank" rel="noopener" title="Creative Commons" href="https://creativecommons.org/"><i class="fab fa-creative-commons"></i></a></p><p class="control"><a class="button is-transparent is-large" target="_blank" rel="noopener" title="Attribution 4.0 International" href="https://creativecommons.org/licenses/by/4.0/"><i class="fab fa-creative-commons-by"></i></a></p><p class="control"><a class="button is-transparent is-large" target="_blank" rel="noopener" title="Download on GitHub" href="https://github.com/removeif/hexo-theme-amazing"><i class="fab fa-github"></i></a></p></div><div class="sideMusic"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/aplayer/dist/APlayer.min.css"><script src="/js/APlayer.min.js"></script><script src="https://cdn.jsdelivr.net/npm/meting@2/dist/Meting.min.js"></script><meting-js style="width: auto;height: 2000px;" server="netease" type="playlist" id="2364053447" theme="#2980b9" loop="all" autoplay="false" order="list" storageName="aplayer-setting" lrctype="0" list-max-height="400px" fixed="true"></meting-js></div></div></div></div></footer><script src="https://cdnjs.loli.net/ajax/libs/moment.js/2.22.2/moment-with-locales.min.js"></script><script src="https://cdnjs.loli.net/ajax/libs/clipboard.js/2.0.4/clipboard.min.js" async></script><script>moment.locale("zh-CN");</script><script>var IcarusThemeSettings = {
+            article: {
+                highlight: {
+                    clipboard: true,
+                    fold: 'unfolded'
+                }
+            }
+        };</script><script src="/js/column.js"></script><!--!--><script src="/js/animation.js"></script><a id="back-to-top" title="回到顶端" href="javascript:;"><i class="fas fa-chevron-up"></i></a><script src="/js/back_to_top.js" defer></script><!--!--><script src="https://cdnjs.loli.net/ajax/libs/lightgallery/1.6.8/js/lightgallery.min.js" defer></script><script src="https://cdnjs.loli.net/ajax/libs/justifiedGallery/3.7.0/js/jquery.justifiedGallery.min.js" defer></script><script>window.addEventListener("load", () => {
+            if (typeof $.fn.lightGallery === 'function') {
+                $('.article').lightGallery({ selector: '.gallery-item' });
+            }
+            if (typeof $.fn.justifiedGallery === 'function') {
+                if ($('.justified-gallery > p > .gallery-item').length) {
+                    $('.justified-gallery > p > .gallery-item').unwrap();
+                }
+                $('.justified-gallery').justifiedGallery();
+            }
+        });</script><!--!--><!--!--><link rel="stylesheet" href="https://cdnjs.loli.net/ajax/libs/KaTeX/0.11.1/katex.min.css"><script src="https://cdnjs.loli.net/ajax/libs/KaTeX/0.11.1/katex.min.js" defer></script><script src="https://cdnjs.loli.net/ajax/libs/KaTeX/0.11.1/contrib/auto-render.min.js" defer></script><script src="https://cdnjs.loli.net/ajax/libs/KaTeX/0.11.1/contrib/mhchem.js" defer></script><script>window.addEventListener("load", function() {
+            document.querySelectorAll('[role="article"] > .content').forEach(function(element) {
+                renderMathInElement(element);
+            });
+        });</script><script type="text/x-mathjax-config">MathJax.Hub.Config({
+            'HTML-CSS': {
+                matchFontHeight: false
+            },
+            SVG: {
+                matchFontHeight: false
+            },
+            CommonHTML: {
+                matchFontHeight: false
+            },
+            tex2jax: {
+                inlineMath: [
+                    ['$','$'],
+                    ['\\(','\\)']
+                ]
+            }
+        });</script><script src="https://cdnjs.loli.net/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-MML-AM_CHTML" defer></script><div id="outdated"><h6>Your browser is out-of-date!</h6><p>Update your browser to view this website correctly.&amp;npsb;<a id="btnUpdateBrowser" target="_blank" rel="noopener" href="http://outdatedbrowser.com/">Update my browser now </a></p><p class="last"><a href="#" id="btnCloseUpdateBrowser" title="Close">×</a></p></div><script src="https://cdnjs.loli.net/ajax/libs/outdated-browser/1.1.5/outdatedbrowser.min.js" defer></script><script>window.addEventListener("load", function () {
+            outdatedBrowser({
+                bgColor: '#f25648',
+                color: '#ffffff',
+                lowerThan: 'object-fit' // display on IE11 or below
+            });
+        });</script><!--!--><script src="/js/main.js" defer></script><script>$.getScript('/js/comment-issue-data.js',function(){loadIssueData('9fdc9739266d48d5f62e','c1cc33697d099a2197650ec9dadcb16bd4904655','LIRUILONGS','blog_comment',false);})</script><div class="searchbox"><div class="searchbox-container"><div class="searchbox-header"><div class="searchbox-input-container"><input class="searchbox-input" type="text" placeholder="想要查找什么..."></div><a class="searchbox-close" href="javascript:;">×</a></div><div class="searchbox-body"></div></div></div><script src="/js/insight.js" defer></script><script>document.addEventListener('DOMContentLoaded', function () {
+            loadInsight({"contentUrl":"/content.json"}, {"hint":"想要查找什么...","untitled":"(无标题)","posts":"文章","pages":"页面","categories":"分类","tags":"标签"});
+        });</script><script src="https://cdn.jsdelivr.net/npm/pjax@0.2.8/pjax.js"></script><script type="text/javascript">var pjax = new Pjax({
+            elements: "a",//代表点击链接就更新
+            selectors: [  //代表要更新的节点
+                ".section",
+                "title"
+            ],
+            cache: true,
+            cacheBust:false
+        })
+
+        function loadBusuanzi(){
+        $.getScript("//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js", function () {});
+        }
+
+        function loadMathJax() { //加载mathjax
+            $.getScript("//cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.4/MathJax.js?config=TeX-MML-AM_CHTML", function () {
+                MathJax.Hub.Config({ tex2jax: { inlineMath: [['$', '$'], ['\(', '\)']] } });
+                var math = document.getElementsByClassName("entry-content")[0];
+                MathJax.Hub.Queue(["Typeset", MathJax.Hub, math]);
+            });
+        };
+
+        // 开始 PJAX 执行的函数
+        document.addEventListener('pjax:send', function () {
+        });
+        
+        // PJAX 完成之后执行的函数，可以和上面的重载放在一起
+        document.addEventListener('pjax:complete', function () {
+            $(".section").css({opacity:1});
+            if(true){
+                $.getScript('/js/comment-issue-data.js',function(){loadIssueData('9fdc9739266d48d5f62e','c1cc33697d099a2197650ec9dadcb16bd4904655','LIRUILONGS','blog_comment',false);});
+            }
+            if(false){
+                loadMathJax();
+            }
+            loadMainJs(jQuery, window.moment, window.ClipboardJS, window.IcarusThemeSettings);
+            loadBackTop();
+            loadBusuanzi();
+            if(typeof loadBanner == 'function'){
+                loadBanner();
+            }
+        });</script></body></html>
