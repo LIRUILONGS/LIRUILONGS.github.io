@@ -1,0 +1,602 @@
+<!doctype html>
+<html lang="zh"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"><meta><title>Linux 系统内存监控：Linux 内存调优之系统内存全面监控 - 山河已无恙</title><link rel="manifest" href="/manifest.json"><meta name="application-name" content="山河已无恙"><meta name="msapplication-TileImage" content="https://cdn.jsdelivr.net/gh/removeif/removeif-demo@latest/img/favicon.png"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="山河已无恙"><meta name="apple-mobile-web-app-status-bar-style" content="default"><meta description="所谓百年功名、千秋霸业、万古流芳，与一件事情相比，其实算不了什么。这件事情就是——用你喜欢的方式度过一生。 —-《明朝那些事儿》"><meta property="og:type" content="blog"><meta property="og:title" content="山河已无恙"><meta property="og:url" content="https://mp.weixin.qq.com/s?__biz=MzkyNjIxNTYwMw==&amp;mid=2247496480&amp;idx=1&amp;sn=a9971fed3962ef2a1aeda1f0bda65f86&amp;chksm=c2380ffcf54f86eaba8daac6caca72a70f38e61a8d25dc2a66d3a17b87c02530e326dcaea14b#rd"><meta property="og:site_name" content="山河已无恙"><meta property="og:description" content="所谓百年功名、千秋霸业、万古流芳，与一件事情相比，其实算不了什么。这件事情就是——用你喜欢的方式度过一生。 —-《明朝那些事儿》"><meta property="og:locale" content="zh_CN"><meta property="og:image" content="https://mp.weixin.qq.com/img/头像.jpg"><meta property="article:published_time" content="2025-04-11T11:38:12.000Z"><meta property="article:modified_time" content="2025-04-14T01:42:22.861Z"><meta property="article:author" content="LIRUILONGS"><meta property="article:tag" content="Linux"><meta property="twitter:card" content="summary"><meta property="twitter:image" content="/img/头像.jpg"><script type="application/ld+json">{"@context":"https://schema.org","@type":"BlogPosting","mainEntityOfPage":{"@type":"WebPage","@id":"https://liruilongs.github.io/2025/04/11/%E5%BE%85%E5%8F%91%E5%B8%83/Linux%20%E7%B3%BB%E7%BB%9F%E5%86%85%E5%AD%98%E7%9B%91%E6%8E%A7%EF%BC%9ALinux%20%E5%86%85%E5%AD%98%E8%B0%83%E4%BC%98%E4%B9%8B%E7%B3%BB%E7%BB%9F%E5%86%85%E5%AD%98%E5%85%A8%E9%9D%A2%E7%9B%91%E6%8E%A7/"},"headline":"山河已无恙","image":["https://img-blog.csdnimg.cn/6711fb4848b14535a37debc9dddf3396.png","https://i-blog.csdnimg.cn/direct/261a0945466a44a1b366dd715c8a5390.png"],"datePublished":"2025-04-11T11:38:12.000Z","dateModified":"2025-04-14T01:42:22.861Z","author":{"@type":"Person","name":"山河已无恙"},"description":"所谓百年功名、千秋霸业、万古流芳，与一件事情相比，其实算不了什么。这件事情就是——用你喜欢的方式度过一生。 —-《明朝那些事儿》"}</script><link rel="canonical" href="https://liruilongs.github.io/2025/04/11/%E5%BE%85%E5%8F%91%E5%B8%83/Linux%20%E7%B3%BB%E7%BB%9F%E5%86%85%E5%AD%98%E7%9B%91%E6%8E%A7%EF%BC%9ALinux%20%E5%86%85%E5%AD%98%E8%B0%83%E4%BC%98%E4%B9%8B%E7%B3%BB%E7%BB%9F%E5%86%85%E5%AD%98%E5%85%A8%E9%9D%A2%E7%9B%91%E6%8E%A7/"><link rel="alternate" href="/path/to/atom.xml" title="山河已无恙" type="application/atom+xml"><link rel="icon" href="https://cdn.jsdelivr.net/gh/removeif/removeif-demo@latest/img/favicon.png"><meta name="referrer" content="no-referrer-when-downgrade"><link rel="stylesheet" href="https://cdnjs.loli.net/ajax/libs/font-awesome/5.12.0/css/all.min.css"><link rel="stylesheet" href="https://cdnjs.loli.net/ajax/libs/highlight.js/9.12.0/styles/dracula.min.css"><link rel="stylesheet" href="https://fonts.loli.net/css2?family=Ubuntu:wght@400;600&amp;family=Source+Code+Pro"><link rel="stylesheet" href="/css/default.css"><link rel="stylesheet" href="https://cdnjs.loli.net/ajax/libs/font-awesome/5.12.0/css/all.min.css"><link rel="stylesheet" href="https://fonts.loli.net/css?family=Ubuntu:400,600|Source+Code+Pro|Monda:300,300italic,400,400italic,700,700italic|Roboto Slab:300,300italic,400,400italic,700,700italic|Microsoft YaHei:300,300italic,400,400italic,700,700italic|PT Mono:300,300italic,400,400italic,700,700italic&amp;amp;subset=latin,latin-ext|Inconsolata|Itim|Lobster.css"><script src="https://cdnjs.loli.net/ajax/libs/jquery/3.3.1/jquery.min.js"></script><script src="/js/globalUtils.js"></script><script src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js" defer></script><style>body>.footer,body>.navbar,body>.section{opacity:0}</style><!--!--><script>var _hmt = _hmt || [];
+        (function() {
+            var hm = document.createElement("script");
+            hm.src = "//hm.baidu.com/hm.js?3f06f2b732a5b1034c989f74e28d0eea";
+            var s = document.getElementsByTagName("script")[0];
+            s.parentNode.insertBefore(hm, s);
+        })();</script><link rel="stylesheet" href="https://cdnjs.loli.net/ajax/libs/lightgallery/1.6.8/css/lightgallery.min.css"><link rel="stylesheet" href="https://cdnjs.loli.net/ajax/libs/justifiedGallery/3.7.0/css/justifiedGallery.min.css"><!--!--><!--!--><!--!--><!--!--><link rel="stylesheet" href="https://cdnjs.loli.net/ajax/libs/outdated-browser/1.1.5/outdatedbrowser.min.css"><script src="https://cdnjs.loli.net/ajax/libs/pace/1.0.2/pace.min.js"></script><link rel="stylesheet" href="/live2d/waifu.css"><script type="text/javascript" async src="/live2d/autoload.js"></script><meta name="generator" content="Hexo 5.4.2"></head><body class="is-3-column has-navbar-fixed-top"><nav class="navbar navbar-main is-fixed-top"><div class="container"><div class="navbar-brand justify-content-center"><a class="navbar-item navbar-logo" href="/"><img src="/img/logo.png" alt="山河已无恙" height="28"></a></div><div class="navbar-menu"><div class="navbar-start"><a class="navbar-item" href="/">首页</a><a class="navbar-item" href="/archives">归档</a><a class="navbar-item" href="/categories">分类</a><a class="navbar-item" href="/tags">标签</a><a class="navbar-item" href="/media">影音</a><a class="navbar-item" href="/album">相册</a><a class="navbar-item" href="/friend">友链</a><a class="navbar-item" href="/self-talking">生活小记</a><a class="navbar-item" href="/message">留言墙</a><a class="navbar-item" href="/about">关于</a></div><div class="navbar-end"><a class="navbar-item" target="_blank" rel="noopener" title="Gitee" href="https://gitee.com/liruilonger"><i class="fab fa-git-square fa-1x"></i></a><a class="navbar-item" target="_blank" rel="noopener" title="GitHub" href="https://github.com/LIRUILONGS"><i class="fab fa-github fa-1x"></i></a><a class="navbar-item is-hidden-tablet catalogue" title="目录" href="javascript:;"><i class="fas fa-list-ul fa-1x"></i></a><a class="navbar-item search" title="搜索" href="javascript:;"><i class="fas fa-search fa-1x"></i></a><a class="navbar-item" id="night-nav" title="Night Mode" href="javascript:;"><i class="fas fa-moon fa-1x" id="night-icon"></i></a></div></div></div></nav><script type="text/javascript" src="/js/theme-setting.js"></script><section class="section"><div class="container"><div class="columns"><div class="column order-2 column-main is-8-tablet is-8-desktop is-9-widescreen"><!--!--><div class="card"><article class="card-content article" role="article"><div class="article-meta size-small is-uppercase level is-mobile"><div class="level-left"><i class="far fa-calendar-plus"> </i>2025-04-11  <a class="commentCountImg" href="/2025/04/11/%E5%BE%85%E5%8F%91%E5%B8%83/Linux%20%E7%B3%BB%E7%BB%9F%E5%86%85%E5%AD%98%E7%9B%91%E6%8E%A7%EF%BC%9ALinux%20%E5%86%85%E5%AD%98%E8%B0%83%E4%BC%98%E4%B9%8B%E7%B3%BB%E7%BB%9F%E5%86%85%E5%AD%98%E5%85%A8%E9%9D%A2%E7%9B%91%E6%8E%A7/#comment-container"><span class="display-none-class">90903f1d53aeabf6c6dfb285739d926f</span><i class="far fa-comment-dots"></i> <span class="commentCount" id="90903f1d53aeabf6c6dfb285739d926f">99+</span>  </a><span class="level-item"><i class="far fa-clock"> </i>1 小时  <i class="fas fa-pencil-alt"> </i>7.0 k</span><span class="level-item" id="busuanzi_container_page_pv"><span id="busuanzi_value_page_pv">0</span>次访问</span></div></div><h1 class="title is-3 is-size-4-mobile">Linux 系统内存监控：Linux 内存调优之系统内存全面监控</h1><div class="content"><p><strong><font color="009688">  所谓百年功名、千秋霸业、万古流芳，与一件事情相比，其实算不了什么。这件事情就是——用你喜欢的方式度过一生。 —-《明朝那些事儿》</strong></font></p>
+<span id="more"></span>
+<h2 id="写在前面"><a href="#写在前面" class="headerlink" title="写在前面"></a>写在前面</h2><hr>
+<ul>
+<li>博文内容涉及 Linux 全局内存监控</li>
+<li>监控方式包括传统工具 <code>vmstat/top/free/sar/slabtop</code> ,以及 <code>systemd-cgtop</code>，<code>proc</code> 内存伪文件系统</li>
+<li>监控内容包括<code>系统内存使用，​Slab 缓存，缓存已经缓存区活跃非活跃内存监控</code></li>
+<li>理解不足小伙伴帮忙指正 :),生活加油</li>
+</ul>
+<p><strong><font color="009688">  所谓百年功名、千秋霸业、万古流芳，与一件事情相比，其实算不了什么。这件事情就是——用你喜欢的方式度过一生。 —-《明朝那些事儿》</strong></font></p>
+<p>持续分享技术干货，感兴趣小伙伴可以关注下 ^_^</p>
+<hr>
+<h2 id="内存的全局监控"><a href="#内存的全局监控" class="headerlink" title="内存的全局监控"></a>内存的全局监控</h2><p>内存资源的全局监控一般用于系统级别内存数据实时观测，用于快速定位内存瓶颈（如内存使用率持续超过80%或Swap频繁触发），避免因内存不足导致的响应延迟或服务中断，这里我们也介绍几种方式，关于 通过 BPF 实现全局内存监控会单独拿出来讲。</p>
+<p>在学习实际的监控方式之前，我们先来看几个内存相关的术语</p>
+<h3 id="交换-物理内存不足"><a href="#交换-物理内存不足" class="headerlink" title="交换(物理内存不足)"></a>交换(物理内存不足)</h3><p>所有系统<code>RAM芯片的物理内存容量</code>都是固定的。即使应用程序需要的内存容量大于可用的物理内存，Linux内核仍然允许这些程序运行。Linux内核使用<code>硬盘作为临时存储器</code>，这个硬盘空间被称为<code>交换分区(swap space)</code>。</p>
+<p>尽管交换是让进程运行的极好的方法，但它却慢的要命。与使用物理内存相比，应用程序使用交换的速度可以慢到一千倍。<code>如果系统性能不佳，确定系统使用了多少交换通常是有用的。</code></p>
+<h3 id="缓冲区-buffer-和缓存-cache-物理内存太多"><a href="#缓冲区-buffer-和缓存-cache-物理内存太多" class="headerlink" title="缓冲区(buffer)和缓存(cache)(物理内存太多)"></a>缓冲区(buffer)和缓存(cache)(物理内存太多)</h3><h4 id="缓存-cache"><a href="#缓存-cache" class="headerlink" title="缓存(cache)"></a>缓存(cache)</h4><p>相反，如果你的<code>系统物理内存容量超过了应用程序的需求</code>，Linux就会在<code>物理内存中缓存近期使用过的文件</code>，这样，后续访问这些文件时就不用去访问硬盘了。</p>
+<p>对要频繁访问硬盘的应用程序来说，这可以显著加速其速度，显然，对经常启动的应用程序而言，这是特别有用的。</p>
+<p>应用程序首次启动时，它需要从硬盘读取；但是，如果应用程序留着缓存中，那它就需要从更快速的物理内存读取。</p>
+<p><code>这个硬盘缓存不同于前面章节提到的处理器高速缓存(cache)</code></p>
+<h4 id="缓冲区-buffer"><a href="#缓冲区-buffer" class="headerlink" title="缓冲区(buffer)"></a>缓冲区(buffer)</h4><p>Linux还使用了额外的存储作为缓冲区。为了进一步优化应用程序，<code>Linux为需要被写回硬盘的数据预留了存储空间。这些预留空间被称为缓冲区</code>。如果应用程序要将<code>数据写回硬盘</code>，通常需要花费<code>较长时间</code>，Linux让应用程序<code>立刻继续执行</code>，但将<code>文件数据</code>保存到<code>内存缓冲区</code>。在之后的某个时刻，<code>缓冲区被刷新到硬盘</code>，而应用程序可以<code>立即继续</code>。</p>
+<p><code>高速缓存和缓冲区</code>的使用使得系统内<code>空闲的内存</code>很少，默认情况下，Linux试图尽可能多的使用你的内存。这是好事。</p>
+<p>如果<code>Linux侦测</code>到有<code>空闲内存</code>，它就会<code>将应用程序和数据缓存到这些内存以加速未来的访问</code>。由于访问内存的速度比访问硬盘的速度<code>快了几个数量级</code>，因此，这就可以显著地提升<code>整体性能</code>。</p>
+<p>如果系统需要缓存空间做更重要的事情，那么缓存空间将被擦除并交给系统。之后，对原来被缓存对象的访问就需要转向硬盘来满足。</p>
+<h4 id="活跃与非活跃内存"><a href="#活跃与非活跃内存" class="headerlink" title="活跃与非活跃内存"></a>活跃与非活跃内存</h4><ul>
+<li><code>活跃内存</code>是指当前被进程使用的内存。</li>
+<li><code>不活跃内存</code>是指已经被分配了，但暂时还未使用的内存。</li>
+</ul>
+<p>这两种类型的内存没有本质上的区别。需要时，Linux找出进程最近最少使用的<code>内存页面</code>，并将它们从活跃列表移动到不活跃列表。当要选择把<code>哪个内存页交换到硬盘</code>时，<code>内核就从不活跃内存列表中进行选择</code>。</p>
+<h3 id="传统工具"><a href="#传统工具" class="headerlink" title="传统工具"></a>传统工具</h3><p>这里我们介绍了 vmstat&#x2F;top&#x2F;free&#x2F;sar&#x2F;slabtop 这几种工具</p>
+<ul>
+<li><code>​​free​</code>​：快速查看内存总量、使用情况，包括缓冲和缓存，注意available值。</li>
+<li><code>​​top​​</code>：实时监控系统内存占用及总体使用情况，同时提供内存排序进程。</li>
+<li><code>​​vmstat</code>​​：查看内存、交换、分页统计，关注si&#x2F;so判断交换活动。</li>
+<li><code>​​sar​</code>​：历史数据收集和报告，分析内存趋势，使用sar -r。</li>
+<li><code>​​slabtop</code>​​：内核slab缓存使用情况，需root权限，检查内核对象内存占用。</li>
+</ul>
+<h4 id="vmstat"><a href="#vmstat" class="headerlink" title="vmstat"></a>vmstat</h4><p>通过 vmstat 我们可以看到系统级别使用了多少交换分区，物理内存是如何被使用的，以及有多少空闲内存。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line">┌──[root@liruilongs.github.io]-[/usr/lib/systemd/system] </span><br><span class="line">└─<span class="variable">$vmstat</span> -<span class="built_in">help</span></span><br><span class="line"></span><br><span class="line">Usage:</span><br><span class="line"> vmstat [options] [delay [count]]</span><br><span class="line"></span><br><span class="line">Options:</span><br><span class="line"> -a, --active           active/inactive memory</span><br><span class="line"> -f, --forks            number of forks since boot</span><br><span class="line"> -m, --slabs            slabinfo</span><br><span class="line"> -n, --one-header       <span class="keyword">do</span> not redisplay header</span><br><span class="line"> -s, --stats            event counter statistics</span><br><span class="line"> -d, --disk             disk statistics</span><br><span class="line"> -D, --disk-sum         summarize disk statistics</span><br><span class="line"> -p, --partition &lt;dev&gt;  partition specific statistics</span><br><span class="line"> -S, --unit &lt;char&gt;      define display unit</span><br><span class="line"> -w, --wide             wide output</span><br><span class="line"> -t, --timestamp        show timestamp</span><br><span class="line"></span><br><span class="line"> -h, --<span class="built_in">help</span>     display this <span class="built_in">help</span> and <span class="built_in">exit</span></span><br><span class="line"> -V, --version  output version information and <span class="built_in">exit</span></span><br><span class="line"></span><br><span class="line">For more details see vmstat(8).</span><br></pre></td></tr></table></figure>
+
+<p>这里我们只看 vmstat提供的内存相关统计信息</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">┌──[root@liruilongs.github.io]-[~]</span><br><span class="line">└─$ vmstat</span><br><span class="line">procs -----------memory---------- ---swap-- -----io---- -system-- ------cpu-----</span><br><span class="line"> r  b   swpd   free   buff  cache   si   so    bi    bo   <span class="keyword">in</span>   cs us sy id wa st</span><br><span class="line"> 3  0      0 27270048   3104 984432    0    0    38    23  315  294  4  2 94  0  0</span><br></pre></td></tr></table></figure>
+
+<p><code>vmstat</code> 调用时没有使用任何命令行选项，它显示的是从 <code>系统启动开始的性能统计数据的均值(si和so)</code>，以及其他统计信息的<code>瞬时值(swpd、free、buff和cache)</code></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">┌──[root@liruilongs.github.io]-[~]</span><br><span class="line">└─$ vmstat  1 100</span><br><span class="line">procs -----------memory---------- ---swap-- -----io---- -system-- ------cpu-----</span><br><span class="line"> r  b   swpd   free   buff  cache   si   so    bi    bo   <span class="keyword">in</span>   cs us sy id wa st</span><br><span class="line"> 1  0      0 23365320   3104 962048    0    0   176    23  305  296  2  3 95  0  0</span><br><span class="line"> 1  0      0 23365164   3104 962088    0    0     0     0  768  854  0  0 100  0  0</span><br><span class="line"> 0  0      0 23364900   3104 962088    0    0     0     0  836  993  0  0 100  0  0</span><br><span class="line">^C</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><strong>swpd</strong> :当前<code>交换到硬盘的内存总量</code></li>
+<li><strong>free</strong> :<code>未被操作系统或应用程序使用的物理内存总量</code></li>
+<li><strong>buff</strong> : <code>系统缓冲区大小(单位为KB)，或用于存放等待保存到硬盘的数据的内存大小(单位为KB)</code>。该存储区允许<code>应用程序向Linux内核发出写调用后立即继续执行</code>(而不是等待直到数据被提交到硬盘)</li>
+<li><strong>cache</strong> :用于保存之前<code>从硬盘读取的数据的系统高速缓存或内存的大小(单位为KB)</code>。如果应用程序再次需要该数据，内核可以从内存而非硬盘抓取数据，由此可提高性能</li>
+</ul>
+<p><strong>vmstat显示活跃与非活跃页面的数量信息:vmstat -a</strong></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">┌──[root@liruilongs.github.io]-[~]</span><br><span class="line">└─$ vmstat -a</span><br><span class="line">procs -----------memory---------- ---swap-- -----io---- -system-- ------cpu-----</span><br><span class="line"> r  b   swpd   free  inact active   si   so    bi    bo   <span class="keyword">in</span>   cs us sy id wa st</span><br><span class="line"> 0  0      0 23225336 1987728 6884184    0    0    31   145  267  282  1  1 98  0  0</span><br></pre></td></tr></table></figure>
+<table>
+<thead>
+<tr>
+<th>列</th>
+<th>说明(Kb)</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>active</td>
+<td>被使用的<code>活跃内存量</code>。活跃&#x2F;不活跃的统计数据与缓冲区&#x2F;高速缓存的是正交的；缓冲区和高速缓存可以是活跃的，也可以是不活跃的</td>
+</tr>
+<tr>
+<td>inact</td>
+<td><code>不活跃的内存总量</code>(单位为KB)，或一段时间未被使用，适合交换到硬盘的内存量</td>
+</tr>
+<tr>
+<td>si</td>
+<td>上一次采样中，从硬盘进来的内存交换速率(单位为KB&#x2F;s)</td>
+</tr>
+<tr>
+<td>so</td>
+<td>上一次采样中，到硬盘去的内存交换速率(单位为KB&#x2F;s)</td>
+</tr>
+</tbody></table>
+<p><strong>显示内存和交换分区的统计摘要，包括历史累计数据:vmstat -s</strong></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line">┌──[root@liruilongs.github.io]-[~]</span><br><span class="line">└─$ vmstat -s</span><br><span class="line">     32931532 K total memory</span><br><span class="line">      8498760 K used memory</span><br><span class="line">      8329368 K active memory</span><br><span class="line">       497280 K inactive memory</span><br><span class="line">     23470020 K free memory</span><br><span class="line">         3104 K buffer memory</span><br><span class="line">       959648 K swap cache</span><br><span class="line">     10485756 K total swap</span><br><span class="line">            0 K used swap</span><br><span class="line">     10485756 K free swap</span><br><span class="line">         8162 non-nice user cpu ticks</span><br><span class="line">            0 nice user cpu ticks</span><br><span class="line">        10277 system cpu ticks</span><br><span class="line">       220249 idle cpu ticks</span><br><span class="line">          653 IO-wait cpu ticks</span><br><span class="line">            0 IRQ cpu ticks</span><br><span class="line">          435 softirq cpu ticks</span><br><span class="line">            0 stolen cpu ticks</span><br><span class="line">       682275 pages paged <span class="keyword">in</span></span><br><span class="line">        83668 pages paged out</span><br><span class="line">            0 pages swapped <span class="keyword">in</span></span><br><span class="line">            0 pages swapped out</span><br><span class="line">       907353 interrupts</span><br><span class="line">       828939 CPU context switches</span><br><span class="line">   1658547198 boot time</span><br><span class="line">         9260 forks</span><br></pre></td></tr></table></figure>
+
+<p>这里只看一下不熟悉的指标</p>
+<table>
+<thead>
+<tr>
+<th>列</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>pages paged in</td>
+<td>从硬盘读人系统缓冲区的内存总量(单位为页)</td>
+</tr>
+<tr>
+<td>pages paged out</td>
+<td>从系统高速缓存写到硬盘的内存总量(单位为页)</td>
+</tr>
+<tr>
+<td>pages swapped in</td>
+<td>从交换分区读入系统内存的内存总量(单位为页)</td>
+</tr>
+<tr>
+<td>pages swapped out</td>
+<td>从系统内存写到交换分区的内存总量(单位为页)</td>
+</tr>
+<tr>
+<td>used swap</td>
+<td>Linux内核目前使用的交换分区容量</td>
+</tr>
+<tr>
+<td>free swap</td>
+<td>当前可用的交换分区容量</td>
+</tr>
+<tr>
+<td>total swap</td>
+<td>系统的交换分区总量，即used swap与free swap之和</td>
+</tr>
+</tbody></table>
+<p><strong>显示内核 SLAB 缓存信息（内核对象分配的内存）:vmstat -m</strong></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">┌──[root@liruilongs.github.io]-[~]</span><br><span class="line">└─$ vmstat -m</span><br><span class="line">Cache                       Num  Total   Size  Pages</span><br><span class="line">nf_conntrack_ffff8807fbe22880    153    153    320     51</span><br><span class="line">nf_conntrack_ffff8807f2650000    306    306    320     51</span><br><span class="line">nf_conntrack_ffffffff81ad9d40    306    306    320     51</span><br><span class="line">xfs_dqtrx                     0      0    528     62</span><br><span class="line">xfs_icr                       0      0    152     53</span><br><span class="line">xfs_inode                 37298  37298    960     34</span><br><span class="line">xfs_efd_item                760    800    408     40</span><br><span class="line">.............</span><br><span class="line">┌──[root@liruilongs.github.io]-[~]</span><br><span class="line">└─$</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>cache：内核缓存名称（如 dentry、inode_cache），表示某一类内核对象（如文件系统、网络协议等）的缓存池。</li>
+<li>num&#x2F;total：当前活跃对象数和总对象数。</li>
+<li>size：单个对象占用的内存大小。</li>
+<li>Pages： 对应的内存页大小</li>
+</ul>
+<h4 id="top-2-x和3-x"><a href="#top-2-x和3-x" class="headerlink" title="top(2.x和3.x)"></a>top(2.x和3.x)</h4><p>默认情况下，top展示的是对进程的CPU消耗量进行降序排列的列表，但它也可以调整为按内存使用总量排序，以便你能跟踪到哪个进程使用的内存最多。</p>
+<p>实验版本</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">┌──[root@liruilongs.github.io]-[~]</span><br><span class="line">└─$ top -v</span><br><span class="line">  procps-ng version 3.3.10</span><br><span class="line">Usage:</span><br><span class="line">  top -hv | -bcHiOSs -d secs -n max -u|U user -p pid(s) -o field -w [cols]</span><br></pre></td></tr></table></figure>
+
+
+<p>top运行时切换项</p>
+<table>
+<thead>
+<tr>
+<th>选项</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>m</td>
+<td>该项切换是否将内存使用量信息显示到屏幕</td>
+</tr>
+<tr>
+<td>M</td>
+<td>按任务使用的内存量排序。由于分配给进程的内存量可能会大于其使用量，因此，该项按驻留集大小排序。驻留集大小是指进程实际使用量，而不是简单的进程请求量</td>
+</tr>
+</tbody></table>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">top - 11:48:07 up 14 min,  1 user,  load average: 0.07, 0.10, 0.13</span><br><span class="line">Tasks: 273 total,   2 running, 271 sleeping,   0 stopped,   0 zombie</span><br><span class="line">%Cpu(s):  0.0 us,  0.0 sy,  0.0 ni,100.0 id,  0.0 wa,  0.0 hi,  0.0 si,  0.0 st</span><br><span class="line">KiB Mem : 32931532 total, 23319380 free,  8643596 used,   968556 buff/cache</span><br><span class="line">KiB Swap: 10485756 total, 10485756 free,        0 used. 23759444 avail Mem</span><br><span class="line"></span><br><span class="line">   PID USER      PR  NI    VIRT    RES    SHR S  %CPU %MEM     TIME+ COMMAND</span><br><span class="line">   889 etcd      20   0 10.559g  29332  11008 S   1.3  0.1   0:10.94 etcd</span><br><span class="line">  8089 nginx     20   0   41636  12148   1588 S   1.3  0.0   0:03.35 redis-server</span><br></pre></td></tr></table></figure>
+<table>
+<thead>
+<tr>
+<th>选项</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Mem:total，used，free</td>
+<td>对物理内存来说，该项表示的是其总量、使用量和空闲量</td>
+</tr>
+<tr>
+<td>swap:total，used，free</td>
+<td>对交换分区来说，该项表示的是其总量、使用量和空闲量</td>
+</tr>
+<tr>
+<td>buff&#x2F;cache</td>
+<td>用于缓冲区写人硬盘的数值和缓存的物理内存总量(单位为KB)</td>
+</tr>
+</tbody></table>
+<p>可以建通过 m 键更直观的查看</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">top - 11:47:42 up 14 min,  1 user,  load average: 0.11, 0.11, 0.13</span><br><span class="line">Tasks: 273 total,   1 running, 272 sleeping,   0 stopped,   0 zombie</span><br><span class="line">%Cpu(s):  0.1 us,  0.2 sy,  0.0 ni, 99.6 id,  0.0 wa,  0.0 hi,  0.1 si,  0.0 st</span><br><span class="line">KiB Mem : 27.9/32931532 [|||||||||||||||||||||                                                      ]</span><br><span class="line">KiB Swap:  0.0/10485756 [                                                                           ]</span><br><span class="line"></span><br><span class="line">   PID USER      PR  NI    VIRT    RES    SHR S  %CPU %MEM     TIME+ COMMAND</span><br><span class="line">   889 etcd      20   0 10.559g  29332  11008 S   1.0  0.1   0:10.70 etcd</span><br><span class="line">  8073 992       20   0  762040 109952  11972 S   1.0  0.3   0:06.59 prometheus</span><br><span class="line">  8079 chrony    20   0  860404 575904   9968 S   1.0  1.7   0:30.24 bundle</span><br><span class="line">  8082 992       20   0  542292  15620   5476 S   0.3  0.0   0:00.77 node_exporter</span><br><span class="line">  8089 nginx     20   0   41636  12148   1588 S   0.3  0.0   0:03.26 redis-server</span><br><span class="line">  8093 chrony    20   0  305636  30176   4964 S   0.3  0.1   0:03.33 gitlab-mon</span><br><span class="line">  8099 nginx     20   0  398856  11900   3784 S   0.3  0.0   0:00.53 redis_exporter</span><br></pre></td></tr></table></figure>
+
+<p><img src="https://img-blog.csdnimg.cn/6711fb4848b14535a37debc9dddf3396.png" alt="在这里插入图片描述"></p>
+<h4 id="free"><a href="#free" class="headerlink" title="free"></a>free</h4><p>free 提供的是系统使用内存的总体情况，包括空闲内存量,这是一个用的最多的查看系统内存的命令</p>
+<p><code>free [-l][·t][-s delay 1[-c count]</code></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line">┌──[root@liruilongs.github.io]-[~]</span><br><span class="line">└─$ free -V</span><br><span class="line">free from procps-ng 3.3.10</span><br><span class="line">┌──[root@liruilongs.github.io]-[~]</span><br><span class="line">└─$ free --<span class="built_in">help</span></span><br><span class="line"></span><br><span class="line">Usage:</span><br><span class="line"> free [options]</span><br><span class="line"></span><br><span class="line">Options:</span><br><span class="line"> -b, --bytes         show output <span class="keyword">in</span> bytes</span><br><span class="line"> -k, --kilo          show output <span class="keyword">in</span> kilobytes</span><br><span class="line"> -m, --mega          show output <span class="keyword">in</span> megabytes</span><br><span class="line"> -g, --giga          show output <span class="keyword">in</span> gigabytes</span><br><span class="line">     --tera          show output <span class="keyword">in</span> terabytes</span><br><span class="line">     --peta          show output <span class="keyword">in</span> petabytes</span><br><span class="line"> -h, --human         show human-readable output</span><br><span class="line">     --si            use powers of 1000 not 1024</span><br><span class="line"> -l, --lohi          show detailed low and high memory statistics</span><br><span class="line"> -t, --total         show total <span class="keyword">for</span> RAM + swap</span><br><span class="line"> -s N, --seconds N   repeat printing every N seconds</span><br><span class="line"> -c N, --count N     repeat printing N <span class="built_in">times</span>, <span class="keyword">then</span> <span class="built_in">exit</span></span><br><span class="line"> -w, --wide          wide output</span><br><span class="line"></span><br><span class="line">     --<span class="built_in">help</span>     display this <span class="built_in">help</span> and <span class="built_in">exit</span></span><br><span class="line"> -V, --version  output version information and <span class="built_in">exit</span></span><br><span class="line"></span><br><span class="line">For more details see free(1).</span><br></pre></td></tr></table></figure>
+
+<p>常用命令</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">┌──[root@liruilongs.github.io]-[~]</span><br><span class="line">└─$ free</span><br><span class="line">              total        used        free      shared  buff/cache   available</span><br><span class="line">Mem:       32931532     8820980    22388436       27388     1722116    23579356</span><br><span class="line">Swap:      10485756           0    10485756</span><br><span class="line">┌──[root@liruilongs.github.io]-[~]</span><br><span class="line">└─$ free -h</span><br><span class="line">              total        used        free      shared  buff/cache   available</span><br><span class="line">Mem:            31G        8.4G         21G         26M        1.6G         22G</span><br><span class="line">Swap:            9G          0B          9G</span><br></pre></td></tr></table></figure>
+
+<table>
+<thead>
+<tr>
+<th>统计信息</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Total</td>
+<td>物理内存与交换空间的总量</td>
+</tr>
+<tr>
+<td>Used</td>
+<td>使用的物理内存和交换分区的容量</td>
+</tr>
+<tr>
+<td>Free</td>
+<td>未使用的物理内存和交换分区的容量</td>
+</tr>
+<tr>
+<td>shared</td>
+<td>进程共享内存使用量，该项已过时，应忽略</td>
+</tr>
+<tr>
+<td>Buffers</td>
+<td>用作<code>硬盘写缓冲区</code>的物理内存的容量</td>
+</tr>
+<tr>
+<td>Cached</td>
+<td>用作<code>硬盘读缓存</code>的物理内存的容量</td>
+</tr>
+<tr>
+<td>High</td>
+<td><code>高端内存</code>或<code>不能被内核直接访问</code>的内存总量</td>
+</tr>
+<tr>
+<td>Low</td>
+<td><code>低端内存</code>或<code>能被内核直接访问</code>的内存总量</td>
+</tr>
+<tr>
+<td>Totals</td>
+<td>对Total、Used和Free列，该项显示的是该列中物理内存和交换分区的总和</td>
+</tr>
+<tr>
+<td>｜available ｜列表示系统当前可被应用程序实际使用的内存量 <code>available ≈ free + buffers + cache（可回收部分）</code>​​｜</td>
+<td></td>
+</tr>
+</tbody></table>
+<p><code>-l</code>向你展示使用了多少高端内存和多少低端内存</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">┌──[root@liruilongs.github.io]-[~]</span><br><span class="line">└─$ free -l</span><br><span class="line">              total        used        free      shared  buff/cache   available</span><br><span class="line">Mem:       32931532     4835004    24441680       35596     3654848    27657976</span><br><span class="line">Low:       32931532     8489852    24441680</span><br><span class="line">High:             0           0           0</span><br><span class="line">Swap:      10485756           0    10485756</span><br></pre></td></tr></table></figure>
+
+<p><code>-t</code>命令可以查看内存的统计信息</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">┌──[root@liruilongs.github.io]-[~]</span><br><span class="line">└─$ free -t</span><br><span class="line">              total        used        free      shared  buff/cache   available</span><br><span class="line">Mem:       32931532     5005552    24808440       35588     3117540    27487560</span><br><span class="line">Swap:      10485756           0    10485756</span><br><span class="line">Total:     43417288     5005552    35294196</span><br></pre></td></tr></table></figure>
+
+<p>选项说明</p>
+<ul>
+<li><code>-s delay</code>:使free按每delay秒的间隔输出新的内存统计数据</li>
+<li><code>-c count</code>:使free 输出count次新的统计数据</li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">┌──[root@liruilongs.github.io]-[~]</span><br><span class="line">└─$ free -s 2 -c 2</span><br><span class="line">              total        used        free      shared  buff/cache   available</span><br><span class="line">Mem:       32931532     5405500    24408372       35588     3117660    27087612</span><br><span class="line">Swap:      10485756           0    10485756</span><br><span class="line"></span><br><span class="line">              total        used        free      shared  buff/cache   available</span><br><span class="line">Mem:       32931532     5405460    24408388       35588     3117684    27087652</span><br><span class="line">Swap:      10485756           0    10485756</span><br><span class="line">┌──[root@liruilongs.github.io]-[~]</span><br><span class="line">└─$</span><br></pre></td></tr></table></figure>
+
+<h4 id="slabtop"><a href="#slabtop" class="headerlink" title="slabtop"></a>slabtop</h4><p><code>slabtop实时显示内核是如何分配其各种缓存的</code>，以及这些缓存的被占用情况。在内部，内核有一系列的缓存，它们由一个或多个<code>分片(slab)</code>构成。每个分片包括一组对象，对象个数为一个或多个。</p>
+<p>这些对象可以是活跃的(使用的)或非活跃的(未使用的)。slabtop向你展示的是不同分片的状况。它显示了这些分片的被占用情况，以及它们使用了多少内存。</p>
+<p>slabtop可以一窥Linux内核的数据结构。每一种分片类型都与Linux内核紧密相关。如果某个特定分片使用了大量的内核内存，那么阅读Linux内核源代码和搜索互联网是找出这些分片用在哪里的最好的两种方法。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line">┌──[root@liruilongs.github.io]-[~]</span><br><span class="line">└─$ slabtop --<span class="built_in">help</span></span><br><span class="line"></span><br><span class="line">Usage:</span><br><span class="line"> slabtop [options]</span><br><span class="line"></span><br><span class="line">Options:</span><br><span class="line"> -d, --delay &lt;secs&gt;  delay updates</span><br><span class="line"> -o, --once          only display once, <span class="keyword">then</span> <span class="built_in">exit</span></span><br><span class="line"> -s, --sort &lt;char&gt;   specify sort criteria by character (see below)</span><br><span class="line"></span><br><span class="line"> -h, --<span class="built_in">help</span>     display this <span class="built_in">help</span> and <span class="built_in">exit</span></span><br><span class="line"> -V, --version  output version information and <span class="built_in">exit</span></span><br><span class="line"></span><br><span class="line">The following are valid sort criteria:</span><br><span class="line"> a: sort by number of active objects</span><br><span class="line"> b: sort by objects per slab</span><br><span class="line"> c: sort by cache size</span><br><span class="line"> l: sort by number of slabs</span><br><span class="line"> v: sort by number of active slabs</span><br><span class="line"> n: sort by name</span><br><span class="line"> o: sort by number of objects (the default)</span><br><span class="line"> p: sort by pages per slab</span><br><span class="line"> s: sort by object size</span><br><span class="line"> u: sort by cache utilization</span><br><span class="line"></span><br><span class="line">For more details see slabtop(1).</span><br></pre></td></tr></table></figure>
+
+<p>实时监控 Linux 内核 ​​SLAB 缓存​​，间隔2s，对缓存进行排序</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">┌──[root@liruilongs.github.io]-[~]</span><br><span class="line">└─$ slabtop -d 2 -s c</span><br><span class="line"> Active / Total Objects (% used)    : 2172003 / 2195023 (99.0%)</span><br><span class="line"> Active / Total Slabs (% used)      : 49649 / 49649 (100.0%)</span><br><span class="line"> Active / Total Caches (% used)     : 69 / 95 (72.6%)</span><br><span class="line"> Active / Total Size (% used)       : 466189.06K / 477588.18K (97.6%)</span><br><span class="line"> Minimum / Average / Maximum Object : 0.01K / 0.22K / 8.00K</span><br><span class="line"></span><br><span class="line">  OBJS ACTIVE  USE OBJ SIZE  SLABS OBJ/SLAB CACHE SIZE NAME</span><br><span class="line">727440 727339  99%    0.19K  17320       42    138560K dentry</span><br><span class="line">571038 570600  99%    0.10K  14642       39     58568K buffer_head</span><br><span class="line">305088 304062  99%    0.06K   4767       64     19068K kmalloc-64</span><br></pre></td></tr></table></figure>
+
+<p>我们来看一下输出</p>
+<p><img src="https://i-blog.csdnimg.cn/direct/261a0945466a44a1b366dd715c8a5390.png" alt="在这里插入图片描述"></p>
+<p><strong>汇总信息（全局统计）</strong></p>
+<table>
+<thead>
+<tr>
+<th>字段</th>
+<th>含义</th>
+<th>当前值</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>Active &#x2F; (% used)</strong></td>
+<td>活跃对象与总对象数的比例</td>
+<td><code>2172003 / 2195023 (99.0%)</code></td>
+<td>系统中 <strong>99% 的缓存对象</strong>，表明内核缓存高度活跃。</td>
+</tr>
+<tr>
+<td><strong>Active &#x2F; Total Slabs (% used)</strong></td>
+<td>活跃 Slab 与总 Slab 的比例</td>
+<td><code>49649 / 49649 (100.0%)</code></td>
+<td><strong>所有 Slab 均被完全占用</strong>，无空闲内存块，可能因内存需求高或分配策略严格。</td>
+</tr>
+<tr>
+<td><strong>Active &#x2F; Total Caches (% used)</strong></td>
+<td>活跃缓存与总缓存的比例</td>
+<td><code>69 / 95 (72.6%)</code></td>
+<td>系统中.6% 的缓存正在被使用**，剩余缓存可能为低优先级或未初始化。</td>
+</tr>
+<tr>
+<td><strong>Active &#x2F; Total Size (% used)</strong></td>
+<td>活跃内存与总内存的比例</td>
+<td><code>466189.06K / 477588.18K (97.6%)</code></td>
+<td>总缓存内存约 <strong>466MB</strong>，占分配内存的 97.6%，内存利用率极高。</td>
+</tr>
+<tr>
+<td><strong>Minimum &#x2F; Average &#x2F; Maximum Object</strong></td>
+<td>对象大小范围</td>
+<td><code>0.01K / 0.22K / 8.00K</code></td>
+<td>内核缓存对象大小跨度大，平均 <strong>0.22KB（224字节）</strong>，以小型对象为主。｜</td>
+</tr>
+</tbody></table>
+<p><strong>详细缓存列表（按缓存大小排序）</strong></p>
+<table>
+<thead>
+<tr>
+<th>字段</th>
+<th>说明</th>
+<th><code>dentry</code> 行示例</th>
+<th><code>buffer_head</code> 行示例</th>
+<th><code>kmalloc-64</code> 行示例</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>OBJS</strong></td>
+<td>缓存中总对象数</td>
+<td><code>727440</code></td>
+<td><code>571038</code></td>
+<td><code>305088</code></td>
+</tr>
+<tr>
+<td><strong>ACTIVE</strong></td>
+<td>当前活跃对象数</td>
+<td><code>727339</code></td>
+<td><code>570600</code></td>
+<td><code>304062</code></td>
+</tr>
+<tr>
+<td><strong>USE</strong></td>
+<td>活跃对象占比</td>
+<td><code>99%</code></td>
+<td><code>99%</code></td>
+<td><code>99%</code></td>
+</tr>
+<tr>
+<td><strong>OBJ SIZE</strong></td>
+<td>单个对象大小</td>
+<td><code>0.19K</code>（约 194字节）</td>
+<td><code>0.10K</code>（约 102字节）</td>
+<td><code>0.06K</code>（约 61字节）</td>
+</tr>
+<tr>
+<td><strong>SLABS</strong></td>
+<td>Slab 数量</td>
+<td><code>17320</code></td>
+<td><code>14642</code></td>
+<td><code>4767</code></td>
+</tr>
+<tr>
+<td><strong>OBJ&#x2F;SLAB</strong></td>
+<td>每个 Slab 包含的对象数</td>
+<td><code>42</code></td>
+<td><code>39</code></td>
+<td><code>64</code></td>
+</tr>
+<tr>
+<td><strong>CACHE SIZE</strong></td>
+<td>该缓存占用的总内存</td>
+<td><code>138560K</code>（约 135MB）</td>
+<td><code>58568K</code>（约 57MB）</td>
+<td><code>19068K</code>（约 18.6MB）</td>
+</tr>
+<tr>
+<td><strong>NAME</strong></td>
+<td>缓存名称</td>
+<td><code>dentry</code>（目录项缓存）</td>
+<td><code>buffer_head</code>（块设备 I&#x2F;O 缓存）</td>
+<td><code>kmalloc-64</code>（内核动态分配的 64字节内存块）</td>
+</tr>
+</tbody></table>
+<p>通过 <code>slabtop</code> 的输出，可快速定位内核内存的热点缓存，结合具体场景优化系统性能或排查内存泄漏问题。</p>
+<h4 id="sar"><a href="#sar" class="headerlink" title="sar"></a>sar</h4><p>上面讲的系统内存监控工具都是实时工具，有时候可能当尝试去解决问题的时候，问题已经发生完成了，即错过了解决问题的最佳时机，所以我们需要查看历史监控数据，所以就有了 sar</p>
+<p><code>sar [-B][-rl[-R]</code></p>
+<table>
+<thead>
+<tr>
+<th>选项</th>
+<th>描述</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>-B</td>
+<td>报告的信息为内核与磁盘之间交换的块数。此外，对v2.5之后的内核版本，该项报告的信息为缺页数量</td>
+</tr>
+<tr>
+<td>-W</td>
+<td>报告的是系统交换的页数</td>
+</tr>
+<tr>
+<td>-r</td>
+<td>报告系统使用的内存信息。它包括总的空闲内存、正在使用的交换分区、缓存和缓冲区的信息</td>
+</tr>
+</tbody></table>
+<p><strong>交换分区活动监控</strong></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">┌──[root@liruilongs.github.io]-[~]</span><br><span class="line">└─$ sar -W</span><br><span class="line">Linux 3.10.0-693.el7.x86_64 (liruilongs.github.io)      2022年07月23日  _x86_64_        (6 CPU)</span><br><span class="line"></span><br><span class="line">11时33分39秒       LINUX RESTART</span><br><span class="line"></span><br><span class="line">11时40分01秒  pswpin/s pswpout/s</span><br><span class="line">11时50分01秒      0.00      0.00</span><br><span class="line">12时00分01秒      0.00      0.00</span><br><span class="line">12时10分01秒      0.00      0.00</span><br><span class="line">12时20分01秒      0.00      0.00</span><br><span class="line">平均时间:      0.00      0.00</span><br></pre></td></tr></table></figure>
+<p>所有时间点的值均为 0.00，表明系统在监控期间 ​​未发生 Swap 交换活动​​。物理内存充足，未触发内存回收机制，系统未因内存不足使用 Swap</p>
+<ul>
+<li>​​pswpin&#x2F;s​​：每秒从 Swap 分区换入到物理内存的页面数量。</li>
+<li>​pswpout&#x2F;s​​：每秒从物理内存换出到 Swap 分区的页面数量。</li>
+</ul>
+<p><strong>内存分页与缺页统计</strong></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">┌──[root@liruilongs.github.io]-[~]</span><br><span class="line">└─$ sar -B</span><br><span class="line">Linux 3.10.0-693.el7.x86_64 (liruilongs.github.io)      2022年07月23日  _x86_64_        (6 CPU)</span><br><span class="line"></span><br><span class="line">11时33分39秒       LINUX RESTART</span><br><span class="line"></span><br><span class="line">11时40分01秒  pgpgin/s pgpgout/s   fault/s  majflt/s  pgfree/s pgscank/s pgscand/s pgsteal/s    %vmeff</span><br><span class="line">11时50分01秒     12.52    125.74    677.40      0.02    692.72      0.00      0.00      0.00      0.00</span><br><span class="line">12时00分01秒    138.94    533.55   1253.45      0.17   1110.67      0.00      0.00      0.00      0.00</span><br><span class="line">12时10分01秒    118.52   5527.63  35379.48      0.20  19923.40      0.00      0.00      0.00      0.00</span><br><span class="line">12时20分01秒     15.85    122.99   3750.36      0.02   1989.95      0.00      0.00      0.00      0.00</span><br><span class="line">平均时间:     71.46   1578.02  10268.63      0.10   5931.11      0.00      0.00      0.00      0.00</span><br><span class="line">┌──[root@liruilongs.github.io]-[~]</span><br><span class="line">└─$</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><code>pgpgin/s​​</code>：每秒从磁盘读入内存的页数（单位：页&#x2F;秒）。</li>
+<li><code>​​pgpgout/s​</code>​：每秒从内存写入磁盘的页数（单位：页&#x2F;秒）。</li>
+<li><code>​​fault/s​​</code>：每秒发生的缺页中断次数（包括次缺页和主缺页）。</li>
+<li><code>​​majflt/s</code>​​：每秒发生的主缺页次数（需从磁盘加载数据）。</li>
+<li><code>​​pgfree/s​</code>​：每秒释放到空闲列表的内存页数。</li>
+</ul>
+<p>​​pgpgout&#x2F;s 较高​​（平均 1578.02）：系统存在频繁的页写入磁盘操作，可能与缓存刷新或应用程序的磁盘写入有关。​​majflt&#x2F;s 极低​​（0.10）：主缺页较少，表明大部分缺页通过缓存（次缺解决，内存压力较小,关于缺页，会在之后的文章中和小伙伴分享</p>
+<p><strong>内存使用统计</strong></p>
+<p>显示系统的​​物理内存和交换空间使用情况</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">┌──[root@liruilongs.github.io]-[~]</span><br><span class="line">└─$ sar -r 1 3</span><br><span class="line">Linux 3.10.0-693.el7.x86_64 (liruilongs.github.io)      2022年07月23日  _x86_64_        (6 CPU)</span><br><span class="line"></span><br><span class="line">12时39分27秒 kbmemfree kbmemused  %memused kbbuffers  kbcached  kbcommit   %commit  kbactive   kbinact   kbdirty</span><br><span class="line">12时39分28秒  23253572   9677960     29.39      3104   2789588   5138464     11.84   6864288   1980388        96</span><br><span class="line">12时39分29秒  23253572   9677960     29.39      3104   2789620   5138464     11.84   6864300   1980416        96</span><br><span class="line">12时39分30秒  23253572   9677960     29.39      3104   2789620   5138464     11.84   6864300   1980416        96</span><br><span class="line">平均时间:  23253572   9677960     29.39      3104   2789609   5138464     11.84   6864296   1980407        96</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><code>kbmemfree</code>​​：空闲物理内存（约 22.25GB）。</li>
+<li><code>​​kbmemused</code>​​：已用物理内存（约 9.24GB）。</li>
+<li><code>​​%memused​​</code>：内存使用率（29.39%）。</li>
+<li><code>​​kbbuffers​​</code>：内核缓冲区占用的内存（3.03MB）。</li>
+<li><code>​​kbcached​</code>​：文件系统缓存占用的内存（约 2.66GB）。<br>​​</li>
+</ul>
+<p><strong>​内存页的动态分配速率​</strong>​，包括释放、缓冲和缓存的页面变化。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">┌──[root@liruilongs.github.io]-[~]</span><br><span class="line">└─$ sar -R 1 3</span><br><span class="line">Linux 3.10.0-693.el7.x86_64 (liruilongs.github.io)      2022年07月23日  _x86_64_        (6 CPU)</span><br><span class="line"></span><br><span class="line">12时39分44秒   frmpg/s   bufpg/s   campg/s</span><br><span class="line">12时39分45秒    -96.00      0.00      6.00</span><br><span class="line">12时39分46秒     29.00      0.00      0.00</span><br><span class="line">12时39分47秒    -33.00      0.00      0.00</span><br><span class="line">平均时间:    -33.33      0.00      2.00</span><br><span class="line">┌──[root@liruilongs.github.io]-[~]</span><br><span class="line">└─$</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>​​frmpg&#x2F;s​​：每秒释放到空闲列表的页面数（负值表示释放）。</li>
+<li>​bufpg&#x2F;s​​：每秒分配给缓冲区的页面数。</li>
+<li>campg&#x2F;s​​：每秒分配给缓存的页面数。</li>
+</ul>
+<h3 id="Cgroup-方式"><a href="#Cgroup-方式" class="headerlink" title="Cgroup 方式"></a>Cgroup 方式</h3><h4 id="systemd-cgtop"><a href="#systemd-cgtop" class="headerlink" title="systemd-cgtop"></a>systemd-cgtop</h4><p>通过 <code>systemd-cgtop --order=memory</code>，可以展示各个<code>控制组（Control Group）</code>按内存使用情况的排序信息。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line">┌──[root@liruilongs.github.io]-[/usr/lib/systemd/system] </span><br><span class="line">└─<span class="variable">$systemd</span>-cgtop --order=memory</span><br><span class="line"></span><br><span class="line">Control Group                                                                                                          Tasks   %CPU   Memory  Input/s Output/s</span><br><span class="line">/                                                                                                                        320      -     1.4G        -        -</span><br><span class="line">user.slice                                                                                                               143      -   767.2M        -        -</span><br><span class="line">user.slice/user-1000.slice                                                                                               115      -   695.2M        -        -</span><br><span class="line">user.slice/user-1000.slice/session-1.scope                                                                                84      -   674.1M        -        -</span><br><span class="line">system.slice                                                                                                             101      -   500.9M        -        -</span><br><span class="line">system.slice/hostguard.service                                                                                            33      -   136.1M        -        -</span><br><span class="line">user.slice/user-986.slice                                                                                                 28      -    72.0M        -        -</span><br><span class="line">system.slice/lightdm.service                                                                                               6      -    71.1M        -        -</span><br><span class="line">user.slice/user-986.slice/session-c1.scope                                                                                 6      -    64.4M        -        -</span><br><span class="line">system.slice/ces-uniagent.service                                                                                          6      -    30.3M        -        -</span><br><span class="line">user.slice/user-1000.slice/user@1000.service                                                                              31      -    21.0M        -        -</span><br><span class="line">system.slice/systemd-udevd.service                                                                                         1      -    17.4M        -        -</span><br><span class="line">system.slice/tuned.service                                                                                                 5      -    15.8M        -        -</span><br><span class="line">system.slice/NetworkManager.service                                                                                        4      -    11.9M        -        -</span><br><span class="line">system.slice/udisks2.service                                                                                               5      -     9.0M        -        -</span><br><span class="line">user.slice/user-986.slice/user@986.service                                                                                22      -     7.6M        -        -</span><br><span class="line">system.slice/polkit.service                                                                                                3      -     7.1M        -        -</span><br><span class="line">system.slice/rngd.service                                                                                                  5      -     5.7M        -        -</span><br><span class="line">system.slice/rsyslog.service                                                                                               3      -     5.5M        -        -</span><br><span class="line">system.slice/chronyd.service                                                                                               1      -     3.7M        -        -</span><br><span class="line">system.slice/auditd.service                                                                                                2      -     3.6M        -        -</span><br><span class="line">system.slice/accounts-daemon.service                                                                                       3      -     2.8M        -        -</span><br><span class="line">system.slice/rpcbind.service                                                                                               1      -     2.4M        -        -</span><br><span class="line">system.slice/rtkit-daemon.service                                                                                          3      -     2.3M        -        -</span><br><span class="line">system.slice/gssproxy.service                                                                                              6      -     2.0M        -        -</span><br><span class="line">system.slice/sshd.service                                                                                                  1      -     2.0M        -        -</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>最上方的“&#x2F;”表示根控制组，其下有多个子控制组，如<code>user.slice</code>等。每个控制组包含任务<code>（Tasks）</code>数量、<code>CPU使用率（%CPU）</code>、<code>内存（Memory）使用量</code>、<code>输入输出速率（Input/s和Output/s）</code>等信息。</p>
+<p>同时可以看到不同用户会话（如user-1000.slice，user-986.slice）、系统服务（如hostguard.service、lightdm.service等）的内存使用情况。通过这些信息能快速了解系统中各部分的内存占用状况，有助于发现内存使用异常的控制组，进而进行内存相关的调优或故障排查。 </p>
+<h3 id="proc-内存伪文件系统"><a href="#proc-内存伪文件系统" class="headerlink" title="proc 内存伪文件系统"></a>proc 内存伪文件系统</h3><h4 id="x2F-proc-x2F-meminfo"><a href="#x2F-proc-x2F-meminfo" class="headerlink" title="&#x2F;proc&#x2F;meminfo"></a>&#x2F;proc&#x2F;meminfo</h4><p>Linux内核提供用户可读文本文件<code>/proc/meminfo</code>来显示当前系统范围内的内存性能统计信息，</p>
+<p>它提供了系统范围内<code>内存统计数据</code>的超集，包括了<code>vmstat、top、free和procinfo</code>的信息，但是使用起来有一定的难度。如果你想定期更新，就需要自己写一个脚本或一些代码来实现这个功能。如果你想保存内存性能信息或是将其与CPU统计信息相协调，就必须创建一个新的工具或是写一个脚本。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br></pre></td><td class="code"><pre><span class="line">┌──[root@liruilongs.github.io]-[~]</span><br><span class="line">└─$ cat /proc/meminfo</span><br><span class="line">MemTotal:       32931532 kB</span><br><span class="line">MemFree:        23182352 kB</span><br><span class="line">MemAvailable:   25878308 kB</span><br><span class="line">Buffers:            3104 kB</span><br><span class="line">Cached:          2790760 kB</span><br><span class="line">SwapCached:            0 kB</span><br><span class="line">Active:          6933748 kB</span><br><span class="line">Inactive:        1981384 kB</span><br><span class="line">Active(anon):    6124200 kB</span><br><span class="line">Inactive(anon):    32624 kB</span><br><span class="line">Active(file):     809548 kB</span><br><span class="line">Inactive(file):  1948760 kB</span><br><span class="line">Unevictable:           0 kB</span><br><span class="line">Mlocked:               0 kB</span><br><span class="line">SwapTotal:      10485756 kB</span><br><span class="line">SwapFree:       10485756 kB</span><br><span class="line">Dirty:                84 kB</span><br><span class="line">Writeback:             0 kB</span><br><span class="line">AnonPages:       6121244 kB</span><br><span class="line">Mapped:           188304 kB</span><br><span class="line">Shmem:             35556 kB</span><br><span class="line">Slab:             481624 kB</span><br><span class="line">SReclaimable:     340480 kB</span><br><span class="line">SUnreclaim:       141144 kB</span><br><span class="line">KernelStack:       12944 kB</span><br><span class="line">PageTables:        31076 kB</span><br><span class="line">NFS_Unstable:          0 kB</span><br><span class="line">Bounce:                0 kB</span><br><span class="line">WritebackTmp:          0 kB</span><br><span class="line">CommitLimit:    26951520 kB</span><br><span class="line">Committed_AS:    5158652 kB</span><br><span class="line">VmallocTotal:   34359738367 kB</span><br><span class="line">VmallocUsed:      225072 kB</span><br><span class="line">VmallocChunk:   34359310332 kB</span><br><span class="line">HardwareCorrupted:     0 kB</span><br><span class="line">AnonHugePages:   5437440 kB</span><br><span class="line">HugePages_Total:       0</span><br><span class="line">HugePages_Free:        0</span><br><span class="line">HugePages_Rsvd:        0</span><br><span class="line">HugePages_Surp:        0</span><br><span class="line">Hugepagesize:       2048 kB</span><br><span class="line">DirectMap4k:      161600 kB</span><br><span class="line">DirectMap2M:     7178240 kB</span><br><span class="line">DirectMap1G:    28311552 kB</span><br></pre></td></tr></table></figure>
+
+<p>部分参数描述</p>
+<ul>
+<li>SwapTotal:可用的总交换空间</li>
+<li>SwapFree:剩余可用交换空间</li>
+<li>Dirty:等待写回磁盘的内存</li>
+<li>Writeback:正在主动写回磁盘的内存</li>
+<li>AnonPages:映射到用户空间页表的非文件支持页</li>
+<li>Mapped:已映射的文件，例如库</li>
+<li>Slab:内核数据结构缓存</li>
+<li>PageTables:专用于最低级别页表的内存量。如果很多进程连接到同一个共享内存段，这可能会增加到一个很高的值。</li>
+<li>NFS_Unstable:NFS 页面发送到服务器，但尚未提交到存储</li>
+<li>Bounce:用于块设备的内存bounce buffers</li>
+<li>CommitLimit:根据过量使用率 ( vm.overcommit_ratio)，这是系统上当前可分配的内存总量。仅当启用了严格的过量使用记帐(模式 2 in )时才遵守此限制vm.overcommit_memory。</li>
+<li>Committed_AS:当前在系统上分配的内存量。提交的内存是进程分配的所有内存的总和，即使它还没有被它们“使用”。</li>
+<li>VmallocTotal:vmalloc 内存区域的总大小</li>
+<li>VmallocUsed:使用的vmalloc区域的数量</li>
+<li>VmallocChunk:vmalloc 区域的最大连续块，它是空闲的</li>
+<li>HugePages_Total:内核分配的大页数(用 定义vm.nr_hugepages)</li>
+<li>HugePages_Free:进程未分配的大页数</li>
+<li>HugePages_Rsvd:已承诺从池中分配但尚未分配的大页数。</li>
+<li>Hugepagesize:a 的大小hugepage(在基于 Intel 的系统上通常为 2MB)</li>
+</ul>
+<h4 id="x2F-proc-x2F-slabinfo"><a href="#x2F-proc-x2F-slabinfo" class="headerlink" title="&#x2F;proc&#x2F;slabinfo"></a>&#x2F;proc&#x2F;slabinfo</h4><p>前面 slabtop 的数据源，slabinfo 是 Linux 内核提供的用于监控和管理 ​<code>​Slab 内存分配器​</code>​的关键接口文件，记录了系统中所有活跃的 Slab 缓存信息</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line">┌──[root@liruilongs.github.io]-[~]</span><br><span class="line">└─$ cat /proc/slabinfo</span><br><span class="line">slabinfo - version: 2.1</span><br><span class="line"><span class="comment"># name            &lt;active_objs&gt; &lt;num_objs&gt; &lt;objsize&gt; &lt;objperslab&gt; &lt;pagesperslab&gt; : tunables &lt;limit&gt; &lt;batchcount&gt; &lt;sharedfactor&gt; : slabdata &lt;active_slabs&gt; &lt;num_slabs&gt; &lt;sharedavail&gt;</span></span><br><span class="line">nf_conntrack_ffff8807fbe22880    153    153    320   51    4 : tunables    0    0    0 : slabdata      3      3      0</span><br><span class="line">nf_conntrack_ffff8807f2650000    306    306    320   51    4 : tunables    0    0    0 : slabdata      6      6      0</span><br><span class="line">nf_conntrack_ffffffff81ad9d40    306    306    320   51    4 : tunables    0    0    0 : slabdata      6      6      0</span><br><span class="line">xfs_dqtrx              0      0    528   62    8 : tunables    0    0    0 : slabdata      0      0      0</span><br><span class="line">xfs_icr                0      0    152   53    2 : tunables    0    0    0 : slabdata      0      0      0</span><br><span class="line">xfs_inode          37298  37298    960   34    8 : tunables    0    0    0 : slabdata   1097   1097      0</span><br><span class="line">xfs_efd_item         760    800    408   40    4 : tunables    0    0    0 : slabdata     20     20      0</span><br><span class="line">xfs_buf_item         408    408    240   68    4 : tunables    0    0    0 : slabdata      6      6      0</span><br><span class="line">xfs_btree_cur        234    234    208   39    2 : tunables    0    0    0 : slabdata      6      6      0</span><br><span class="line">xfs_log_ticket       352    352    184   44    2 : tunables    0    0    0 : slabdata      8      8      0</span><br><span class="line">bio-1                408    408    320   51    4 : tunables    0    0    0 : slabdata      8      8      0</span><br><span class="line">ip6_dst_cache        252    252    448   36    4 : tunables    0    0    0 : slabdata      7      7      0</span><br><span class="line">RAWv6                624    624   1216   26    8 : tunables    0    0    0 : slabdata     24     24      0</span><br><span class="line">...........</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><code>name</code>​​：缓存名称，通常与内核对象类型相关 xfs_inode 表示 XFS 文件系统的 inode 缓存）。</li>
+<li><code>​​active_objs</code>​​：当前活跃（已分配）的对象数量。</li>
+<li><code>​​num_objs​</code>​：缓存中总对象数量（包括空闲和活跃）。</li>
+<li><code>​​objsize​​</code>：单个对象的大小（单位：字节）。</li>
+<li><code>​​objperslab</code>​​：每个 Slab（内存块）包含的对象数量。</li>
+<li><code>​​pagesperslab</code>​​：每个 Slab 占用的物理页数（1 页通常为 4KB）</li>
+</ul>
+<p>可以看到有我们在上面通过 slabtop 命令看到的一些缓存对象</p>
+<ul>
+<li><code>​​xfs_inode​</code>​：XFS 文件系统的 inode 缓存</li>
+<li>nf_conntrack_​​：网络连接跟踪缓存（用于防火墙&#x2F;NAT）</li>
+</ul>
+<p>关于 Linux 系统缓存就可以小伙伴们分享到这里，平常监控用的最多的一个是 <code>free</code> 一个是 <code>/proc/meminfo</code> </p>
+<h2 id="博文部分内容参考"><a href="#博文部分内容参考" class="headerlink" title="博文部分内容参考"></a>博文部分内容参考</h2><p>© 文中涉及参考链接内容版权归原作者所有，如有侵权请告知 :)</p>
+<hr>
+<p>《 Red Hat Performance Tuning 442 》</p>
+<p>《性能之巅  系统、企业与云可观测性（第2版）》</p>
+<hr>
+<p>© 2018-至今 <a href="mailto:&#x6c;&#105;&#x72;&#117;&#105;&#108;&#111;&#110;&#103;&#101;&#114;&#64;&#x67;&#109;&#x61;&#x69;&#x6c;&#x2e;&#x63;&#x6f;&#109;">&#x6c;&#105;&#x72;&#117;&#105;&#108;&#111;&#110;&#103;&#101;&#114;&#64;&#x67;&#109;&#x61;&#x69;&#x6c;&#x2e;&#x63;&#x6f;&#109;</a>, 保持署名-非商用-相同方式共享(CC BY-NC-SA 4.0)</p>
+</div><div class="article-licensing box"><div class="licensing-title"><p>Linux 系统内存监控：Linux 内存调优之系统内存全面监控</p><p><a href="https://liruilongs.github.io/2025/04/11/待发布/Linux 系统内存监控：Linux 内存调优之系统内存全面监控/">https://liruilongs.github.io/2025/04/11/待发布/Linux 系统内存监控：Linux 内存调优之系统内存全面监控/</a></p></div><div class="licensing-meta level is-mobile"><div class="level-left"><div class="level-item is-narrow"><div><h6>作者</h6><a href="https://liruilongs.github.io"><p>山河已无恙</p></a></div></div><div class="level-item is-narrow"><div><h6>发布于</h6><p>2025-04-11</p></div></div><div class="level-item is-narrow"><div><h6>更新于</h6><p>2025-04-14</p></div></div><div class="level-item is-narrow"><div><h6>许可协议</h6><p><a class="icon" rel="noopener" target="_blank" title="Creative Commons" href="https://creativecommons.org/"><i class="fab fa-creative-commons"></i></a><a class="icon" rel="noopener" target="_blank" title="Attribution" href="https://creativecommons.org/licenses/by/4.0/"><i class="fab fa-creative-commons-by"></i></a><a class="icon" rel="noopener" target="_blank" title="Noncommercial" href="https://creativecommons.org/licenses/by-nc/4.0/"><i class="fab fa-creative-commons-nc"></i></a></p></div></div></div></div></div><div class="recommend-area"><div class="recommend-post"><span class="is-size-6 has-text-grey has-mr-7"># 相关文章</span><br><span>  1.<a class="is-size-6" href="/2025/04/11/%E5%BE%85%E5%8F%91%E5%B8%83/Linux-%E8%BF%9B%E7%A8%8B%E5%86%85%E5%AD%98%E7%9B%91%E6%8E%A7%EF%BC%9ALinux-%E5%86%85%E5%AD%98%E8%B0%83%E4%BC%98%E4%B9%8B%E8%BF%9B%E7%A8%8B%E5%86%85%E5%AD%98%E6%B7%B1%E5%BA%A6%E7%9B%91%E6%8E%A7/" target="_blank">Linux 进程内存监控：Linux 内存调优之进程内存深度监控</a><br></span><span>  2.<a class="is-size-6" href="/2025/04/08/%E5%BE%85%E5%8F%91%E5%B8%83/%E8%AE%A4%E8%AF%86%20Linux%20%E5%86%85%E5%AD%98%E6%9E%84%E6%88%90%EF%BC%9ALinux%20%E5%86%85%E5%AD%98%E8%B0%83%E4%BC%98%E4%B9%8B%E8%99%9A%E6%8B%9F%E5%86%85%E5%AD%98%E4%B8%8E%E7%89%A9%E7%90%86%E5%86%85%E5%AD%98/" target="_blank">认识 Linux 内存构成：Linux 内存调优之虚拟内存与物理内存</a><br></span><span>  3.<a class="is-size-6" href="/2025/04/07/%E5%BE%85%E5%8F%91%E5%B8%83/Linux%20%E6%80%A7%E8%83%BD%E8%B0%83%E4%BC%98%E4%B9%8BCPU%E8%B0%83%E4%BC%98%E8%AE%A4%E7%9F%A5/" target="_blank">Linux 性能调优之CPU调优认知</a><br></span><span>  4.<a class="is-size-6" href="/2024/08/23/rhca/RH442_BPF/CPU/Linux%20%E6%80%A7%E8%83%BD%E8%A7%82%E6%B5%8B%E4%B9%8B%E5%B9%B3%E5%9D%87%E8%B4%9F%E8%BD%BD/" target="_blank">Linux 性能观测之平均负载</a><br></span><span>  5.<a class="is-size-6" href="/2024/04/01/rhca/RH442_BPF/BPF/Linux-BPF%E6%80%A7%E8%83%BD%E5%88%86%E6%9E%90%E4%B9%8B%E5%9F%BA%E4%BA%8EBCC%E5%B7%A5%E5%85%B7%E6%B8%85%E5%8D%95%E6%A3%80%E6%9F%A5/" target="_blank">Linux BPF性能分析之基于BCC工具清单检查</a><br></span><span>  6.<a class="is-size-6" href="/2024/03/30/rhca/RH442_BPF/BPF/Linux-%E6%80%A7%E8%83%BD%E5%88%86%E6%9E%90%E6%96%B9%E6%B3%95%E8%AE%BA%E4%BB%8B%E7%BB%8D-%E4%B8%9A%E5%8A%A1%E8%B4%9F%E8%BD%BD%E7%94%BB%E5%83%8F%E3%80%81%E4%B8%8B%E9%92%BB%E5%88%86%E6%9E%90%E3%80%81USE%E6%96%B9%E6%B3%95%E8%AE%BA%EF%BC%8C%E6%A3%80%E6%9F%A5%E6%B8%85%E5%8D%95/" target="_blank">Linux 常见性能分析方法论介绍(业务负载画像、下钻分析、USE方法论，检查清单)</a><br></span><span>  7.<a class="is-size-6" href="/2024/03/08/Linux/Linux%E7%BD%91%E7%BB%9C/Linux%20%E7%BD%91%E7%BB%9C%E9%9A%A7%E9%81%93%E6%8A%80%E6%9C%AF%20VXLAN%20%E8%AE%A4%E7%9F%A5/" target="_blank">Linux 网络隧道技术 VXLAN 认知</a><br></span><span>  8.<a class="is-size-6" href="/2024/03/03/Linux/Linux%E7%BD%91%E7%BB%9C/Linux-%E7%BD%91%E7%BB%9C%E6%8E%A5%E5%8F%A3%E7%9A%84%E6%B7%B7%E6%9D%82%E6%A8%A1%E5%BC%8F-Promiscuous-mode-%E8%AE%A4%E7%9F%A5/" target="_blank">Linux 网络接口的混杂模式(Promiscuous  mode)认知</a><br></span></div><div class="recommend-post"><span class="is-size-6 has-text-grey has-mr-7"># 推荐文章</span><br><span>  1.<a class="is-size-6" href="/2021/08/27/K8s/%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/%E3%80%8AKubernetes%E6%9D%83%E5%A8%81%E6%8C%87%E5%8D%97-%E4%BB%8EDocker%E5%88%B0Kubernetes%E5%AE%9E%E8%B7%B5%E5%85%A8%E6%8E%A5%E8%A7%A6%E3%80%8B%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/" target="_blank">《Kubernetes权威指南:从Docker到Kubernetes实践全接触》读书笔记</a><br></span><span>  2.<a class="is-size-6" href="/2023/06/17/AI-%E4%BA%BA%E8%84%B8%E8%AF%86%E5%88%AB/AdaFace%EF%BC%9A-%E9%80%9A%E8%BF%87AdaFace%E5%AE%9E%E7%8E%B0%E4%BD%8E%E8%B4%A8%E9%87%8F%E9%9D%A2%E9%83%A8%E6%95%B0%E6%8D%AE%E9%9B%86%E7%9A%84%E7%B2%BE%E5%87%86%E4%BA%BA%E8%84%B8%E8%AF%86%E5%88%AB/" target="_blank">AdaFace(CVPR(2022))：通过AdaFace实现低质量面部数据集的人脸识别</a><br></span><span>  3.<a class="is-size-6" href="/2023/06/15/AI-%E4%BA%BA%E8%84%B8%E8%AF%86%E5%88%AB/Nvidia%203060%20%E6%98%BE%E5%8D%A1%20CUDA%20%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA(Ubuntu22.04+Nvidia%20510+Cuda11.6+cudnn8.8)/" target="_blank">Nvidia 3060 显卡 CUDA 环境搭建(Ubuntu22.04+Nvidia 510+Cuda11.6+cudnn8.8)</a><br></span><span>  4.<a class="is-size-6" href="/2023/05/04/AI-%E4%BA%BA%E8%84%B8%E8%AF%86%E5%88%AB/DeepFace%EF%BC%9A%E4%BA%BA%E8%84%B8%E8%AF%86%E5%88%AB%E5%BA%93%20DeepFace%20%E7%AE%80%E5%8D%95%E8%AE%A4%E7%9F%A5/" target="_blank">DeepFace：人脸识别库 DeepFace 简单认知</a><br></span><span>  5.<a class="is-size-6" href="/2023/12/19/AI-%E4%BA%BA%E8%84%B8%E8%AF%86%E5%88%AB/Stable-Diffusion-Windows%E9%83%A8%E7%BD%B2%E7%AE%80%E7%AD%94%E8%AE%A4%E7%9F%A5/" target="_blank">Stable Diffusion 简单认知 Windows 部署</a><br></span><span>  6.<a class="is-size-6" href="/2023/07/24/AI-%E4%BA%BA%E8%84%B8%E8%AF%86%E5%88%AB/%E4%BD%BF%E7%94%A8-OpenCV-%E8%BF%9B%E8%A1%8C%E5%9B%BE%E5%83%8F%E6%A8%A1%E7%B3%8A%E5%BA%A6%E6%A3%80%E6%B5%8B-%E6%8B%89%E6%99%AE%E6%8B%89%E6%96%AF%E6%96%B9%E5%B7%AE%E6%96%B9%E6%B3%95/" target="_blank">使用 OpenCV 进行图像模糊度检测(拉普拉斯方差方法)</a><br></span></div></div><link rel="stylesheet" href="https://cdnjs.loli.net/ajax/libs/social-share.js/1.0.16/css/share.min.css"><div class="social-share"></div><script src="https://cdnjs.loli.net/ajax/libs/social-share.js/1.0.16/js/social-share.min.js"></script></article></div><div class="card"><div class="card-content"><h3 class="menu-label has-text-centered">喜欢这篇文章？打赏一下作者吧</h3><div class="buttons is-centered"><a class="button donate" data-type="alipay"><span class="icon is-small"><i class="fab fa-alipay"></i></span><span>支付宝</span><span class="qrcode"><img src="/img/alipay%EF%BF%A5.png" alt="支付宝"></span></a><a class="button donate" data-type="wechat"><span class="icon is-small"><i class="fab fa-weixin"></i></span><span>微信</span><span class="qrcode"><img src="/img/wechat%EF%BF%A5.png" alt="微信"></span></a></div></div></div><nav class="post-navigation mt-4 level is-mobile"><div class="level-start"><a class="article-nav-prev level level-item link-muted" href="/2025/04/13/%E5%BE%85%E5%8F%91%E5%B8%83/%E8%B0%B7%E6%AD%8C68%E9%A1%B5%E7%99%BD%E7%9A%AE%E4%B9%A6%E8%A7%A3%E5%AF%86%EF%BC%9A%E6%8F%90%E7%A4%BA%E5%B7%A5%E7%A8%8B%E5%A6%82%E4%BD%95%E9%87%8D%E5%A1%91AI%E4%BA%A4%E4%BA%92%E9%80%BB%E8%BE%91/"><i class="level-item fas fa-chevron-left"></i><span class="level-item">谷歌68页白皮书解密：提示工程如何重塑AI交互逻辑</span></a></div><div class="level-end"><a class="article-nav-next level level-item link-muted" href="/2025/04/11/%E5%BE%85%E5%8F%91%E5%B8%83/Linux-%E8%BF%9B%E7%A8%8B%E5%86%85%E5%AD%98%E7%9B%91%E6%8E%A7%EF%BC%9ALinux-%E5%86%85%E5%AD%98%E8%B0%83%E4%BC%98%E4%B9%8B%E8%BF%9B%E7%A8%8B%E5%86%85%E5%AD%98%E6%B7%B1%E5%BA%A6%E7%9B%91%E6%8E%A7/"><span class="level-item">Linux 进程内存监控：Linux 内存调优之进程内存深度监控</span><i class="level-item fas fa-chevron-right"></i></a></div></nav><!--!--><div class="card"><div class="card-content"><div class="title is-5">评论</div><div id="comment-container"></div><link rel="stylesheet" href="https://cdnjs.loli.net/ajax/libs/gitalk/1.6.0/gitalk.css"><script> $.getScript('/js/gitalk.min.js', function () { 
+            var gitalk = new Gitalk({
+            language:'zh-CN',
+            id: '90903f1d53aeabf6c6dfb285739d926f',
+            repo: 'blog_comment',
+            owner: 'LIRUILONGS',
+            clientID: '9fdc9739266d48d5f62e',
+            clientSecret: 'c1cc33697d099a2197650ec9dadcb16bd4904655',
+            admin: ["LIRUILONGS"],
+            createIssueManually: true,
+            distractionFreeMode: true,
+            perPage: 10,
+            pagerDirection: 'last',
+            proxy: 'https://cors-anywhere.azm.workers.dev/https://github.com/login/oauth/access_token',
+            
+            enableHotKey: true,
+            isLocked: false
+        })
+        gitalk.render('comment-container')});</script></div></div></div><div class="column column-left is-4-tablet is-4-desktop is-3-widescreen  order-1 is-sticky"><div class="card widget" id="toc" data-type="toc"><div class="card-content"><div class="menu"><h3 class="menu-label">目录</h3><ul class="menu-list"><li><a class="is-flex is-mobile" href="#写在前面"><span class="mr-2">1</span><span>写在前面</span></a></li><li><a class="is-flex is-mobile" href="#内存的全局监控"><span class="mr-2">2</span><span>内存的全局监控</span></a><ul class="menu-list"><li><a class="is-flex is-mobile" href="#交换-物理内存不足"><span class="mr-2">2.1</span><span>交换(物理内存不足)</span></a></li><li><a class="is-flex is-mobile" href="#缓冲区-buffer-和缓存-cache-物理内存太多"><span class="mr-2">2.2</span><span>缓冲区(buffer)和缓存(cache)(物理内存太多)</span></a><ul class="menu-list"><li><a class="is-flex is-mobile" href="#缓存-cache"><span class="mr-2">2.2.1</span><span>缓存(cache)</span></a></li><li><a class="is-flex is-mobile" href="#缓冲区-buffer"><span class="mr-2">2.2.2</span><span>缓冲区(buffer)</span></a></li><li><a class="is-flex is-mobile" href="#活跃与非活跃内存"><span class="mr-2">2.2.3</span><span>活跃与非活跃内存</span></a></li></ul></li><li><a class="is-flex is-mobile" href="#传统工具"><span class="mr-2">2.3</span><span>传统工具</span></a><ul class="menu-list"><li><a class="is-flex is-mobile" href="#vmstat"><span class="mr-2">2.3.1</span><span>vmstat</span></a></li><li><a class="is-flex is-mobile" href="#top-2-x和3-x"><span class="mr-2">2.3.2</span><span>top(2.x和3.x)</span></a></li><li><a class="is-flex is-mobile" href="#free"><span class="mr-2">2.3.3</span><span>free</span></a></li><li><a class="is-flex is-mobile" href="#slabtop"><span class="mr-2">2.3.4</span><span>slabtop</span></a></li><li><a class="is-flex is-mobile" href="#sar"><span class="mr-2">2.3.5</span><span>sar</span></a></li></ul></li><li><a class="is-flex is-mobile" href="#Cgroup-方式"><span class="mr-2">2.4</span><span>Cgroup 方式</span></a><ul class="menu-list"><li><a class="is-flex is-mobile" href="#systemd-cgtop"><span class="mr-2">2.4.1</span><span>systemd-cgtop</span></a></li></ul></li><li><a class="is-flex is-mobile" href="#proc-内存伪文件系统"><span class="mr-2">2.5</span><span>proc 内存伪文件系统</span></a><ul class="menu-list"><li><a class="is-flex is-mobile" href="#x2F-proc-x2F-meminfo"><span class="mr-2">2.5.1</span><span>/proc/meminfo</span></a></li><li><a class="is-flex is-mobile" href="#x2F-proc-x2F-slabinfo"><span class="mr-2">2.5.2</span><span>/proc/slabinfo</span></a></li></ul></li></ul></li><li><a class="is-flex is-mobile" href="#博文部分内容参考"><span class="mr-2">3</span><span>博文部分内容参考</span></a></li></ul></div></div><style>.menu-list > li > a.is-active + .menu-list { display: block; }.menu-list > li > a + .menu-list { display: none; }</style><script src="/js/toc.js" defer></script></div><div class="card widget" data-type="profile"><div class="card-content"><nav class=""><div class="level-item has-text-centered flex-shrink-1"><div><figure class="image is-128x128 mx-auto mb-2"><img class="avatar" src="/img/%E5%BE%AE%E4%BF%A1%E5%85%AC%E4%BC%97%E5%8F%B7.jpg" alt="山河已无恙"></figure><p class="title is-size-4 is-block" style="line-height:inherit;">山河已无恙</p><p class="is-size-6 is-block">爱自己，是终生浪漫的开始</p><p class="is-size-6 is-flex justify-content-center"><i class="fas fa-map-marker-alt mr-1"></i><span>中国·呼和浩特</span></p></div></div></nav><nav class="level is-mobile"><div class="level-item has-text-centered is-marginless"><div><p class="heading">文章</p><a href="/archives"><p class="title">439</p></a></div></div><div class="level-item has-text-centered is-marginless"><div><p class="heading">分类</p><a href="/categories"><p class="title">144</p></a></div></div><div class="level-item has-text-centered is-marginless"><div><p class="heading">标签</p><a href="/tags"><p class="title">191</p></a></div></div></nav><div class="level"><a class="level-item button is-primary is-rounded" href="https://mp.weixin.qq.com/s?__biz=MzkyNjIxNTYwMw==&amp;mid=2247496480&amp;idx=1&amp;sn=a9971fed3962ef2a1aeda1f0bda65f86&amp;chksm=c2380ffcf54f86eaba8daac6caca72a70f38e61a8d25dc2a66d3a17b87c02530e326dcaea14b#rd" target="_blank" rel="noopener">关注我</a></div><div class="level is-mobile"><a class="level-item button is-transparent is-marginless" target="_blank" rel="noopener" title="Github" href="https://github.com/LIRUILONGS"><i class="fab fa-github"></i></a><a class="level-item button is-transparent is-marginless" target="_blank" rel="noopener" title="CSDN" href="https://liruilong.blog.csdn.net/"><i class="fa fa-code"></i></a><a class="level-item button is-transparent is-marginless" target="_blank" rel="noopener" title="Email" href="mailto:1224965096@qq.com"><i class="fa fa-envelope"></i></a></div></div></div><div class="card widget" data-type="links"><div class="card-content"><div class="menu"><h3 class="menu-label">链接</h3><ul class="menu-list"><li><a class="level is-mobile" href="https://liruilong.blog.csdn.net/?t=1&amp;type=blog" target="_blank" rel="noopener"><span class="level-left"><span class="level-item">CSDN</span></span><span class="level-right"><span class="level-item tag">liruilong.blog.csdn.net</span></span></a></li><li><a class="level is-mobile" href="https://www.cnblogs.com/liruilong/" target="_blank" rel="noopener"><span class="level-left"><span class="level-item">博客园</span></span><span class="level-right"><span class="level-item tag">www.cnblogs.com</span></span></a></li><li><a class="level is-mobile" href="https://github.com/LIRUILONGS" target="_blank" rel="noopener"><span class="level-left"><span class="level-item">Githup</span></span><span class="level-right"><span class="level-item tag">github.com</span></span></a></li><li><a class="level is-mobile" href="https://gitee.com/liruilonger" target="_blank" rel="noopener"><span class="level-left"><span class="level-item">码云</span></span><span class="level-right"><span class="level-item tag">gitee.com</span></span></a></li></ul></div></div></div><div class="card widget"><div class="card-content"><h3 class="menu-label">最新评论</h3><span class="body_hot_comment">加载中，最新评论有1分钟缓存...</span></div></div><div class="card widget"><div class="card-content"><h3 class="menu-label">最新文章</h3><article class="media"><div class="media-content"><p class="date"><time dateTime="2025-04-13T14:50:54.000Z">2025-04-13</time></p><p class="title"><a href="/2025/04/13/%E5%BE%85%E5%8F%91%E5%B8%83/%E8%B0%B7%E6%AD%8C68%E9%A1%B5%E7%99%BD%E7%9A%AE%E4%B9%A6%E8%A7%A3%E5%AF%86%EF%BC%9A%E6%8F%90%E7%A4%BA%E5%B7%A5%E7%A8%8B%E5%A6%82%E4%BD%95%E9%87%8D%E5%A1%91AI%E4%BA%A4%E4%BA%92%E9%80%BB%E8%BE%91/">谷歌68页白皮书解密：提示工程如何重塑AI交互逻辑</a></p><p class="categories"><a href="/categories/LLM/">LLM</a></p></div></article><article class="media"><div class="media-content"><p class="date"><time dateTime="2025-04-11T11:38:12.000Z">2025-04-11</time></p><p class="title"><a href="/2025/04/11/%E5%BE%85%E5%8F%91%E5%B8%83/Linux%20%E7%B3%BB%E7%BB%9F%E5%86%85%E5%AD%98%E7%9B%91%E6%8E%A7%EF%BC%9ALinux%20%E5%86%85%E5%AD%98%E8%B0%83%E4%BC%98%E4%B9%8B%E7%B3%BB%E7%BB%9F%E5%86%85%E5%AD%98%E5%85%A8%E9%9D%A2%E7%9B%91%E6%8E%A7/">Linux 系统内存监控：Linux 内存调优之系统内存全面监控</a></p><p class="categories"><a href="/categories/Linux/">Linux</a></p></div></article><article class="media"><div class="media-content"><p class="date"><time dateTime="2025-04-11T11:38:12.000Z">2025-04-11</time></p><p class="title"><a href="/2025/04/11/%E5%BE%85%E5%8F%91%E5%B8%83/Linux-%E8%BF%9B%E7%A8%8B%E5%86%85%E5%AD%98%E7%9B%91%E6%8E%A7%EF%BC%9ALinux-%E5%86%85%E5%AD%98%E8%B0%83%E4%BC%98%E4%B9%8B%E8%BF%9B%E7%A8%8B%E5%86%85%E5%AD%98%E6%B7%B1%E5%BA%A6%E7%9B%91%E6%8E%A7/">Linux 进程内存监控：Linux 内存调优之进程内存深度监控</a></p><p class="categories"><a href="/categories/Linux/">Linux</a></p></div></article><article class="media"><div class="media-content"><p class="date"><time dateTime="2025-04-07T23:32:10.000Z">2025-04-08</time></p><p class="title"><a href="/2025/04/08/%E5%BE%85%E5%8F%91%E5%B8%83/%E8%AE%A4%E8%AF%86%20Linux%20%E5%86%85%E5%AD%98%E6%9E%84%E6%88%90%EF%BC%9ALinux%20%E5%86%85%E5%AD%98%E8%B0%83%E4%BC%98%E4%B9%8B%E8%99%9A%E6%8B%9F%E5%86%85%E5%AD%98%E4%B8%8E%E7%89%A9%E7%90%86%E5%86%85%E5%AD%98/">认识 Linux 内存构成：Linux 内存调优之虚拟内存与物理内存</a></p><p class="categories"><a href="/categories/Linux/">Linux</a></p></div></article><article class="media"><div class="media-content"><p class="date"><time dateTime="2025-04-06T23:32:10.000Z">2025-04-07</time></p><p class="title"><a href="/2025/04/07/%E5%BE%85%E5%8F%91%E5%B8%83/Linux%20%E6%80%A7%E8%83%BD%E8%B0%83%E4%BC%98%E4%B9%8BCPU%E8%B0%83%E4%BC%98%E8%AE%A4%E7%9F%A5/">Linux 性能调优之CPU调优认知</a></p><p class="categories"><a href="/categories/Linux/">Linux</a></p></div></article></div></div><div class="card widget"><div class="card-content"><div class="menu"><h3 class="menu-label">分类</h3><ul class="menu-list"><li><a class="level is-mobile is-marginless" href="/categories/AIGC/"><span class="level-start"><span class="level-item">AIGC</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/AdaFace/"><span class="level-start"><span class="level-item">AdaFace</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/Ajax/"><span class="level-start"><span class="level-item">Ajax</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/Ansible/"><span class="level-start"><span class="level-item">Ansible</span></span><span class="level-end"><span class="level-item tag">23</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/AppCube/"><span class="level-start"><span class="level-item">AppCube</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/BPF/"><span class="level-start"><span class="level-item">BPF</span></span><span class="level-end"><span class="level-item tag">5</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/Bind9/"><span class="level-start"><span class="level-item">Bind9</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/CI-CD/"><span class="level-start"><span class="level-item">CI/CD</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/CSS/"><span class="level-start"><span class="level-item">CSS</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/Ceph/"><span class="level-start"><span class="level-item">Ceph</span></span><span class="level-end"><span class="level-item tag">22</span></span></a></li><a class="level is-mobile is-marginless" href="/categories/"><span class="level-start"><span class="level-item">查看全部&gt;&gt;</span></span></a></ul></div></div></div><div class="card widget"><div class="card-content"><div class="menu"><h3 class="menu-label">归档</h3><ul class="menu-list"><li><a class="level is-mobile is-marginless" href="/archives/2025/04/"><span class="level-start"><span class="level-item">四月 2025</span></span><span class="level-end"><span class="level-item tag">5</span></span></a></li><li><a class="level is-mobile is-marginless" href="/archives/2025/03/"><span class="level-start"><span class="level-item">三月 2025</span></span><span class="level-end"><span class="level-item tag">6</span></span></a></li><li><a class="level is-mobile is-marginless" href="/archives/2025/02/"><span class="level-start"><span class="level-item">二月 2025</span></span><span class="level-end"><span class="level-item tag">7</span></span></a></li><li><a class="level is-mobile is-marginless" href="/archives/2025/01/"><span class="level-start"><span class="level-item">一月 2025</span></span><span class="level-end"><span class="level-item tag">2</span></span></a></li><li><a class="level is-mobile is-marginless" href="/archives/2024/12/"><span class="level-start"><span class="level-item">十二月 2024</span></span><span class="level-end"><span class="level-item tag">4</span></span></a></li><a class="level is-mobile is-marginless" href="/archives/"><span class="level-start"><span class="level-item">查看全部&gt;&gt;</span></span></a></ul></div></div></div><div class="card widget"><div class="card-content"><div class="menu"><h3 class="menu-label">标签</h3><div class="field is-grouped is-grouped-multiline"><div class="control"><a class="tags has-addons" href="/tags/Kubernetes/"><span class="tag">Kubernetes</span><span class="tag is-grey-lightest">98</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Linux/"><span class="tag">Linux</span><span class="tag is-grey-lightest">55</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Ansible/"><span class="tag">Ansible</span><span class="tag is-grey-lightest">25</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Ceph/"><span class="tag">Ceph</span><span class="tag is-grey-lightest">22</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Python/"><span class="tag">Python</span><span class="tag is-grey-lightest">15</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Docker/"><span class="tag">Docker</span><span class="tag is-grey-lightest">9</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Git/"><span class="tag">Git</span><span class="tag is-grey-lightest">8</span></a></div><div class="control"><a class="tags has-addons" href="/tags/JAVA/"><span class="tag">JAVA</span><span class="tag is-grey-lightest">8</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%E5%8D%8E%E4%B8%BA%E4%BA%91/"><span class="tag">华为云</span><span class="tag is-grey-lightest">8</span></a></div><div class="control"><a class="tags has-addons" href="/tags/CPU/"><span class="tag">CPU</span><span class="tag is-grey-lightest">7</span></a></div><div class="control"><a class="tags has-addons" href="/tags/LLM/"><span class="tag">LLM</span><span class="tag is-grey-lightest">7</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Mysql/"><span class="tag">Mysql</span><span class="tag is-grey-lightest">7</span></a></div><div class="control"><a class="tags has-addons" href="/tags/BPF/"><span class="tag">BPF</span><span class="tag is-grey-lightest">6</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Go/"><span class="tag">Go</span><span class="tag is-grey-lightest">6</span></a></div><div class="control"><a class="tags has-addons" href="/tags/OpenShift/"><span class="tag">OpenShift</span><span class="tag is-grey-lightest">6</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%E7%A8%8B%E5%BA%8F%E4%BA%BA%E7%94%9F/"><span class="tag">程序人生</span><span class="tag is-grey-lightest">6</span></a></div><div class="control"><a class="tags has-addons" href="/tags/DNS/"><span class="tag">DNS</span><span class="tag is-grey-lightest">5</span></a></div><div class="control"><a class="tags has-addons" href="/tags/OKD/"><span class="tag">OKD</span><span class="tag is-grey-lightest">5</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%E6%91%84%E5%BD%B1%E6%9B%9D%E5%85%89/"><span class="tag">摄影曝光</span><span class="tag is-grey-lightest">5</span></a></div><div class="control"><a class="tags has-addons" href="/tags/selenium/"><span class="tag">selenium</span><span class="tag is-grey-lightest">4</span></a></div></div><div class="field is-grouped is-grouped-multiline"><a class="tags has-addons" href="/tags/"><span class="tag">查看全部&gt;&gt;</span></a></div></div></div></div><div class="card widget" data-type="subscribe-email"><div class="card-content"><div class="menu"><h3 class="menu-label">订阅更新</h3><form action="https://feedburner.google.com/fb/a/mailverify" method="post" target="popupwindow" onsubmit="window.open(&#039;https://feedburner.google.com/fb/a/mailverify?uri=&#039;,&#039;popupwindow&#039;,&#039;scrollbars=yes,width=550,height=520&#039;);return true"><input type="hidden" value="" name="uri"><input type="hidden" name="loc" value="en_US"><div class="field has-addons"><div class="control has-icons-left is-expanded"><input class="input" name="email" type="email" placeholder="Email"><span class="icon is-small is-left"><i class="fas fa-envelope"></i></span></div><div class="control"><input class="button" type="submit" value="订阅"></div></div></form></div></div></div><!--!--><div class="column-right-shadow is-hidden-widescreen is-sticky"></div></div></div></div></section><footer class="footer"><div class="container"><div class="level"><div class="level-start"><a class="footer-logo is-block mb-2" href="/"><img src="/img/logo.png" alt="山河已无恙" height="28"></a><p class="size-small"><span>&copy; 2025 山河已无恙</span>  Powered by <a href="https://hexo.io/" target="_blank">Hexo</a> &amp; <a href="https://github.com/ppoffice/hexo-theme-icarus" target="_blank">Icarus</a> &amp; <a href="https://github.com/removeif/hexo-theme-amazing" target="_blank">Amazing</a> <br><span>© <a href="http://www.beian.miit.gov.cn/" target="_blank">备案中</a><br></span><span>© 版权说明：[本网站所有内容均收集于互联网或自己创作,<br />&nbsp;&nbsp;&nbsp;&nbsp;方便于网友与自己学习交流，如有侵权，请<a href="/message" target="_blank">留言</a>，立即处理]<br /></span><span><span id="statistic-times">loading...</span><script>function createTime(time) {
+            var n = new Date(time);
+            now.setTime(now.getTime() + 250),
+                days = (now - n) / 1e3 / 60 / 60 / 24,
+                dnum = Math.floor(days),
+                hours = (now - n) / 1e3 / 60 / 60 - 24 * dnum,
+                hnum = Math.floor(hours),
+            1 == String(hnum).length && (hnum = "0" + hnum),
+                minutes = (now - n) / 1e3 / 60 - 1440 * dnum - 60 * hnum,
+                mnum = Math.floor(minutes),
+            1 == String(mnum).length && (mnum = "0" + mnum),
+                seconds = (now - n) / 1e3 - 86400 * dnum - 3600 * hnum - 60 * mnum,
+                snum = Math.round(seconds),
+            1 == String(snum).length && (snum = "0" + snum),
+                document.getElementById("statistic-times").innerHTML = "❤️本站自 <strong>"+time.split(" ")[0].replace(/\//g,".")+"</strong> 已运行 <strong>" + dnum + "</strong> 天 <strong>" + hnum + "</strong> 小时 <strong>" + mnum + "</strong> 分 <strong>" + snum + "</strong> 秒！❤️";
+        }var now = new Date();setInterval("createTime('2021/6/26 21:27:00')", 250,"");</script><br></span><div class="size-small"><span>❤️感谢 <strong><span id="busuanzi_value_site_uv">99+</span></strong> 小伙伴的 <strong><span id="busuanzi_value_site_pv">99+</span></strong> 次光临！❤️</span></div></p></div><div class="level-end"><div class="field has-addons"><p class="control"><a class="button is-transparent is-large" target="_blank" rel="noopener" title="Creative Commons" href="https://creativecommons.org/"><i class="fab fa-creative-commons"></i></a></p><p class="control"><a class="button is-transparent is-large" target="_blank" rel="noopener" title="Attribution 4.0 International" href="https://creativecommons.org/licenses/by/4.0/"><i class="fab fa-creative-commons-by"></i></a></p><p class="control"><a class="button is-transparent is-large" target="_blank" rel="noopener" title="Download on GitHub" href="https://github.com/removeif/hexo-theme-amazing"><i class="fab fa-github"></i></a></p></div><div class="sideMusic"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/aplayer/dist/APlayer.min.css"><script src="/js/APlayer.min.js"></script><script src="https://cdn.jsdelivr.net/npm/meting@2/dist/Meting.min.js"></script><meting-js style="width: auto;height: 2000px;" server="netease" type="playlist" id="2364053447" theme="#2980b9" loop="all" autoplay="false" order="list" storageName="aplayer-setting" lrctype="0" list-max-height="400px" fixed="true"></meting-js></div></div></div></div></footer><script src="https://cdnjs.loli.net/ajax/libs/moment.js/2.22.2/moment-with-locales.min.js"></script><script src="https://cdnjs.loli.net/ajax/libs/clipboard.js/2.0.4/clipboard.min.js" async></script><script>moment.locale("zh-CN");</script><script>var IcarusThemeSettings = {
+            article: {
+                highlight: {
+                    clipboard: true,
+                    fold: 'unfolded'
+                }
+            }
+        };</script><script src="/js/column.js"></script><!--!--><script src="/js/animation.js"></script><a id="back-to-top" title="回到顶端" href="javascript:;"><i class="fas fa-chevron-up"></i></a><script src="/js/back_to_top.js" defer></script><!--!--><script src="https://cdnjs.loli.net/ajax/libs/lightgallery/1.6.8/js/lightgallery.min.js" defer></script><script src="https://cdnjs.loli.net/ajax/libs/justifiedGallery/3.7.0/js/jquery.justifiedGallery.min.js" defer></script><script>window.addEventListener("load", () => {
+            if (typeof $.fn.lightGallery === 'function') {
+                $('.article').lightGallery({ selector: '.gallery-item' });
+            }
+            if (typeof $.fn.justifiedGallery === 'function') {
+                if ($('.justified-gallery > p > .gallery-item').length) {
+                    $('.justified-gallery > p > .gallery-item').unwrap();
+                }
+                $('.justified-gallery').justifiedGallery();
+            }
+        });</script><!--!--><!--!--><link rel="stylesheet" href="https://cdnjs.loli.net/ajax/libs/KaTeX/0.11.1/katex.min.css"><script src="https://cdnjs.loli.net/ajax/libs/KaTeX/0.11.1/katex.min.js" defer></script><script src="https://cdnjs.loli.net/ajax/libs/KaTeX/0.11.1/contrib/auto-render.min.js" defer></script><script src="https://cdnjs.loli.net/ajax/libs/KaTeX/0.11.1/contrib/mhchem.js" defer></script><script>window.addEventListener("load", function() {
+            document.querySelectorAll('[role="article"] > .content').forEach(function(element) {
+                renderMathInElement(element);
+            });
+        });</script><script type="text/x-mathjax-config">MathJax.Hub.Config({
+            'HTML-CSS': {
+                matchFontHeight: false
+            },
+            SVG: {
+                matchFontHeight: false
+            },
+            CommonHTML: {
+                matchFontHeight: false
+            },
+            tex2jax: {
+                inlineMath: [
+                    ['$','$'],
+                    ['\\(','\\)']
+                ]
+            }
+        });</script><script src="https://cdnjs.loli.net/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-MML-AM_CHTML" defer></script><div id="outdated"><h6>Your browser is out-of-date!</h6><p>Update your browser to view this website correctly.&amp;npsb;<a id="btnUpdateBrowser" target="_blank" rel="noopener" href="http://outdatedbrowser.com/">Update my browser now </a></p><p class="last"><a href="#" id="btnCloseUpdateBrowser" title="Close">×</a></p></div><script src="https://cdnjs.loli.net/ajax/libs/outdated-browser/1.1.5/outdatedbrowser.min.js" defer></script><script>window.addEventListener("load", function () {
+            outdatedBrowser({
+                bgColor: '#f25648',
+                color: '#ffffff',
+                lowerThan: 'object-fit' // display on IE11 or below
+            });
+        });</script><!--!--><script src="/js/main.js" defer></script><script>$.getScript('/js/comment-issue-data.js',function(){loadIssueData('9fdc9739266d48d5f62e','c1cc33697d099a2197650ec9dadcb16bd4904655','LIRUILONGS','blog_comment',false);})</script><div class="searchbox"><div class="searchbox-container"><div class="searchbox-header"><div class="searchbox-input-container"><input class="searchbox-input" type="text" placeholder="想要查找什么..."></div><a class="searchbox-close" href="javascript:;">×</a></div><div class="searchbox-body"></div></div></div><script src="/js/insight.js" defer></script><script>document.addEventListener('DOMContentLoaded', function () {
+            loadInsight({"contentUrl":"/content.json"}, {"hint":"想要查找什么...","untitled":"(无标题)","posts":"文章","pages":"页面","categories":"分类","tags":"标签"});
+        });</script><script src="https://cdn.jsdelivr.net/npm/pjax@0.2.8/pjax.js"></script><script type="text/javascript">var pjax = new Pjax({
+            elements: "a",//代表点击链接就更新
+            selectors: [  //代表要更新的节点
+                ".section",
+                "title"
+            ],
+            cache: true,
+            cacheBust:false
+        })
+
+        function loadBusuanzi(){
+        $.getScript("//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js", function () {});
+        }
+
+        function loadMathJax() { //加载mathjax
+            $.getScript("//cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.4/MathJax.js?config=TeX-MML-AM_CHTML", function () {
+                MathJax.Hub.Config({ tex2jax: { inlineMath: [['$', '$'], ['\(', '\)']] } });
+                var math = document.getElementsByClassName("entry-content")[0];
+                MathJax.Hub.Queue(["Typeset", MathJax.Hub, math]);
+            });
+        };
+
+        // 开始 PJAX 执行的函数
+        document.addEventListener('pjax:send', function () {
+        });
+        
+        // PJAX 完成之后执行的函数，可以和上面的重载放在一起
+        document.addEventListener('pjax:complete', function () {
+            $(".section").css({opacity:1});
+            if(true){
+                $.getScript('/js/comment-issue-data.js',function(){loadIssueData('9fdc9739266d48d5f62e','c1cc33697d099a2197650ec9dadcb16bd4904655','LIRUILONGS','blog_comment',false);});
+            }
+            if(false){
+                loadMathJax();
+            }
+            loadMainJs(jQuery, window.moment, window.ClipboardJS, window.IcarusThemeSettings);
+            loadBackTop();
+            loadBusuanzi();
+            if(typeof loadBanner == 'function'){
+                loadBanner();
+            }
+        });</script></body></html>
