@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="760" viewBox="0 0 1200 760">
+  <rect width="1200" height="760" fill="#f8fafc"/>
+  <rect x="55" y="40" width="1090" height="680" rx="28" fill="#ffffff" stroke="#dbe3ee" stroke-width="2"/>
+  <text x="600" y="92" text-anchor="middle" font-size="34" font-family="Microsoft YaHei, PingFang SC, sans-serif" fill="#1f2937">飞机朝你飞来时的反向修正示意</text>
+  <text x="600" y="128" text-anchor="middle" font-size="18" font-family="Microsoft YaHei, PingFang SC, sans-serif" fill="#6b7280">固定翼新手最容易乱杆的场景：画面中的左右，和飞机自己的左右不再是同一感觉</text>
+
+  <circle cx="600" cy="390" r="210" fill="#f8fafc" stroke="#cbd5e1" stroke-width="3"/>
+  <line x1="600" y1="170" x2="600" y2="600" stroke="#dbe3ee" stroke-width="2" stroke-dasharray="10 10"/>
+  <line x1="390" y1="390" x2="810" y2="390" stroke="#dbe3ee" stroke-width="2" stroke-dasharray="10 10"/>
+
+  <ellipse cx="600" cy="385" rx="48" ry="170" fill="#d1fae5" stroke="#059669" stroke-width="4"/>
+  <polygon points="600,600 572,545 628,545" fill="#059669"/>
+  <rect x="455" y="400" width="290" height="32" rx="16" fill="#86efac" stroke="#059669" stroke-width="4"/>
+  <polygon points="530,270 480,210 535,227" fill="#059669"/>
+  <polygon points="670,270 720,210 665,227" fill="#059669"/>
+
+  <line x1="600" y1="625" x2="600" y2="680" stroke="#ef4444" stroke-width="8"/>
+  <polygon points="600,695 584,665 616,665" fill="#ef4444"/>
+  <text x="600" y="722" text-anchor="middle" font-size="26" font-family="Microsoft YaHei, PingFang SC, sans-serif" fill="#ef4444">机头朝你飞来</text>
+
+  <line x1="450" y1="415" x2="330" y2="500" stroke="#f59e0b" stroke-width="7"/>
+  <polygon points="318,508 351,502 338,478" fill="#f59e0b"/>
+  <text x="248" y="505" text-anchor="middle" font-size="24" font-family="Microsoft YaHei, PingFang SC, sans-serif" fill="#f59e0b">画面里往你的左边跑</text>
+  <text x="248" y="538" text-anchor="middle" font-size="20" font-family="Microsoft YaHei, PingFang SC, sans-serif" fill="#475569">你通常要做“把它带回来”的修正</text>
+
+  <line x1="750" y1="415" x2="870" y2="500" stroke="#f59e0b" stroke-width="7"/>
+  <polygon points="882,508 862,478 849,502" fill="#f59e0b"/>
+  <text x="952" y="505" text-anchor="middle" font-size="24" font-family="Microsoft YaHei, PingFang SC, sans-serif" fill="#f59e0b">画面里往你的右边跑</text>
+  <text x="952" y="538" text-anchor="middle" font-size="20" font-family="Microsoft YaHei, PingFang SC, sans-serif" fill="#475569">同样先小修正，不要满杆硬救</text>
+
+  <circle cx="600" cy="645" r="16" fill="#0f172a"/>
+  <text x="600" y="675" text-anchor="middle" font-size="24" font-family="Microsoft YaHei, PingFang SC, sans-serif" fill="#0f172a">你的位置</text>
+
+  <rect x="145" y="575" width="375" height="92" rx="16" fill="#fff7ed" stroke="#fdba74" stroke-width="2"/>
+  <text x="170" y="613" font-size="22" font-family="Microsoft YaHei, PingFang SC, sans-serif" fill="#9a3412">练法</text>
+  <text x="170" y="648" font-size="20" font-family="Microsoft YaHei, PingFang SC, sans-serif" fill="#7c2d12">先拉高、拉远、低速小修正，形成“看趋势而不是猛盯机身”的习惯。</text>
+
+  <rect x="680" y="575" width="375" height="92" rx="16" fill="#eef6ff" stroke="#93c5fd" stroke-width="2"/>
+  <text x="705" y="613" font-size="22" font-family="Microsoft YaHei, PingFang SC, sans-serif" fill="#1d4ed8">口诀</text>
+  <text x="705" y="648" font-size="20" font-family="Microsoft YaHei, PingFang SC, sans-serif" fill="#1e40af">朝外练顺手，朝内练反向；先保速度，再谈方向；小修正，快回中。</text>
+</svg>

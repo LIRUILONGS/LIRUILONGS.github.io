@@ -1,0 +1,318 @@
+<!doctype html>
+<html lang="zh"><head><meta charset="utf-8"><meta name="google-adsense-account" content="ca-pub-5805170532312625"><meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"><meta><title>BPF-eBPF 开发路线三：ebpf-go、bpf2go 与 Go 工程集成 - 山河已无恙</title><link rel="manifest" href="/manifest.json"><meta name="application-name" content="山河已无恙"><meta name="msapplication-TileImage" content="https://cdn.jsdelivr.net/gh/removeif/removeif-demo@latest/img/favicon.png"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="山河已无恙"><meta name="apple-mobile-web-app-status-bar-style" content="default"><meta description="我们终其一生，不是为了满足每一个人，而是要找到与自己同频共振的人和事。——村上春树"><meta property="og:type" content="blog"><meta property="og:title" content="山河已无恙"><meta property="og:url" content="https://mp.weixin.qq.com/s?__biz=MzkyNjIxNTYwMw==&amp;mid=2247496480&amp;idx=1&amp;sn=a9971fed3962ef2a1aeda1f0bda65f86&amp;chksm=c2380ffcf54f86eaba8daac6caca72a70f38e61a8d25dc2a66d3a17b87c02530e326dcaea14b#rd"><meta property="og:site_name" content="山河已无恙"><meta property="og:description" content="我们终其一生，不是为了满足每一个人，而是要找到与自己同频共振的人和事。——村上春树"><meta property="og:locale" content="zh_CN"><meta property="og:image" content="https://mp.weixin.qq.com/img/头像.jpg"><meta property="article:published_time" content="2026-04-14T02:40:00.000Z"><meta property="article:modified_time" content="2026-04-14T06:55:15.785Z"><meta property="article:author" content="LIRUILONGS"><meta property="article:tag" content="BPF"><meta property="article:tag" content="Go"><meta property="article:tag" content="eBPF"><meta property="twitter:card" content="summary"><meta property="twitter:image" content="/img/头像.jpg"><script type="application/ld+json">{"@context":"https://schema.org","@type":"BlogPosting","mainEntityOfPage":{"@type":"WebPage","@id":"https://liruilongs.github.io/2026/04/14/rhca/RH442_BPF/BPF/eBPF%E5%AD%A6%E4%B9%A0%E8%B7%AF%E7%BA%BF/BPF-eBPF%20%E5%BC%80%E5%8F%91%E8%B7%AF%E7%BA%BF%E4%B8%89%EF%BC%9Aebpf-go%E3%80%81bpf2go%20%E4%B8%8E%20Go%20%E5%B7%A5%E7%A8%8B%E9%9B%86%E6%88%90/"},"headline":"山河已无恙","image":["https://liruilongs.github.io/img/og_image.png"],"datePublished":"2026-04-14T02:40:00.000Z","dateModified":"2026-04-14T06:55:15.785Z","author":{"@type":"Person","name":"山河已无恙"},"description":"我们终其一生，不是为了满足每一个人，而是要找到与自己同频共振的人和事。——村上春树"}</script><link rel="canonical" href="https://liruilongs.github.io/2026/04/14/rhca/RH442_BPF/BPF/eBPF%E5%AD%A6%E4%B9%A0%E8%B7%AF%E7%BA%BF/BPF-eBPF%20%E5%BC%80%E5%8F%91%E8%B7%AF%E7%BA%BF%E4%B8%89%EF%BC%9Aebpf-go%E3%80%81bpf2go%20%E4%B8%8E%20Go%20%E5%B7%A5%E7%A8%8B%E9%9B%86%E6%88%90/"><link rel="alternate" href="/path/to/atom.xml" title="山河已无恙" type="application/atom+xml"><link rel="icon" href="https://cdn.jsdelivr.net/gh/removeif/removeif-demo@latest/img/favicon.png"><meta name="referrer" content="no-referrer-when-downgrade"><link rel="stylesheet" href="https://cdnjs.loli.net/ajax/libs/font-awesome/5.12.0/css/all.min.css"><link rel="stylesheet" href="https://cdnjs.loli.net/ajax/libs/highlight.js/9.12.0/styles/dracula.min.css"><link rel="stylesheet" href="https://fonts.loli.net/css2?family=Ubuntu:wght@400;600&amp;family=Source+Code+Pro"><link rel="stylesheet" href="/css/default.css"><link rel="stylesheet" href="https://cdnjs.loli.net/ajax/libs/font-awesome/5.12.0/css/all.min.css"><link rel="stylesheet" href="https://fonts.loli.net/css?family=Ubuntu:400,600|Source+Code+Pro|Monda:300,300italic,400,400italic,700,700italic|Roboto Slab:300,300italic,400,400italic,700,700italic|Microsoft YaHei:300,300italic,400,400italic,700,700italic|PT Mono:300,300italic,400,400italic,700,700italic&amp;amp;subset=latin,latin-ext|Inconsolata|Itim|Lobster.css"><script src="https://cdnjs.loli.net/ajax/libs/jquery/3.3.1/jquery.min.js"></script><script src="/js/globalUtils.js"></script><script src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js" defer></script><style>body>.footer,body>.navbar,body>.section{opacity:0}</style><!--!--><script>var _hmt = _hmt || [];
+        (function() {
+            var hm = document.createElement("script");
+            hm.src = "//hm.baidu.com/hm.js?3f06f2b732a5b1034c989f74e28d0eea";
+            var s = document.getElementsByTagName("script")[0];
+            s.parentNode.insertBefore(hm, s);
+        })();</script><link rel="stylesheet" href="https://cdnjs.loli.net/ajax/libs/lightgallery/1.6.8/css/lightgallery.min.css"><link rel="stylesheet" href="https://cdnjs.loli.net/ajax/libs/justifiedGallery/3.7.0/css/justifiedGallery.min.css"><!--!--><!--!--><!--!--><!--!--><link rel="stylesheet" href="https://cdnjs.loli.net/ajax/libs/outdated-browser/1.1.5/outdatedbrowser.min.css"><script src="https://cdnjs.loli.net/ajax/libs/pace/1.0.2/pace.min.js"></script><link rel="stylesheet" href="/live2d/waifu.css"><script type="text/javascript" async src="/live2d/autoload.js"></script><meta name="generator" content="Hexo 5.4.2"></head><body class="is-3-column has-navbar-fixed-top"><nav class="navbar navbar-main is-fixed-top"><div class="container"><div class="navbar-brand justify-content-center"><a class="navbar-item navbar-logo" href="/"><img src="/img/logo.png" alt="山河已无恙" height="28"></a></div><div class="navbar-menu"><div class="navbar-start"><a class="navbar-item" href="/">首页</a><a class="navbar-item" href="/archives">归档</a><a class="navbar-item" href="/categories">分类</a><a class="navbar-item" href="/tags">标签</a><a class="navbar-item" href="/media">影音</a><a class="navbar-item" href="/album">相册</a><a class="navbar-item" href="/friend">友链</a><a class="navbar-item" href="/self-talking">生活小记</a><a class="navbar-item" href="/message">留言墙</a><a class="navbar-item" href="/about">关于</a></div><div class="navbar-end"><a class="navbar-item" target="_blank" rel="noopener" title="Gitee" href="https://gitee.com/liruilonger"><i class="fab fa-git-square fa-1x"></i></a><a class="navbar-item" target="_blank" rel="noopener" title="GitHub" href="https://github.com/LIRUILONGS"><i class="fab fa-github fa-1x"></i></a><a class="navbar-item is-hidden-tablet catalogue" title="目录" href="javascript:;"><i class="fas fa-list-ul fa-1x"></i></a><a class="navbar-item search" title="搜索" href="javascript:;"><i class="fas fa-search fa-1x"></i></a><a class="navbar-item" id="night-nav" title="Night Mode" href="javascript:;"><i class="fas fa-moon fa-1x" id="night-icon"></i></a></div></div></div></nav><script type="text/javascript" src="/js/theme-setting.js"></script><section class="section"><div class="container"><div class="columns"><div class="column order-2 column-main is-8-tablet is-8-desktop is-9-widescreen"><!--!--><div class="card"><article class="card-content article" role="article"><div class="article-meta size-small is-uppercase level is-mobile"><div class="level-left"><i class="far fa-calendar-plus"> </i>2026-04-14  <a class="commentCountImg" href="/2026/04/14/rhca/RH442_BPF/BPF/eBPF%E5%AD%A6%E4%B9%A0%E8%B7%AF%E7%BA%BF/BPF-eBPF%20%E5%BC%80%E5%8F%91%E8%B7%AF%E7%BA%BF%E4%B8%89%EF%BC%9Aebpf-go%E3%80%81bpf2go%20%E4%B8%8E%20Go%20%E5%B7%A5%E7%A8%8B%E9%9B%86%E6%88%90/#comment-container"><span class="display-none-class">38e64d3edb16d183f854db05a9fd8bdf</span><i class="far fa-comment-dots"></i> <span class="commentCount" id="38e64d3edb16d183f854db05a9fd8bdf">99+</span>  </a><span class="level-item"><i class="far fa-clock"> </i>13 分钟  <i class="fas fa-pencil-alt"> </i>1.9 k</span><span class="level-item" id="busuanzi_container_page_pv"><span id="busuanzi_value_page_pv">0</span>次访问</span></div></div><h1 class="title is-3 is-size-4-mobile">BPF-eBPF 开发路线三：ebpf-go、bpf2go 与 Go 工程集成</h1><div class="content"><p><strong><font color="009688"> 我们终其一生，不是为了满足每一个人，而是要找到与自己同频共振的人和事。——村上春树</font></strong></p>
+<span id="more"></span>
+
+<h2 id="写在前面"><a href="#写在前面" class="headerlink" title="写在前面"></a>写在前面</h2><hr>
+<ul>
+<li>如果你的主力语言是 <code>Go</code>，那么 <code>ebpf-go</code> 往往是把 eBPF 真正落进工程体系的高性价比路线</li>
+<li>这一篇会尽量贴近 <code>ebpf-go.dev</code> 上的 <code>Getting Started</code>、<code>Portable eBPF</code>、<code>Object Lifecycle</code> 这些核心主题</li>
+<li>重点不是只看“怎么生成代码”，而是理解 <code>Go 控制面 + eBPF 对象 + 生命周期</code> 这三者怎么配合</li>
+</ul>
+<p><strong><font color="009688"> 我们终其一生，不是为了满足每一个人，而是要找到与自己同频共振的人和事。——村上春树</font></strong></p>
+<hr>
+<h2 id="系列导航"><a href="#系列导航" class="headerlink" title="系列导航"></a>系列导航</h2><ol>
+<li><code>BPF-eBPF 学习总览：从概念、机制到工具链选择</code></li>
+<li><code>BPF-eBPF 实战入门：环境准备、最小实验与排错思路</code></li>
+<li><code>BPF-eBPF 开发路线一：BCC 入门、工具使用与自定义脚本</code></li>
+<li><code>BPF-eBPF 开发路线二：libbpf、CO-RE 与 libbpf-bootstrap 实战</code></li>
+<li><code>BPF-eBPF 开发路线三：ebpf-go、bpf2go 与 Go 工程集成</code></li>
+</ol>
+<h2 id="为什么-Go-工程里常选-ebpf-go"><a href="#为什么-Go-工程里常选-ebpf-go" class="headerlink" title="为什么 Go 工程里常选 ebpf-go"></a>为什么 Go 工程里常选 ebpf-go</h2><p><code>ebpf-go</code> 这条路线的最大吸引力在于：</p>
+<ul>
+<li>用户态控制面直接用 Go 写</li>
+<li>很适合做 CLI、Exporter、Daemon、Agent</li>
+<li>不依赖额外运行时去加载 eBPF 程序</li>
+<li>更容易融入现有 Go 项目的工程体系</li>
+</ul>
+<p>如果你的团队本来就大量使用 Go 做平台、可观测性或基础设施工具，那么 <code>ebpf-go</code> 往往比“用户态再写一份 C”更顺手。</p>
+<h2 id="先理解-ebpf-go-的基本结构"><a href="#先理解-ebpf-go-的基本结构" class="headerlink" title="先理解 ebpf-go 的基本结构"></a>先理解 ebpf-go 的基本结构</h2><p>一个典型的 <code>ebpf-go</code> 工程通常包含：</p>
+<ol>
+<li><code>.c</code> 的 eBPF 程序</li>
+<li><code>go:generate</code> 指令</li>
+<li><code>bpf2go</code> 生成的 Go 绑定文件</li>
+<li>Go 用户态主程序</li>
+</ol>
+<p>这意味着它并不是“纯 Go 即可”。更准确地说：</p>
+<ul>
+<li>内核态逻辑仍然要遵守 eBPF&#x2F;clang&#x2F;LLVM 这套规则</li>
+<li>Go 负责的是对象管理、attach、事件读取和工程集成</li>
+</ul>
+<h2 id="bpf2go-到底在做什么"><a href="#bpf2go-到底在做什么" class="headerlink" title="bpf2go 到底在做什么"></a>bpf2go 到底在做什么</h2><p><code>bpf2go</code> 是 <code>ebpf-go</code> 生态里非常关键的工具。</p>
+<p>它主要做几件事：</p>
+<ul>
+<li>调用编译链生成 eBPF 对象</li>
+<li>为对象里的 <code>program</code>、<code>map</code>、结构体生成 Go 绑定代码</li>
+<li>让你能在 Go 里更自然地加载和操作这些对象</li>
+</ul>
+<p>一个常见的 <code>go:generate</code> 形式大致像这样：</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//go:generate go run github.com/cilium/ebpf/cmd/bpf2go -target bpfel counter ./bpf/counter.bpf.c -- -I./bpf</span></span><br></pre></td></tr></table></figure>
+
+<p>然后执行：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">go generate ./...</span><br></pre></td></tr></table></figure>
+
+<p>执行完成后，通常会得到：</p>
+<ul>
+<li>生成的 <code>.go</code> 文件</li>
+<li>编译好的 <code>.o</code> 文件</li>
+</ul>
+<h2 id="一个最小工程应该怎么读"><a href="#一个最小工程应该怎么读" class="headerlink" title="一个最小工程应该怎么读"></a>一个最小工程应该怎么读</h2><p>建议你读 <code>ebpf-go</code> 示例时，优先看这条线：</p>
+<ol>
+<li><code>.bpf.c</code> 里定义了什么程序和 map</li>
+<li><code>bpf2go</code> 生成了什么结构体和加载函数</li>
+<li><code>main.go</code> 里如何调用加载逻辑</li>
+<li>attach 在哪里发生</li>
+<li>事件&#x2F;统计数据如何被读取</li>
+</ol>
+<p>不要把注意力全部放在 <code>go generate</code> 命令本身，那只是入口。</p>
+<h2 id="官方文档里很重要的一个主题：Object-Lifecycle"><a href="#官方文档里很重要的一个主题：Object-Lifecycle" class="headerlink" title="官方文档里很重要的一个主题：Object Lifecycle"></a>官方文档里很重要的一个主题：Object Lifecycle</h2><p><code>ebpf-go.dev</code> 里有一个对初学者非常重要的话题，就是 <code>Object Lifecycle</code>。</p>
+<p>这件事为什么重要？</p>
+<p>因为 eBPF 对象最终和<code>文件描述符</code>强相关，而 Go 又有垃圾回收。</p>
+<p>如果你不理解这点，就很容易出现：</p>
+<ul>
+<li>对象被意外关闭</li>
+<li>attach 成功后又失效</li>
+<li>tail call、pinning 或 map 引用关系异常</li>
+</ul>
+<p>所以学 <code>ebpf-go</code> 时，一定要形成这条意识：</p>
+<ul>
+<li>不是“代码跑完就行”</li>
+<li>而是“对象、link、map、程序在整个生命周期里何时创建、何时关闭、谁持有它们”</li>
+</ul>
+<h2 id="官方文档里另一个重点：Portable-eBPF"><a href="#官方文档里另一个重点：Portable-eBPF" class="headerlink" title="官方文档里另一个重点：Portable eBPF"></a>官方文档里另一个重点：Portable eBPF</h2><p><code>Portable eBPF</code> 这个主题，本质上和 <code>libbpf</code> 路线里的 <code>CO-RE/BTF</code> 是同一个现实问题：你不能假设所有机器的内核布局都一样。</p>
+<p>所以 <code>ebpf-go</code> 的工程实践同样需要重视：</p>
+<ul>
+<li><code>BTF</code></li>
+<li><code>CO-RE</code></li>
+<li>稳定的 clang&#x2F;LLVM 工具链</li>
+<li>对生成物的构建管理</li>
+</ul>
+<p>如果你忽略这些问题，程序在自己电脑能跑，不代表发给别人就能跑。</p>
+<h2 id="一个常见的最小主程序结构"><a href="#一个常见的最小主程序结构" class="headerlink" title="一个常见的最小主程序结构"></a>一个常见的最小主程序结构</h2><p>用户态 Go 代码大致会做这些事：</p>
+<ol>
+<li>提升所需权限或确保运行环境满足要求</li>
+<li>调用生成的加载函数</li>
+<li>attach 程序到指定 hook</li>
+<li>创建 ring buffer 或读取 map</li>
+<li>循环处理事件</li>
+<li>收到退出信号后清理 link 和对象</li>
+</ol>
+<p>你可以把它理解成 Go 版的：</p>
+<ul>
+<li><code>load</code></li>
+<li><code>attach</code></li>
+<li><code>consume</code></li>
+<li><code>cleanup</code></li>
+</ul>
+<h2 id="ebpf-go-最适合什么场景"><a href="#ebpf-go-最适合什么场景" class="headerlink" title="ebpf-go 最适合什么场景"></a>ebpf-go 最适合什么场景</h2><h3 id="1-命令行工具"><a href="#1-命令行工具" class="headerlink" title="1. 命令行工具"></a>1. 命令行工具</h3><p>比如：</p>
+<ul>
+<li>进程行为观测工具</li>
+<li>网络延迟分析工具</li>
+<li>某类资源泄漏定位工具</li>
+</ul>
+<h3 id="2-常驻-Agent"><a href="#2-常驻-Agent" class="headerlink" title="2. 常驻 Agent"></a>2. 常驻 Agent</h3><p>比如：</p>
+<ul>
+<li>节点侧观测 Agent</li>
+<li>安全审计 Agent</li>
+<li>某类内核事件采集守护进程</li>
+</ul>
+<h3 id="3-集成到现有平台"><a href="#3-集成到现有平台" class="headerlink" title="3. 集成到现有平台"></a>3. 集成到现有平台</h3><p>如果你的平台本来就是 Go 写的，比如：</p>
+<ul>
+<li>监控采集系统</li>
+<li>PaaS &#x2F; Kubernetes 相关组件</li>
+<li>内部基础设施控制面</li>
+</ul>
+<p>那用 <code>ebpf-go</code> 集成会很自然。</p>
+<h2 id="ebpf-go-这条路线最常见的坑"><a href="#ebpf-go-这条路线最常见的坑" class="headerlink" title="ebpf-go 这条路线最常见的坑"></a>ebpf-go 这条路线最常见的坑</h2><h3 id="1-只关注生成命令，不关注对象关系"><a href="#1-只关注生成命令，不关注对象关系" class="headerlink" title="1. 只关注生成命令，不关注对象关系"></a>1. 只关注生成命令，不关注对象关系</h3><p>很多人会背 <code>go generate ./...</code>，但不知道生成出来的对象、map、program、link 之间到底是什么关系。</p>
+<h3 id="2-忽略生命周期"><a href="#2-忽略生命周期" class="headerlink" title="2. 忽略生命周期"></a>2. 忽略生命周期</h3><p>这是最典型的问题，尤其是：</p>
+<ul>
+<li><code>defer Close()</code> 放错位置</li>
+<li>goroutine 退出导致读取中断</li>
+<li>link 没持有住</li>
+</ul>
+<h3 id="3-把兼容性问题想简单了"><a href="#3-把兼容性问题想简单了" class="headerlink" title="3. 把兼容性问题想简单了"></a>3. 把兼容性问题想简单了</h3><p>即使你是 Go 工程师，也不能跳过：</p>
+<ul>
+<li><code>BTF</code></li>
+<li><code>CO-RE</code></li>
+<li>hook 差异</li>
+<li>verifier 限制</li>
+</ul>
+<h3 id="4-以为-Go-能替代内核态知识"><a href="#4-以为-Go-能替代内核态知识" class="headerlink" title="4. 以为 Go 能替代内核态知识"></a>4. 以为 Go 能替代内核态知识</h3><p>Go 只是让控制面更舒服，不会帮你自动理解：</p>
+<ul>
+<li>probe 该挂哪里</li>
+<li>当前上下文允许读哪些字段</li>
+<li>verifier 为什么拒绝这段逻辑</li>
+</ul>
+<h2 id="一个适合-Go-工程师的学习顺序"><a href="#一个适合-Go-工程师的学习顺序" class="headerlink" title="一个适合 Go 工程师的学习顺序"></a>一个适合 Go 工程师的学习顺序</h2><ol>
+<li>先看总览，理解 eBPF 运行模型</li>
+<li>跑一个 <code>libbpf-bootstrap</code> 示例，建立底层直觉</li>
+<li>再用 <code>ebpf-go</code> 跑同类型示例</li>
+<li>对比两条路线的对象结构和事件传递方式</li>
+<li>最后再把它接进你自己的 Go 项目</li>
+</ol>
+<p>为什么我不建议“直接只看 ebpf-go”？</p>
+<p>因为如果完全没有底层模型，很多概念你会停留在工具层，而不是真正理解 eBPF。</p>
+<h2 id="一个非常实用的练手题"><a href="#一个非常实用的练手题" class="headerlink" title="一个非常实用的练手题"></a>一个非常实用的练手题</h2><p>建议你做一个“小型进程执行事件观察器”：</p>
+<ol>
+<li>跟踪进程执行事件</li>
+<li>记录 PID、PPID、comm</li>
+<li>用 ring buffer 送到 Go 用户态</li>
+<li>在终端实时输出</li>
+</ol>
+<p>这个练手题很适合 <code>ebpf-go</code>，因为它能同时覆盖：</p>
+<ul>
+<li><code>.bpf.c</code></li>
+<li><code>bpf2go</code></li>
+<li>attach</li>
+<li>ring buffer</li>
+<li>Go 事件循环</li>
+<li>对象清理</li>
+</ul>
+<h2 id="最后总结"><a href="#最后总结" class="headerlink" title="最后总结"></a>最后总结</h2><p><code>ebpf-go</code> 真正的价值，不是“让 eBPF 看起来更像 Go”，而是：</p>
+<ul>
+<li>让用户态控制面更容易工程化</li>
+<li>更方便接入现有 Go 生态</li>
+<li>更适合做长期维护的工具和 Agent</li>
+</ul>
+<p>但它并不会绕开 eBPF 的底层现实：</p>
+<ul>
+<li>verifier 还在</li>
+<li>hook 还在</li>
+<li>map 还在</li>
+<li><code>BTF/CO-RE</code> 还在</li>
+<li>生命周期问题仍然很关键</li>
+</ul>
+<p>把这些一起理解，<code>ebpf-go</code> 才能真正用得稳。</p>
+<h2 id="博文部分内容参考"><a href="#博文部分内容参考" class="headerlink" title="博文部分内容参考"></a>博文部分内容参考</h2><p>© 文中涉及参考链接内容版权归原作者所有，如有侵权请告知 :)</p>
+<hr>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://ebpf-go.dev/">ebpf-go documentation</a></li>
+<li><a target="_blank" rel="noopener" href="https://docs.ebpf.io/">eBPF Docs</a></li>
+</ul>
+<hr>
+<p>© 2018-至今 <a href="mailto:&#x6c;&#105;&#x72;&#x75;&#x69;&#x6c;&#111;&#x6e;&#103;&#101;&#x72;&#64;&#x67;&#109;&#x61;&#105;&#108;&#x2e;&#99;&#111;&#109;">&#x6c;&#105;&#x72;&#x75;&#x69;&#x6c;&#111;&#x6e;&#103;&#101;&#x72;&#64;&#x67;&#109;&#x61;&#105;&#108;&#x2e;&#99;&#111;&#109;</a>, 保持署名-非商用-相同方式共享(CC BY-NC-SA 4.0)</p>
+</div><div class="article-licensing box"><div class="licensing-title"><p>BPF-eBPF 开发路线三：ebpf-go、bpf2go 与 Go 工程集成</p><p><a href="https://liruilongs.github.io/2026/04/14/rhca/RH442_BPF/BPF/eBPF学习路线/BPF-eBPF 开发路线三：ebpf-go、bpf2go 与 Go 工程集成/">https://liruilongs.github.io/2026/04/14/rhca/RH442_BPF/BPF/eBPF学习路线/BPF-eBPF 开发路线三：ebpf-go、bpf2go 与 Go 工程集成/</a></p></div><div class="licensing-meta level is-mobile"><div class="level-left"><div class="level-item is-narrow"><div><h6>作者</h6><a href="https://liruilongs.github.io"><p>山河已无恙</p></a></div></div><div class="level-item is-narrow"><div><h6>发布于</h6><p>2026-04-14</p></div></div><div class="level-item is-narrow"><div><h6>更新于</h6><p>2026-04-14</p></div></div><div class="level-item is-narrow"><div><h6>许可协议</h6><p><a class="icon" rel="noopener" target="_blank" title="Creative Commons" href="https://creativecommons.org/"><i class="fab fa-creative-commons"></i></a><a class="icon" rel="noopener" target="_blank" title="Attribution" href="https://creativecommons.org/licenses/by/4.0/"><i class="fab fa-creative-commons-by"></i></a><a class="icon" rel="noopener" target="_blank" title="Noncommercial" href="https://creativecommons.org/licenses/by-nc/4.0/"><i class="fab fa-creative-commons-nc"></i></a></p></div></div></div></div></div><div class="recommend-area"><div class="recommend-post"><span class="is-size-6 has-text-grey has-mr-7"># 相关文章</span><br><span>  1.<a class="is-size-6" href="/2026/04/14/rhca/RH442_BPF/BPF/eBPF%E5%AD%A6%E4%B9%A0%E8%B7%AF%E7%BA%BF/BPF-eBPF%20%E5%BC%80%E5%8F%91%E8%B7%AF%E7%BA%BF%E4%BA%8C%EF%BC%9Alibbpf%E3%80%81CO-RE%20%E4%B8%8E%20libbpf-bootstrap%20%E5%AE%9E%E6%88%98/" target="_blank">BPF-eBPF 开发路线二：libbpf、CO-RE 与 libbpf-bootstrap 实战</a><br></span><span>  2.<a class="is-size-6" href="/2026/04/14/rhca/RH442_BPF/BPF/eBPF%E5%AD%A6%E4%B9%A0%E8%B7%AF%E7%BA%BF/BPF-eBPF%20%E5%BC%80%E5%8F%91%E8%B7%AF%E7%BA%BF%E4%B8%80%EF%BC%9ABCC%20%E5%85%A5%E9%97%A8%E3%80%81%E5%B7%A5%E5%85%B7%E4%BD%BF%E7%94%A8%E4%B8%8E%E8%87%AA%E5%AE%9A%E4%B9%89%E8%84%9A%E6%9C%AC/" target="_blank">BPF-eBPF 开发路线一：BCC 入门、工具使用与自定义脚本</a><br></span><span>  3.<a class="is-size-6" href="/2026/04/14/rhca/RH442_BPF/BPF/eBPF%E5%AD%A6%E4%B9%A0%E8%B7%AF%E7%BA%BF/BPF-eBPF%20%E5%AE%9E%E6%88%98%E5%85%A5%E9%97%A8%EF%BC%9A%E7%8E%AF%E5%A2%83%E5%87%86%E5%A4%87%E3%80%81%E6%9C%80%E5%B0%8F%E5%AE%9E%E9%AA%8C%E4%B8%8E%E6%8E%92%E9%94%99%E6%80%9D%E8%B7%AF/" target="_blank">BPF-eBPF 实战入门：环境准备、最小实验与排错思路</a><br></span><span>  4.<a class="is-size-6" href="/2026/04/14/rhca/RH442_BPF/BPF/eBPF%E5%AD%A6%E4%B9%A0%E8%B7%AF%E7%BA%BF/BPF-eBPF%20%E5%AD%A6%E4%B9%A0%E6%80%BB%E8%A7%88%EF%BC%9A%E4%BB%8E%E6%A6%82%E5%BF%B5%E3%80%81%E6%9C%BA%E5%88%B6%E5%88%B0%E5%B7%A5%E5%85%B7%E9%93%BE%E9%80%89%E6%8B%A9/" target="_blank">BPF-eBPF 学习总览：从概念、机制到工具链选择</a><br></span><span>  5.<a class="is-size-6" href="/2024/10/02/rhca/RH442_BPF/CPU/Linux%E6%80%A7%E8%83%BD%E8%B0%83%E4%BC%98%E4%B9%8B%E4%BD%BF%E7%94%A8BPF%E5%B7%A5%E5%85%B7%E8%A7%82%E6%B5%8BCPU%E6%80%A7%E8%83%BD%E6%8C%87%E6%A0%87/" target="_blank">Linux性能调优之使用BPF工具观测CPU性能指标</a><br></span><span>  6.<a class="is-size-6" href="/2024/06/16/%E5%BE%85%E5%8F%91%E5%B8%83/%E8%AE%A4%E8%AF%86%20Linux%20%E5%86%85%E5%AD%98%E6%9E%84%E6%88%90%EF%BC%9ALinux%20%E5%86%85%E5%AD%98%E8%B0%83%E4%BC%98%E4%B9%8B%E5%86%85%E5%AD%98%E5%88%86%E9%85%8D%E6%9C%BA%E5%88%B6%E5%92%8C%E6%8D%A2%E9%A1%B5%E8%A1%8C%E4%B8%BA%E8%AE%A4%E7%9F%A5/" target="_blank">认识 Linux 内存构成：Linux 内存调优之内存分配机制和换页行为认知</a><br></span><span>  7.<a class="is-size-6" href="/2024/06/09/rhca/RH442_BPF/BPF/BPF%EF%BC%9ABCC%E5%B7%A5%E5%85%B7%20funccount%E7%BB%9F%E8%AE%A1%E4%BA%8B%E4%BB%B6(%E5%86%85%E6%A0%B8%E5%87%BD%E6%95%B0%E3%80%81%E8%B7%9F%E8%B8%AA%E7%82%B9USDT%E6%8E%A2%E9%92%88)%E8%AE%A4%E7%9F%A5/" target="_blank">BPF：BCC工具 funccount 统计内核函数调用(内核函数、跟踪点USDT探针)认知</a><br></span><span>  8.<a class="is-size-6" href="/2024/06/09/rhca/RH442_BPF/BPF/BPF%EF%BC%9ABCC%EF%BC%88BPF%20Compiler%20Collection%EF%BC%89%E5%B7%A5%E5%85%B7%E9%9B%86%E8%AE%A4%E7%9F%A5/" target="_blank">BPF：BCC（BPF Compiler Collection）工具集认知</a><br></span></div><div class="recommend-post"><span class="is-size-6 has-text-grey has-mr-7"># 推荐文章</span><br><span>  1.<a class="is-size-6" href="/2021/08/27/K8s/%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/%E3%80%8AKubernetes%E6%9D%83%E5%A8%81%E6%8C%87%E5%8D%97-%E4%BB%8EDocker%E5%88%B0Kubernetes%E5%AE%9E%E8%B7%B5%E5%85%A8%E6%8E%A5%E8%A7%A6%E3%80%8B%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/" target="_blank">《Kubernetes权威指南:从Docker到Kubernetes实践全接触》读书笔记</a><br></span><span>  2.<a class="is-size-6" href="/2024/10/10/Git/Git-%E6%8F%90%E4%BA%A4%E4%BB%A3%E7%A0%81-reference-broken-%E9%97%AE%E9%A2%98%E5%A4%84%E7%90%86/" target="_blank">Git 提交代码 reference broken 问题处理</a><br></span><span>  3.<a class="is-size-6" href="/2022/11/19/Git/%E5%85%B3%E4%BA%8E-Git-%E9%87%8D%E5%86%99%E5%8E%86%E5%8F%B2%E7%9A%84%E4%B8%80%E4%BA%9B%E7%AC%94%E8%AE%B0/" target="_blank">关于 Git 重写历史的一些笔记</a><br></span><span>  4.<a class="is-size-6" href="/2022/08/02/Git/%E5%85%B3%E4%BA%8EGit%E5%88%86%E6%94%AF%E5%8F%98%E5%9F%BA%E6%93%8D%E4%BD%9C%E7%9A%84%E4%B8%80%E4%BA%9B%E7%AC%94%E8%AE%B0/" target="_blank">关于Git分支变基操作的一些笔记</a><br></span><span>  5.<a class="is-size-6" href="/2022/07/26/Git/%E5%85%B3%E4%BA%8EGit%E5%88%86%E6%94%AF%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86%E7%9A%84%E4%B8%80%E4%BA%9B%E7%AC%94%E8%AE%B0/" target="_blank">关于Git分支基础知识的一些笔记</a><br></span><span>  6.<a class="is-size-6" href="/2022/08/02/Git/%E5%85%B3%E4%BA%8EGit%E5%88%86%E6%94%AF%E5%B7%A5%E4%BD%9C%E6%B5%81%E7%9A%84%E4%B8%80%E4%BA%9B%E7%AC%94%E8%AE%B0/" target="_blank">关于Git分支工作流的一些笔记</a><br></span></div></div><link rel="stylesheet" href="https://cdnjs.loli.net/ajax/libs/social-share.js/1.0.16/css/share.min.css"><div class="social-share"></div><script src="https://cdnjs.loli.net/ajax/libs/social-share.js/1.0.16/js/social-share.min.js"></script></article></div><div class="card"><div class="card-content"><h3 class="menu-label has-text-centered">喜欢这篇文章？打赏一下作者吧</h3><div class="buttons is-centered"><a class="button donate" data-type="alipay"><span class="icon is-small"><i class="fab fa-alipay"></i></span><span>支付宝</span><span class="qrcode"><img src="/img/alipay%EF%BF%A5.png" alt="支付宝"></span></a><a class="button donate" data-type="wechat"><span class="icon is-small"><i class="fab fa-weixin"></i></span><span>微信</span><span class="qrcode"><img src="/img/wechat%EF%BF%A5.png" alt="微信"></span></a></div></div></div><nav class="post-navigation mt-4 level is-mobile"><div class="level-start"><a class="article-nav-prev level level-item link-muted" href="/2026/04/15/%E5%BE%85%E5%8F%91%E5%B8%83/GEO%E6%97%B6%E4%BB%A3%E7%9A%84%E6%95%B0%E6%8D%AE%E6%B1%A1%E6%9F%93%E6%80%8E%E4%B9%88%E9%98%B2%EF%BC%9A%E4%BB%8E%E6%97%85%E8%A1%8C%E8%90%A5%E9%94%80%E5%81%87%E5%86%85%E5%AE%B9%E5%88%B0AI%E6%90%9C%E7%B4%A2%E5%8F%AF%E4%BF%A1%E5%BA%A6%E6%B2%BB%E7%90%86/"><i class="level-item fas fa-chevron-left"></i><span class="level-item">GEO时代的数据污染怎么防：从旅行营销假内容到AI搜索可信度治理</span></a></div><div class="level-end"><a class="article-nav-next level level-item link-muted" href="/2026/04/14/rhca/RH442_BPF/BPF/eBPF%E5%AD%A6%E4%B9%A0%E8%B7%AF%E7%BA%BF/BPF-eBPF%20%E5%BC%80%E5%8F%91%E8%B7%AF%E7%BA%BF%E4%BA%8C%EF%BC%9Alibbpf%E3%80%81CO-RE%20%E4%B8%8E%20libbpf-bootstrap%20%E5%AE%9E%E6%88%98/"><span class="level-item">BPF-eBPF 开发路线二：libbpf、CO-RE 与 libbpf-bootstrap 实战</span><i class="level-item fas fa-chevron-right"></i></a></div></nav><!--!--><div class="card"><div class="card-content"><div class="title is-5">评论</div><div id="comment-container"></div><link rel="stylesheet" href="https://cdnjs.loli.net/ajax/libs/gitalk/1.6.0/gitalk.css"><script> $.getScript('/js/gitalk.min.js', function () { 
+            var gitalk = new Gitalk({
+            language:'zh-CN',
+            id: '38e64d3edb16d183f854db05a9fd8bdf',
+            repo: 'blog_comment',
+            owner: 'LIRUILONGS',
+            clientID: '9fdc9739266d48d5f62e',
+            clientSecret: 'c1cc33697d099a2197650ec9dadcb16bd4904655',
+            admin: ["LIRUILONGS"],
+            createIssueManually: true,
+            distractionFreeMode: true,
+            perPage: 10,
+            pagerDirection: 'last',
+            proxy: 'https://cors-anywhere.azm.workers.dev/https://github.com/login/oauth/access_token',
+            
+            enableHotKey: true,
+            isLocked: false
+        })
+        gitalk.render('comment-container')});</script></div></div></div><div class="column column-left is-4-tablet is-4-desktop is-3-widescreen  order-1 is-sticky"><div class="card widget" id="toc" data-type="toc"><div class="card-content"><div class="menu"><h3 class="menu-label">目录</h3><ul class="menu-list"><li><a class="is-flex is-mobile" href="#写在前面"><span class="mr-2">1</span><span>写在前面</span></a></li><li><a class="is-flex is-mobile" href="#系列导航"><span class="mr-2">2</span><span>系列导航</span></a></li><li><a class="is-flex is-mobile" href="#为什么-Go-工程里常选-ebpf-go"><span class="mr-2">3</span><span>为什么 Go 工程里常选 ebpf-go</span></a></li><li><a class="is-flex is-mobile" href="#先理解-ebpf-go-的基本结构"><span class="mr-2">4</span><span>先理解 ebpf-go 的基本结构</span></a></li><li><a class="is-flex is-mobile" href="#bpf2go-到底在做什么"><span class="mr-2">5</span><span>bpf2go 到底在做什么</span></a></li><li><a class="is-flex is-mobile" href="#一个最小工程应该怎么读"><span class="mr-2">6</span><span>一个最小工程应该怎么读</span></a></li><li><a class="is-flex is-mobile" href="#官方文档里很重要的一个主题：Object-Lifecycle"><span class="mr-2">7</span><span>官方文档里很重要的一个主题：Object Lifecycle</span></a></li><li><a class="is-flex is-mobile" href="#官方文档里另一个重点：Portable-eBPF"><span class="mr-2">8</span><span>官方文档里另一个重点：Portable eBPF</span></a></li><li><a class="is-flex is-mobile" href="#一个常见的最小主程序结构"><span class="mr-2">9</span><span>一个常见的最小主程序结构</span></a></li><li><a class="is-flex is-mobile" href="#ebpf-go-最适合什么场景"><span class="mr-2">10</span><span>ebpf-go 最适合什么场景</span></a><ul class="menu-list"><li><a class="is-flex is-mobile" href="#1-命令行工具"><span class="mr-2">10.1</span><span>1. 命令行工具</span></a></li><li><a class="is-flex is-mobile" href="#2-常驻-Agent"><span class="mr-2">10.2</span><span>2. 常驻 Agent</span></a></li><li><a class="is-flex is-mobile" href="#3-集成到现有平台"><span class="mr-2">10.3</span><span>3. 集成到现有平台</span></a></li></ul></li><li><a class="is-flex is-mobile" href="#ebpf-go-这条路线最常见的坑"><span class="mr-2">11</span><span>ebpf-go 这条路线最常见的坑</span></a><ul class="menu-list"><li><a class="is-flex is-mobile" href="#1-只关注生成命令，不关注对象关系"><span class="mr-2">11.1</span><span>1. 只关注生成命令，不关注对象关系</span></a></li><li><a class="is-flex is-mobile" href="#2-忽略生命周期"><span class="mr-2">11.2</span><span>2. 忽略生命周期</span></a></li><li><a class="is-flex is-mobile" href="#3-把兼容性问题想简单了"><span class="mr-2">11.3</span><span>3. 把兼容性问题想简单了</span></a></li><li><a class="is-flex is-mobile" href="#4-以为-Go-能替代内核态知识"><span class="mr-2">11.4</span><span>4. 以为 Go 能替代内核态知识</span></a></li></ul></li><li><a class="is-flex is-mobile" href="#一个适合-Go-工程师的学习顺序"><span class="mr-2">12</span><span>一个适合 Go 工程师的学习顺序</span></a></li><li><a class="is-flex is-mobile" href="#一个非常实用的练手题"><span class="mr-2">13</span><span>一个非常实用的练手题</span></a></li><li><a class="is-flex is-mobile" href="#最后总结"><span class="mr-2">14</span><span>最后总结</span></a></li><li><a class="is-flex is-mobile" href="#博文部分内容参考"><span class="mr-2">15</span><span>博文部分内容参考</span></a></li></ul></div></div><style>.menu-list > li > a.is-active + .menu-list { display: block; }.menu-list > li > a + .menu-list { display: none; }</style><script src="/js/toc.js" defer></script></div><div class="card widget" data-type="profile"><div class="card-content"><nav class=""><div class="level-item has-text-centered flex-shrink-1"><div><figure class="image is-128x128 mx-auto mb-2"><img class="avatar" src="/img/%E5%BE%AE%E4%BF%A1%E5%85%AC%E4%BC%97%E5%8F%B7.jpg" alt="山河已无恙"></figure><p class="title is-size-4 is-block" style="line-height:inherit;">山河已无恙</p><p class="is-size-6 is-block">爱自己，是终生浪漫的开始</p><p class="is-size-6 is-flex justify-content-center"><i class="fas fa-map-marker-alt mr-1"></i><span>中国·呼和浩特</span></p></div></div></nav><nav class="level is-mobile"><div class="level-item has-text-centered is-marginless"><div><p class="heading">文章</p><a href="/archives"><p class="title">472</p></a></div></div><div class="level-item has-text-centered is-marginless"><div><p class="heading">分类</p><a href="/categories"><p class="title">146</p></a></div></div><div class="level-item has-text-centered is-marginless"><div><p class="heading">标签</p><a href="/tags"><p class="title">217</p></a></div></div></nav><div class="level"><a class="level-item button is-primary is-rounded" href="https://mp.weixin.qq.com/s?__biz=MzkyNjIxNTYwMw==&amp;mid=2247496480&amp;idx=1&amp;sn=a9971fed3962ef2a1aeda1f0bda65f86&amp;chksm=c2380ffcf54f86eaba8daac6caca72a70f38e61a8d25dc2a66d3a17b87c02530e326dcaea14b#rd" target="_blank" rel="noopener">关注我</a></div><div class="level is-mobile"><a class="level-item button is-transparent is-marginless" target="_blank" rel="noopener" title="Github" href="https://github.com/LIRUILONGS"><i class="fab fa-github"></i></a><a class="level-item button is-transparent is-marginless" target="_blank" rel="noopener" title="CSDN" href="https://liruilong.blog.csdn.net/"><i class="fa fa-code"></i></a><a class="level-item button is-transparent is-marginless" target="_blank" rel="noopener" title="Email" href="mailto:1224965096@qq.com"><i class="fa fa-envelope"></i></a></div></div></div><div class="card widget" data-type="links"><div class="card-content"><div class="menu"><h3 class="menu-label">链接</h3><ul class="menu-list"><li><a class="level is-mobile" href="https://liruilong.blog.csdn.net/?t=1&amp;type=blog" target="_blank" rel="noopener"><span class="level-left"><span class="level-item">CSDN</span></span><span class="level-right"><span class="level-item tag">liruilong.blog.csdn.net</span></span></a></li><li><a class="level is-mobile" href="https://www.cnblogs.com/liruilong/" target="_blank" rel="noopener"><span class="level-left"><span class="level-item">博客园</span></span><span class="level-right"><span class="level-item tag">www.cnblogs.com</span></span></a></li><li><a class="level is-mobile" href="https://github.com/LIRUILONGS" target="_blank" rel="noopener"><span class="level-left"><span class="level-item">Githup</span></span><span class="level-right"><span class="level-item tag">github.com</span></span></a></li><li><a class="level is-mobile" href="https://gitee.com/liruilonger" target="_blank" rel="noopener"><span class="level-left"><span class="level-item">码云</span></span><span class="level-right"><span class="level-item tag">gitee.com</span></span></a></li></ul></div></div></div><div class="card widget"><div class="card-content"><h3 class="menu-label">最新评论</h3><span class="body_hot_comment">加载中，最新评论有1分钟缓存...</span></div></div><div class="card widget"><div class="card-content"><h3 class="menu-label">最新文章</h3><article class="media"><div class="media-content"><p class="date"><time dateTime="2026-04-15T08:30:00.000Z">2026-04-15</time></p><p class="title"><a href="/2026/04/15/%E5%BE%85%E5%8F%91%E5%B8%83/GEO%E6%97%B6%E4%BB%A3%E7%9A%84%E6%95%B0%E6%8D%AE%E6%B1%A1%E6%9F%93%E6%80%8E%E4%B9%88%E9%98%B2%EF%BC%9A%E4%BB%8E%E6%97%85%E8%A1%8C%E8%90%A5%E9%94%80%E5%81%87%E5%86%85%E5%AE%B9%E5%88%B0AI%E6%90%9C%E7%B4%A2%E5%8F%AF%E4%BF%A1%E5%BA%A6%E6%B2%BB%E7%90%86/">GEO时代的数据污染怎么防：从旅行营销假内容到AI搜索可信度治理</a></p><p class="categories"><a href="/categories/AI-Agent/">AI Agent</a></p></div></article><article class="media"><div class="media-content"><p class="date"><time dateTime="2026-04-14T02:40:00.000Z">2026-04-14</time></p><p class="title"><a href="/2026/04/14/rhca/RH442_BPF/BPF/eBPF%E5%AD%A6%E4%B9%A0%E8%B7%AF%E7%BA%BF/BPF-eBPF%20%E5%BC%80%E5%8F%91%E8%B7%AF%E7%BA%BF%E4%B8%89%EF%BC%9Aebpf-go%E3%80%81bpf2go%20%E4%B8%8E%20Go%20%E5%B7%A5%E7%A8%8B%E9%9B%86%E6%88%90/">BPF-eBPF 开发路线三：ebpf-go、bpf2go 与 Go 工程集成</a></p><p class="categories"><a href="/categories/BPF/">BPF</a></p></div></article><article class="media"><div class="media-content"><p class="date"><time dateTime="2026-04-14T02:30:00.000Z">2026-04-14</time></p><p class="title"><a href="/2026/04/14/rhca/RH442_BPF/BPF/eBPF%E5%AD%A6%E4%B9%A0%E8%B7%AF%E7%BA%BF/BPF-eBPF%20%E5%BC%80%E5%8F%91%E8%B7%AF%E7%BA%BF%E4%BA%8C%EF%BC%9Alibbpf%E3%80%81CO-RE%20%E4%B8%8E%20libbpf-bootstrap%20%E5%AE%9E%E6%88%98/">BPF-eBPF 开发路线二：libbpf、CO-RE 与 libbpf-bootstrap 实战</a></p><p class="categories"><a href="/categories/BPF/">BPF</a></p></div></article><article class="media"><div class="media-content"><p class="date"><time dateTime="2026-04-14T02:20:00.000Z">2026-04-14</time></p><p class="title"><a href="/2026/04/14/rhca/RH442_BPF/BPF/eBPF%E5%AD%A6%E4%B9%A0%E8%B7%AF%E7%BA%BF/BPF-eBPF%20%E5%BC%80%E5%8F%91%E8%B7%AF%E7%BA%BF%E4%B8%80%EF%BC%9ABCC%20%E5%85%A5%E9%97%A8%E3%80%81%E5%B7%A5%E5%85%B7%E4%BD%BF%E7%94%A8%E4%B8%8E%E8%87%AA%E5%AE%9A%E4%B9%89%E8%84%9A%E6%9C%AC/">BPF-eBPF 开发路线一：BCC 入门、工具使用与自定义脚本</a></p><p class="categories"><a href="/categories/BPF/">BPF</a></p></div></article><article class="media"><div class="media-content"><p class="date"><time dateTime="2026-04-14T02:10:00.000Z">2026-04-14</time></p><p class="title"><a href="/2026/04/14/rhca/RH442_BPF/BPF/eBPF%E5%AD%A6%E4%B9%A0%E8%B7%AF%E7%BA%BF/BPF-eBPF%20%E5%AE%9E%E6%88%98%E5%85%A5%E9%97%A8%EF%BC%9A%E7%8E%AF%E5%A2%83%E5%87%86%E5%A4%87%E3%80%81%E6%9C%80%E5%B0%8F%E5%AE%9E%E9%AA%8C%E4%B8%8E%E6%8E%92%E9%94%99%E6%80%9D%E8%B7%AF/">BPF-eBPF 实战入门：环境准备、最小实验与排错思路</a></p><p class="categories"><a href="/categories/BPF/">BPF</a></p></div></article></div></div><div class="card widget"><div class="card-content"><div class="menu"><h3 class="menu-label">分类</h3><ul class="menu-list"><li><a class="level is-mobile is-marginless" href="/categories/AI-Agent/"><span class="level-start"><span class="level-item">AI Agent</span></span><span class="level-end"><span class="level-item tag">10</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/AIGC/"><span class="level-start"><span class="level-item">AIGC</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/AdaFace/"><span class="level-start"><span class="level-item">AdaFace</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/Ajax/"><span class="level-start"><span class="level-item">Ajax</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/Ansible/"><span class="level-start"><span class="level-item">Ansible</span></span><span class="level-end"><span class="level-item tag">23</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/AppCube/"><span class="level-start"><span class="level-item">AppCube</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/BPF/"><span class="level-start"><span class="level-item">BPF</span></span><span class="level-end"><span class="level-item tag">11</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/Bind9/"><span class="level-start"><span class="level-item">Bind9</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/CI-CD/"><span class="level-start"><span class="level-item">CI/CD</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/CSS/"><span class="level-start"><span class="level-item">CSS</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li><a class="level is-mobile is-marginless" href="/categories/"><span class="level-start"><span class="level-item">查看全部&gt;&gt;</span></span></a></ul></div></div></div><div class="card widget"><div class="card-content"><div class="menu"><h3 class="menu-label">归档</h3><ul class="menu-list"><li><a class="level is-mobile is-marginless" href="/archives/2026/04/"><span class="level-start"><span class="level-item">四月 2026</span></span><span class="level-end"><span class="level-item tag">16</span></span></a></li><li><a class="level is-mobile is-marginless" href="/archives/2026/03/"><span class="level-start"><span class="level-item">三月 2026</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li><li><a class="level is-mobile is-marginless" href="/archives/2025/11/"><span class="level-start"><span class="level-item">十一月 2025</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li><li><a class="level is-mobile is-marginless" href="/archives/2025/10/"><span class="level-start"><span class="level-item">十月 2025</span></span><span class="level-end"><span class="level-item tag">3</span></span></a></li><li><a class="level is-mobile is-marginless" href="/archives/2025/08/"><span class="level-start"><span class="level-item">八月 2025</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li><a class="level is-mobile is-marginless" href="/archives/"><span class="level-start"><span class="level-item">查看全部&gt;&gt;</span></span></a></ul></div></div></div><div class="card widget"><div class="card-content"><div class="menu"><h3 class="menu-label">标签</h3><div class="field is-grouped is-grouped-multiline"><div class="control"><a class="tags has-addons" href="/tags/Kubernetes/"><span class="tag">Kubernetes</span><span class="tag is-grey-lightest">98</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Linux/"><span class="tag">Linux</span><span class="tag is-grey-lightest">71</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Ansible/"><span class="tag">Ansible</span><span class="tag is-grey-lightest">25</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Ceph/"><span class="tag">Ceph</span><span class="tag is-grey-lightest">22</span></a></div><div class="control"><a class="tags has-addons" href="/tags/LLM/"><span class="tag">LLM</span><span class="tag is-grey-lightest">17</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Python/"><span class="tag">Python</span><span class="tag is-grey-lightest">15</span></a></div><div class="control"><a class="tags has-addons" href="/tags/BPF/"><span class="tag">BPF</span><span class="tag is-grey-lightest">12</span></a></div><div class="control"><a class="tags has-addons" href="/tags/AI-Agent/"><span class="tag">AI Agent</span><span class="tag is-grey-lightest">9</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Docker/"><span class="tag">Docker</span><span class="tag is-grey-lightest">9</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Git/"><span class="tag">Git</span><span class="tag is-grey-lightest">8</span></a></div><div class="control"><a class="tags has-addons" href="/tags/JAVA/"><span class="tag">JAVA</span><span class="tag is-grey-lightest">8</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%E5%8D%8E%E4%B8%BA%E4%BA%91/"><span class="tag">华为云</span><span class="tag is-grey-lightest">8</span></a></div><div class="control"><a class="tags has-addons" href="/tags/CPU/"><span class="tag">CPU</span><span class="tag is-grey-lightest">7</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Go/"><span class="tag">Go</span><span class="tag is-grey-lightest">7</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Mysql/"><span class="tag">Mysql</span><span class="tag is-grey-lightest">7</span></a></div><div class="control"><a class="tags has-addons" href="/tags/eBPF/"><span class="tag">eBPF</span><span class="tag is-grey-lightest">7</span></a></div><div class="control"><a class="tags has-addons" href="/tags/OpenShift/"><span class="tag">OpenShift</span><span class="tag is-grey-lightest">6</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%E5%AE%89%E5%85%A8/"><span class="tag">安全</span><span class="tag is-grey-lightest">6</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%E6%91%84%E5%BD%B1%E6%9B%9D%E5%85%89/"><span class="tag">摄影曝光</span><span class="tag is-grey-lightest">6</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%E7%A8%8B%E5%BA%8F%E4%BA%BA%E7%94%9F/"><span class="tag">程序人生</span><span class="tag is-grey-lightest">6</span></a></div></div><div class="field is-grouped is-grouped-multiline"><a class="tags has-addons" href="/tags/"><span class="tag">查看全部&gt;&gt;</span></a></div></div></div></div><div class="card widget" data-type="subscribe-email"><div class="card-content"><div class="menu"><h3 class="menu-label">订阅更新</h3><form action="https://feedburner.google.com/fb/a/mailverify" method="post" target="popupwindow" onsubmit="window.open(&#039;https://feedburner.google.com/fb/a/mailverify?uri=&#039;,&#039;popupwindow&#039;,&#039;scrollbars=yes,width=550,height=520&#039;);return true"><input type="hidden" value="" name="uri"><input type="hidden" name="loc" value="en_US"><div class="field has-addons"><div class="control has-icons-left is-expanded"><input class="input" name="email" type="email" placeholder="Email"><span class="icon is-small is-left"><i class="fas fa-envelope"></i></span></div><div class="control"><input class="button" type="submit" value="订阅"></div></div></form></div></div></div><!--!--><div class="column-right-shadow is-hidden-widescreen is-sticky"></div></div></div></div></section><footer class="footer"><div class="container"><div class="level"><div class="level-start"><a class="footer-logo is-block mb-2" href="/"><img src="/img/logo.png" alt="山河已无恙" height="28"></a><p class="size-small"><span>&copy; 2026 山河已无恙</span>  Powered by <a href="https://hexo.io/" target="_blank">Hexo</a> &amp; <a href="https://github.com/ppoffice/hexo-theme-icarus" target="_blank">Icarus</a> &amp; <a href="https://github.com/removeif/hexo-theme-amazing" target="_blank">Amazing</a> <br><span>© <a href="http://www.beian.miit.gov.cn/" target="_blank">备案中</a><br></span><span>© 版权说明：[本网站所有内容均收集于互联网或自己创作,<br />&nbsp;&nbsp;&nbsp;&nbsp;方便于网友与自己学习交流，如有侵权，请<a href="/message" target="_blank">留言</a>，立即处理]<br /></span><span><span id="statistic-times">loading...</span><script>function createTime(time) {
+            var n = new Date(time);
+            now.setTime(now.getTime() + 250),
+                days = (now - n) / 1e3 / 60 / 60 / 24,
+                dnum = Math.floor(days),
+                hours = (now - n) / 1e3 / 60 / 60 - 24 * dnum,
+                hnum = Math.floor(hours),
+            1 == String(hnum).length && (hnum = "0" + hnum),
+                minutes = (now - n) / 1e3 / 60 - 1440 * dnum - 60 * hnum,
+                mnum = Math.floor(minutes),
+            1 == String(mnum).length && (mnum = "0" + mnum),
+                seconds = (now - n) / 1e3 - 86400 * dnum - 3600 * hnum - 60 * mnum,
+                snum = Math.round(seconds),
+            1 == String(snum).length && (snum = "0" + snum),
+                document.getElementById("statistic-times").innerHTML = "❤️本站自 <strong>"+time.split(" ")[0].replace(/\//g,".")+"</strong> 已运行 <strong>" + dnum + "</strong> 天 <strong>" + hnum + "</strong> 小时 <strong>" + mnum + "</strong> 分 <strong>" + snum + "</strong> 秒！❤️";
+        }var now = new Date();setInterval("createTime('2021/6/26 21:27:00')", 250,"");</script><br></span><div class="size-small"><span>❤️感谢 <strong><span id="busuanzi_value_site_uv">99+</span></strong> 小伙伴的 <strong><span id="busuanzi_value_site_pv">99+</span></strong> 次光临！❤️</span></div></p></div><div class="level-end"><div class="field has-addons"><p class="control"><a class="button is-transparent is-large" target="_blank" rel="noopener" title="Creative Commons" href="https://creativecommons.org/"><i class="fab fa-creative-commons"></i></a></p><p class="control"><a class="button is-transparent is-large" target="_blank" rel="noopener" title="Attribution 4.0 International" href="https://creativecommons.org/licenses/by/4.0/"><i class="fab fa-creative-commons-by"></i></a></p><p class="control"><a class="button is-transparent is-large" target="_blank" rel="noopener" title="Download on GitHub" href="https://github.com/removeif/hexo-theme-amazing"><i class="fab fa-github"></i></a></p></div><div class="sideMusic"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/aplayer/dist/APlayer.min.css"><script src="/js/APlayer.min.js"></script><script src="https://cdn.jsdelivr.net/npm/meting@2/dist/Meting.min.js"></script><meting-js style="width: auto;height: 2000px;" server="netease" type="playlist" id="2364053447" theme="#2980b9" loop="all" autoplay="false" order="list" storageName="aplayer-setting" lrctype="0" list-max-height="400px" fixed="true"></meting-js></div></div></div></div></footer><script src="https://cdnjs.loli.net/ajax/libs/moment.js/2.22.2/moment-with-locales.min.js"></script><script src="https://cdnjs.loli.net/ajax/libs/clipboard.js/2.0.4/clipboard.min.js" async></script><script>moment.locale("zh-CN");</script><script>var IcarusThemeSettings = {
+            article: {
+                highlight: {
+                    clipboard: true,
+                    fold: 'unfolded'
+                }
+            }
+        };</script><script src="/js/column.js"></script><!--!--><script src="/js/animation.js"></script><a id="back-to-top" title="回到顶端" href="javascript:;"><i class="fas fa-chevron-up"></i></a><script src="/js/back_to_top.js" defer></script><!--!--><script src="https://cdnjs.loli.net/ajax/libs/lightgallery/1.6.8/js/lightgallery.min.js" defer></script><script src="https://cdnjs.loli.net/ajax/libs/justifiedGallery/3.7.0/js/jquery.justifiedGallery.min.js" defer></script><script>window.addEventListener("load", () => {
+            if (typeof $.fn.lightGallery === 'function') {
+                $('.article').lightGallery({ selector: '.gallery-item' });
+            }
+            if (typeof $.fn.justifiedGallery === 'function') {
+                if ($('.justified-gallery > p > .gallery-item').length) {
+                    $('.justified-gallery > p > .gallery-item').unwrap();
+                }
+                $('.justified-gallery').justifiedGallery();
+            }
+        });</script><!--!--><!--!--><link rel="stylesheet" href="https://cdnjs.loli.net/ajax/libs/KaTeX/0.11.1/katex.min.css"><script src="https://cdnjs.loli.net/ajax/libs/KaTeX/0.11.1/katex.min.js" defer></script><script src="https://cdnjs.loli.net/ajax/libs/KaTeX/0.11.1/contrib/auto-render.min.js" defer></script><script src="https://cdnjs.loli.net/ajax/libs/KaTeX/0.11.1/contrib/mhchem.js" defer></script><script>window.addEventListener("load", function() {
+            document.querySelectorAll('[role="article"] > .content').forEach(function(element) {
+                renderMathInElement(element);
+            });
+        });</script><script type="text/x-mathjax-config">MathJax.Hub.Config({
+            'HTML-CSS': {
+                matchFontHeight: false
+            },
+            SVG: {
+                matchFontHeight: false
+            },
+            CommonHTML: {
+                matchFontHeight: false
+            },
+            tex2jax: {
+                inlineMath: [
+                    ['$','$'],
+                    ['\\(','\\)']
+                ]
+            }
+        });</script><script src="https://cdnjs.loli.net/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-MML-AM_CHTML" defer></script><div id="outdated"><h6>Your browser is out-of-date!</h6><p>Update your browser to view this website correctly.&amp;npsb;<a id="btnUpdateBrowser" target="_blank" rel="noopener" href="http://outdatedbrowser.com/">Update my browser now </a></p><p class="last"><a href="#" id="btnCloseUpdateBrowser" title="Close">×</a></p></div><script src="https://cdnjs.loli.net/ajax/libs/outdated-browser/1.1.5/outdatedbrowser.min.js" defer></script><script>window.addEventListener("load", function () {
+            outdatedBrowser({
+                bgColor: '#f25648',
+                color: '#ffffff',
+                lowerThan: 'object-fit' // display on IE11 or below
+            });
+        });</script><!--!--><script src="/js/main.js" defer></script><script>$.getScript('/js/comment-issue-data.js',function(){loadIssueData('9fdc9739266d48d5f62e','c1cc33697d099a2197650ec9dadcb16bd4904655','LIRUILONGS','blog_comment',false);})</script><div class="searchbox"><div class="searchbox-container"><div class="searchbox-header"><div class="searchbox-input-container"><input class="searchbox-input" type="text" placeholder="想要查找什么..."></div><a class="searchbox-close" href="javascript:;">×</a></div><div class="searchbox-body"></div></div></div><script src="/js/insight.js" defer></script><script>document.addEventListener('DOMContentLoaded', function () {
+            loadInsight({"contentUrl":"/content.json"}, {"hint":"想要查找什么...","untitled":"(无标题)","posts":"文章","pages":"页面","categories":"分类","tags":"标签"});
+        });</script><script src="https://cdn.jsdelivr.net/npm/pjax@0.2.8/pjax.js"></script><script type="text/javascript">var pjax = new Pjax({
+            elements: "a",//代表点击链接就更新
+            selectors: [  //代表要更新的节点
+                ".section",
+                "title"
+            ],
+            cache: true,
+            cacheBust:false
+        })
+
+        function loadBusuanzi(){
+        $.getScript("//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js", function () {});
+        }
+
+        function loadMathJax() { //加载mathjax
+            $.getScript("//cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.4/MathJax.js?config=TeX-MML-AM_CHTML", function () {
+                MathJax.Hub.Config({ tex2jax: { inlineMath: [['$', '$'], ['\(', '\)']] } });
+                var math = document.getElementsByClassName("entry-content")[0];
+                MathJax.Hub.Queue(["Typeset", MathJax.Hub, math]);
+            });
+        };
+
+        // 开始 PJAX 执行的函数
+        document.addEventListener('pjax:send', function () {
+        });
+        
+        // PJAX 完成之后执行的函数，可以和上面的重载放在一起
+        document.addEventListener('pjax:complete', function () {
+            $(".section").css({opacity:1});
+            if(true){
+                $.getScript('/js/comment-issue-data.js',function(){loadIssueData('9fdc9739266d48d5f62e','c1cc33697d099a2197650ec9dadcb16bd4904655','LIRUILONGS','blog_comment',false);});
+            }
+            if(false){
+                loadMathJax();
+            }
+            loadMainJs(jQuery, window.moment, window.ClipboardJS, window.IcarusThemeSettings);
+            loadBackTop();
+            loadBusuanzi();
+            if(typeof loadBanner == 'function'){
+                loadBanner();
+            }
+        });</script></body></html>

@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="760" viewBox="0 0 1200 760">
+  <rect width="1200" height="760" fill="#f8fafc"/>
+  <rect x="50" y="40" width="1100" height="680" rx="28" fill="#ffffff" stroke="#dbe3ee" stroke-width="2"/>
+  <text x="600" y="90" text-anchor="middle" font-size="34" font-family="Microsoft YaHei, PingFang SC, sans-serif" fill="#1f2937">固定翼矩形航线与进近复飞示意图</text>
+  <text x="600" y="124" text-anchor="middle" font-size="18" font-family="Microsoft YaHei, PingFang SC, sans-serif" fill="#6b7280">用模拟器练固定翼时，建议把起飞、侧风、下风、基线、最后进近、复飞拆开练</text>
+
+  <rect x="520" y="240" width="160" height="280" rx="18" fill="#475569"/>
+  <line x1="600" y1="265" x2="600" y2="495" stroke="#e2e8f0" stroke-width="6" stroke-dasharray="16 14"/>
+  <text x="600" y="220" text-anchor="middle" font-size="28" font-family="Microsoft YaHei, PingFang SC, sans-serif" fill="#111827">跑道</text>
+  <text x="600" y="555" text-anchor="middle" font-size="22" font-family="Microsoft YaHei, PingFang SC, sans-serif" fill="#475569">起飞方向示意：自下向上</text>
+
+  <path d="M 560 500 L 560 180 L 300 180 L 300 580 L 840 580 L 840 500" fill="none" stroke="#0ea5e9" stroke-width="10" stroke-linejoin="round"/>
+  <polygon points="560,165 542,198 578,198" fill="#0ea5e9"/>
+  <polygon points="285,580 315,562 315,598" fill="#0ea5e9"/>
+  <polygon points="840,485 822,518 858,518" fill="#0ea5e9"/>
+
+  <text x="585" y="165" font-size="24" font-family="Microsoft YaHei, PingFang SC, sans-serif" fill="#0369a1">起飞后 / 上升段</text>
+  <text x="220" y="170" font-size="24" font-family="Microsoft YaHei, PingFang SC, sans-serif" fill="#0369a1">侧风 leg</text>
+  <text x="210" y="620" font-size="24" font-family="Microsoft YaHei, PingFang SC, sans-serif" fill="#0369a1">下风 leg</text>
+  <text x="865" y="620" font-size="24" font-family="Microsoft YaHei, PingFang SC, sans-serif" fill="#0369a1">基线 leg</text>
+  <text x="885" y="475" font-size="24" font-family="Microsoft YaHei, PingFang SC, sans-serif" fill="#0369a1">最后进近</text>
+
+  <path d="M 885 500 C 980 450, 1020 340, 980 220" fill="none" stroke="#ef4444" stroke-width="8" stroke-dasharray="12 10"/>
+  <polygon points="973,205 962,237 993,231" fill="#ef4444"/>
+  <text x="1010" y="205" font-size="26" font-family="Microsoft YaHei, PingFang SC, sans-serif" fill="#b91c1c">复飞 Go-Around</text>
+  <text x="1000" y="240" font-size="20" font-family="Microsoft YaHei, PingFang SC, sans-serif" fill="#7f1d1d">加油门、稳住姿态、重新建立航线</text>
+
+  <rect x="120" y="250" width="280" height="110" rx="16" fill="#eef6ff" stroke="#93c5fd" stroke-width="2"/>
+  <text x="145" y="290" font-size="22" font-family="Microsoft YaHei, PingFang SC, sans-serif" fill="#1d4ed8">训练重点 1</text>
+  <text x="145" y="325" font-size="19" font-family="Microsoft YaHei, PingFang SC, sans-serif" fill="#1e40af">起飞后先爬升到安全高度，再转入侧风段，不要低空急转。</text>
+
+  <rect x="120" y="390" width="280" height="110" rx="16" fill="#fff7ed" stroke="#fdba74" stroke-width="2"/>
+  <text x="145" y="430" font-size="22" font-family="Microsoft YaHei, PingFang SC, sans-serif" fill="#9a3412">训练重点 2</text>
+  <text x="145" y="465" font-size="19" font-family="Microsoft YaHei, PingFang SC, sans-serif" fill="#7c2d12">下风段开始准备进近，基线和最后进近主要练方向、下滑和油门管理。</text>
+
+  <rect x="780" y="250" width="290" height="120" rx="16" fill="#ecfdf5" stroke="#6ee7b7" stroke-width="2"/>
+  <text x="805" y="290" font-size="22" font-family="Microsoft YaHei, PingFang SC, sans-serif" fill="#047857">进近口诀</text>
+  <text x="805" y="325" font-size="19" font-family="Microsoft YaHei, PingFang SC, sans-serif" fill="#065f46">方向先对正，油门管能量，</text>
+  <text x="805" y="355" font-size="19" font-family="Microsoft YaHei, PingFang SC, sans-serif" fill="#065f46">姿态管下滑，不合适就复飞。</text>
+
+  <rect x="770" y="395" width="300" height="120" rx="16" fill="#f5f3ff" stroke="#c4b5fd" stroke-width="2"/>
+  <text x="795" y="435" font-size="22" font-family="Microsoft YaHei, PingFang SC, sans-serif" fill="#6d28d9">多旋翼手提醒</text>
+  <text x="795" y="470" font-size="19" font-family="Microsoft YaHei, PingFang SC, sans-serif" fill="#5b21b6">固定翼进近不是悬停找点，</text>
+  <text x="795" y="500" font-size="19" font-family="Microsoft YaHei, PingFang SC, sans-serif" fill="#5b21b6">而是沿稳定航迹把能量带到接地点。</text>
+</svg>

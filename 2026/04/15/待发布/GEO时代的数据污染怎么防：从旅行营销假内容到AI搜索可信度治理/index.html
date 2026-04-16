@@ -1,0 +1,426 @@
+<!doctype html>
+<html lang="zh"><head><meta charset="utf-8"><meta name="google-adsense-account" content="ca-pub-5805170532312625"><meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"><meta><title>GEO时代的数据污染怎么防：从旅行营销假内容到AI搜索可信度治理 - 山河已无恙</title><link rel="manifest" href="/manifest.json"><meta name="application-name" content="山河已无恙"><meta name="msapplication-TileImage" content="https://cdn.jsdelivr.net/gh/removeif/removeif-demo@latest/img/favicon.png"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="山河已无恙"><meta name="apple-mobile-web-app-status-bar-style" content="default"><meta description="这篇文章想讨论一个正在变得越来越现实的问题：当 AI 搜索、RAG 和生成式摘要把“可检索内容”当成知识时，旅行营销软文、批量生成攻略、伪经验贴、假新闻，都会从“普通垃圾内容”升级成“可污染答案的数据源”。"><meta property="og:type" content="blog"><meta property="og:title" content="山河已无恙"><meta property="og:url" content="https://mp.weixin.qq.com/s?__biz=MzkyNjIxNTYwMw==&amp;mid=2247496480&amp;idx=1&amp;sn=a9971fed3962ef2a1aeda1f0bda65f86&amp;chksm=c2380ffcf54f86eaba8daac6caca72a70f38e61a8d25dc2a66d3a17b87c02530e326dcaea14b#rd"><meta property="og:site_name" content="山河已无恙"><meta property="og:description" content="这篇文章想讨论一个正在变得越来越现实的问题：当 AI 搜索、RAG 和生成式摘要把“可检索内容”当成知识时，旅行营销软文、批量生成攻略、伪经验贴、假新闻，都会从“普通垃圾内容”升级成“可污染答案的数据源”。"><meta property="og:locale" content="zh_CN"><meta property="og:image" content="https://mp.weixin.qq.com/img/头像.jpg"><meta property="article:published_time" content="2026-04-15T08:30:00.000Z"><meta property="article:modified_time" content="2026-04-15T03:12:17.501Z"><meta property="article:author" content="LIRUILONGS"><meta property="article:tag" content="安全"><meta property="article:tag" content="LLM"><meta property="article:tag" content="RAG"><meta property="article:tag" content="GEO"><meta property="article:tag" content="数据污染"><meta property="twitter:card" content="summary"><meta property="twitter:image" content="/img/头像.jpg"><script type="application/ld+json">{"@context":"https://schema.org","@type":"BlogPosting","mainEntityOfPage":{"@type":"WebPage","@id":"https://liruilongs.github.io/2026/04/15/%E5%BE%85%E5%8F%91%E5%B8%83/GEO%E6%97%B6%E4%BB%A3%E7%9A%84%E6%95%B0%E6%8D%AE%E6%B1%A1%E6%9F%93%E6%80%8E%E4%B9%88%E9%98%B2%EF%BC%9A%E4%BB%8E%E6%97%85%E8%A1%8C%E8%90%A5%E9%94%80%E5%81%87%E5%86%85%E5%AE%B9%E5%88%B0AI%E6%90%9C%E7%B4%A2%E5%8F%AF%E4%BF%A1%E5%BA%A6%E6%B2%BB%E7%90%86/"},"headline":"山河已无恙","image":["https://liruilongs.github.io/img/og_image.png"],"datePublished":"2026-04-15T08:30:00.000Z","dateModified":"2026-04-15T03:12:17.501Z","author":{"@type":"Person","name":"山河已无恙"},"description":"这篇文章想讨论一个正在变得越来越现实的问题：当 AI 搜索、RAG 和生成式摘要把“可检索内容”当成知识时，旅行营销软文、批量生成攻略、伪经验贴、假新闻，都会从“普通垃圾内容”升级成“可污染答案的数据源”。"}</script><link rel="canonical" href="https://liruilongs.github.io/2026/04/15/%E5%BE%85%E5%8F%91%E5%B8%83/GEO%E6%97%B6%E4%BB%A3%E7%9A%84%E6%95%B0%E6%8D%AE%E6%B1%A1%E6%9F%93%E6%80%8E%E4%B9%88%E9%98%B2%EF%BC%9A%E4%BB%8E%E6%97%85%E8%A1%8C%E8%90%A5%E9%94%80%E5%81%87%E5%86%85%E5%AE%B9%E5%88%B0AI%E6%90%9C%E7%B4%A2%E5%8F%AF%E4%BF%A1%E5%BA%A6%E6%B2%BB%E7%90%86/"><link rel="alternate" href="/path/to/atom.xml" title="山河已无恙" type="application/atom+xml"><link rel="icon" href="https://cdn.jsdelivr.net/gh/removeif/removeif-demo@latest/img/favicon.png"><meta name="referrer" content="no-referrer-when-downgrade"><link rel="stylesheet" href="https://cdnjs.loli.net/ajax/libs/font-awesome/5.12.0/css/all.min.css"><link rel="stylesheet" href="https://cdnjs.loli.net/ajax/libs/highlight.js/9.12.0/styles/dracula.min.css"><link rel="stylesheet" href="https://fonts.loli.net/css2?family=Ubuntu:wght@400;600&amp;family=Source+Code+Pro"><link rel="stylesheet" href="/css/default.css"><link rel="stylesheet" href="https://cdnjs.loli.net/ajax/libs/font-awesome/5.12.0/css/all.min.css"><link rel="stylesheet" href="https://fonts.loli.net/css?family=Ubuntu:400,600|Source+Code+Pro|Monda:300,300italic,400,400italic,700,700italic|Roboto Slab:300,300italic,400,400italic,700,700italic|Microsoft YaHei:300,300italic,400,400italic,700,700italic|PT Mono:300,300italic,400,400italic,700,700italic&amp;amp;subset=latin,latin-ext|Inconsolata|Itim|Lobster.css"><script src="https://cdnjs.loli.net/ajax/libs/jquery/3.3.1/jquery.min.js"></script><script src="/js/globalUtils.js"></script><script src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js" defer></script><style>body>.footer,body>.navbar,body>.section{opacity:0}</style><!--!--><script>var _hmt = _hmt || [];
+        (function() {
+            var hm = document.createElement("script");
+            hm.src = "//hm.baidu.com/hm.js?3f06f2b732a5b1034c989f74e28d0eea";
+            var s = document.getElementsByTagName("script")[0];
+            s.parentNode.insertBefore(hm, s);
+        })();</script><link rel="stylesheet" href="https://cdnjs.loli.net/ajax/libs/lightgallery/1.6.8/css/lightgallery.min.css"><link rel="stylesheet" href="https://cdnjs.loli.net/ajax/libs/justifiedGallery/3.7.0/css/justifiedGallery.min.css"><!--!--><!--!--><!--!--><!--!--><link rel="stylesheet" href="https://cdnjs.loli.net/ajax/libs/outdated-browser/1.1.5/outdatedbrowser.min.css"><script src="https://cdnjs.loli.net/ajax/libs/pace/1.0.2/pace.min.js"></script><link rel="stylesheet" href="/live2d/waifu.css"><script type="text/javascript" async src="/live2d/autoload.js"></script><meta name="generator" content="Hexo 5.4.2"></head><body class="is-3-column has-navbar-fixed-top"><nav class="navbar navbar-main is-fixed-top"><div class="container"><div class="navbar-brand justify-content-center"><a class="navbar-item navbar-logo" href="/"><img src="/img/logo.png" alt="山河已无恙" height="28"></a></div><div class="navbar-menu"><div class="navbar-start"><a class="navbar-item" href="/">首页</a><a class="navbar-item" href="/archives">归档</a><a class="navbar-item" href="/categories">分类</a><a class="navbar-item" href="/tags">标签</a><a class="navbar-item" href="/media">影音</a><a class="navbar-item" href="/album">相册</a><a class="navbar-item" href="/friend">友链</a><a class="navbar-item" href="/self-talking">生活小记</a><a class="navbar-item" href="/message">留言墙</a><a class="navbar-item" href="/about">关于</a></div><div class="navbar-end"><a class="navbar-item" target="_blank" rel="noopener" title="Gitee" href="https://gitee.com/liruilonger"><i class="fab fa-git-square fa-1x"></i></a><a class="navbar-item" target="_blank" rel="noopener" title="GitHub" href="https://github.com/LIRUILONGS"><i class="fab fa-github fa-1x"></i></a><a class="navbar-item is-hidden-tablet catalogue" title="目录" href="javascript:;"><i class="fas fa-list-ul fa-1x"></i></a><a class="navbar-item search" title="搜索" href="javascript:;"><i class="fas fa-search fa-1x"></i></a><a class="navbar-item" id="night-nav" title="Night Mode" href="javascript:;"><i class="fas fa-moon fa-1x" id="night-icon"></i></a></div></div></div></nav><script type="text/javascript" src="/js/theme-setting.js"></script><section class="section"><div class="container"><div class="columns"><div class="column order-2 column-main is-8-tablet is-8-desktop is-9-widescreen"><!--!--><div class="card"><article class="card-content article" role="article"><div class="article-meta size-small is-uppercase level is-mobile"><div class="level-left"><i class="far fa-calendar-plus"> </i>2026-04-15  <a class="commentCountImg" href="/2026/04/15/%E5%BE%85%E5%8F%91%E5%B8%83/GEO%E6%97%B6%E4%BB%A3%E7%9A%84%E6%95%B0%E6%8D%AE%E6%B1%A1%E6%9F%93%E6%80%8E%E4%B9%88%E9%98%B2%EF%BC%9A%E4%BB%8E%E6%97%85%E8%A1%8C%E8%90%A5%E9%94%80%E5%81%87%E5%86%85%E5%AE%B9%E5%88%B0AI%E6%90%9C%E7%B4%A2%E5%8F%AF%E4%BF%A1%E5%BA%A6%E6%B2%BB%E7%90%86/#comment-container"><span class="display-none-class">e2ad90e58798c7166af464c8f8ddeee8</span><i class="far fa-comment-dots"></i> <span class="commentCount" id="e2ad90e58798c7166af464c8f8ddeee8">99+</span>  </a><span class="level-item"><i class="far fa-clock"> </i>32 分钟  <i class="fas fa-pencil-alt"> </i>4.8 k</span><span class="level-item" id="busuanzi_container_page_pv"><span id="busuanzi_value_page_pv">0</span>次访问</span></div></div><h1 class="title is-3 is-size-4-mobile">GEO时代的数据污染怎么防：从旅行营销假内容到AI搜索可信度治理</h1><div class="content"><p><strong><font color="009688"> 这篇文章想讨论一个正在变得越来越现实的问题：当 AI 搜索、RAG 和生成式摘要把“可检索内容”当成知识时，旅行营销软文、批量生成攻略、伪经验贴、假新闻，都会从“普通垃圾内容”升级成“可污染答案的数据源”。</font></strong></p>
+<span id="more"></span>
+
+<h2 id="写在前面"><a href="#写在前面" class="headerlink" title="写在前面"></a>写在前面</h2><hr>
+<ul>
+<li>这篇文章不是单纯讲 <code>SEO</code>，而是讲 <code>GEO（Generative Engine Optimization）</code> 时代的内容污染问题</li>
+<li>这里的 <code>GEO</code> 指 <code>Generative Engine Optimization</code>，即面向生成式搜索引擎、AI 摘要、AI 答案引擎的可见性优化</li>
+<li>我会用一个抽象案例来解释问题：旅行社或内容农场批量发“旅游攻略”“避坑贴”“路线推荐”，在正文里埋联系方式、品牌名、导流语，再被 AI 检索与总结</li>
+<li>文中会结合几篇很关键的论文：<code>GEO</code>、<code>On the Risk of Misinformation Pollution with Large Language Models</code>、<code>PoisonedRAG</code>、<code>The Curse of Recursion</code>、<code>Self-Consuming Generative Models Go MAD</code>、<code>RetrieverGuard</code></li>
+<li>理解不足小伙伴帮忙指正 :),生活加油</li>
+</ul>
+<p><strong><font color="009688"> 我看远山，远山悲悯</strong></font></p>
+<p>持续分享技术干货，感兴趣小伙伴可以关注下 ^_^</p>
+<hr>
+<h2 id="一句话先说结论"><a href="#一句话先说结论" class="headerlink" title="一句话先说结论"></a>一句话先说结论</h2><blockquote>
+<p><code>GEO</code> 时代最麻烦的数据污染，不一定是那种一眼就能识别的假新闻，而是那些 <code>看起来像普通经验分享、实际上在稳定导流</code> 的批量内容。</p>
+</blockquote>
+<p>如果一个 AI 系统：</p>
+<ul>
+<li>会抓网页</li>
+<li>会做检索</li>
+<li>会把多个来源总结成答案</li>
+<li>又没有把 <code>来源可信度</code>、<code>模板化重复</code>、<code>营销导流字段</code>、<code>证据充分性</code> 作为硬约束</li>
+</ul>
+<p>那么它就很容易把“营销噪声”压缩成“事实建议”。这类问题不能只靠模型更聪明来解决，必须在：</p>
+<ul>
+<li>数据入库</li>
+<li>检索排序</li>
+<li>引用生成</li>
+<li>高风险领域人工复核</li>
+</ul>
+<p>这些环节做分层防护。</p>
+<h2 id="旅行营销文为什么会污染-AI-答案"><a href="#旅行营销文为什么会污染-AI-答案" class="headerlink" title="旅行营销文为什么会污染 AI 答案"></a>旅行营销文为什么会污染 AI 答案</h2><p>先看一个很常见的抽象场景。某类旅行营销内容会这么做：</p>
+<ul>
+<li>批量生产“XX 城市三天两晚攻略”“XX 景区避坑指南”“第一次去 XX 怎么玩”</li>
+<li>文风伪装成游客经验分享</li>
+<li>多篇文章重复出现相似路线、相似评价、相似话术</li>
+<li>在段尾、图片说明、评论区、FAQ 里埋联系方式、微信号、电话、报名入口</li>
+<li>用大量近义改写绕过简单去重</li>
+</ul>
+<p>如果传统搜索只把它当普通网页，问题还只是 <code>搜索质量下降</code>。</p>
+<p>但如果进入 <code>AI 搜索 / RAG / 生成式摘要</code> 流程，事情就会升级成下面这条链路：</p>
+<ol>
+<li>爬虫抓取到这些内容</li>
+<li>索引系统把它们写进候选语料</li>
+<li>检索阶段因为关键词高度相关，把它们高频召回</li>
+<li>生成阶段把多篇相似内容“总结”成统一建议</li>
+<li>联系方式、机构名称、套餐推荐被模型当成“有用信息”保留下来</li>
+</ol>
+<p>最后用户问的是：</p>
+<ul>
+<li>去哪里玩</li>
+<li>怎么避坑</li>
+<li>哪条路线值得走</li>
+</ul>
+<p>AI 给出的却可能是：</p>
+<ul>
+<li>某家机构的隐性推广</li>
+<li>被重复营销文放大的单一路线</li>
+<li>伪装成经验总结的商业导流</li>
+</ul>
+<p>这就是我理解的 <code>GEO 场景下的数据污染</code>。它和传统的“假新闻”不完全一样，但危害机制很像： <strong>不是内容能不能生成，而是谁更容易被检索、被引用、被总结成最终答案。</strong></p>
+<h2 id="名词解释"><a href="#名词解释" class="headerlink" title="名词解释"></a>名词解释</h2><ul>
+<li><code>GEO</code>：<code>Generative Engine Optimization</code>，围绕 AI 搜索、生成式答案引擎做内容可见性优化</li>
+<li><code>RAG</code>：<code>Retrieval-Augmented Generation</code>，通过外部检索结果增强模型回答</li>
+<li><code>misinformation pollution</code>：错误信息或误导信息进入信息系统后，对检索、问答、总结造成系统性污染</li>
+<li><code>knowledge corruption</code>：攻击者污染知识库或语料库，使系统在回答时偏向错误目标</li>
+<li><code>model collapse</code>：模型反复消费模型生成数据后，数据分布尾部逐渐消失，能力退化</li>
+<li><code>near-duplicate</code>：不是完全相同，但高度模板化、结构接近、语义近似的重复内容</li>
+<li><code>content provenance</code>：内容来源与生成链路的可追溯性</li>
+<li><code>citation grounding</code>：答案中的结论必须能回溯到可信引用源</li>
+</ul>
+<h2 id="相关论文到底告诉了我们什么"><a href="#相关论文到底告诉了我们什么" class="headerlink" title="相关论文到底告诉了我们什么"></a>相关论文到底告诉了我们什么</h2><p>下面几篇论文，分别对应这件事的不同侧面。</p>
+<h3 id="1-GEO-论文告诉我们：生成式搜索的“可见性”本身就是可以被优化的"><a href="#1-GEO-论文告诉我们：生成式搜索的“可见性”本身就是可以被优化的" class="headerlink" title="1. GEO 论文告诉我们：生成式搜索的“可见性”本身就是可以被优化的"></a>1. GEO 论文告诉我们：生成式搜索的“可见性”本身就是可以被优化的</h3><p><code>KDD 2024</code> 的论文 <a target="_blank" rel="noopener" href="https://doi.org/10.1145/3637528.3671900">GEO: Generative Engine Optimization: https://doi.org/10.1145/3637528.3671900</a> 提出了一个很重要的事实：</p>
+<ul>
+<li>生成式搜索不是天然中立的</li>
+<li>内容在 AI 答案中的出现概率、引用概率、可见性，是可以被优化的</li>
+</ul>
+<p>论文引入了 <code>GEO-bench</code>，并报告某些策略可以把内容在生成式引擎响应中的可见性提升 <code>up to 40%</code>。</p>
+<p>这里我做一个<strong>基于论文的工程推断</strong>：</p>
+<blockquote>
+<p>如果合规内容可以通过 GEO 提升曝光，那么低质量营销内容、软广内容、伪经验内容，理论上也会沿着同样的接口去争夺“被 AI 看见”的机会。</p>
+</blockquote>
+<p>所以 <code>GEO</code> 不是天然有害，但它说明了一件事：<strong>生成式搜索已经进入“可操纵的排序与引用竞争”。</strong></p>
+<h3 id="2-misinformation-pollution-论文告诉我们：错误内容会显著拖垮问答系统"><a href="#2-misinformation-pollution-论文告诉我们：错误内容会显著拖垮问答系统" class="headerlink" title="2. misinformation pollution 论文告诉我们：错误内容会显著拖垮问答系统"></a>2. misinformation pollution 论文告诉我们：错误内容会显著拖垮问答系统</h3><p><a target="_blank" rel="noopener" href="https://aclanthology.org/2023.findings-emnlp.97/">On the Risk of Misinformation Pollution with Large Language Models: https://aclanthology.org/2023.findings-emnlp.97/</a> 研究了一个更直接的问题：</p>
+<ul>
+<li>LLM 不仅能生成可信外观的错误信息</li>
+<li>这些错误信息还会继续污染信息密集型应用，尤其是 <code>Open-Domain QA</code></li>
+</ul>
+<p>论文里一个很刺眼的数据是：</p>
+<ul>
+<li>在其设定下，<code>ODQA</code> 系统性能下降最高可达 <code>87%</code></li>
+</ul>
+<p>这篇论文讲的是 misinformation，不专门讲旅行营销，但它给了我们一个非常重要的共识：</p>
+<blockquote>
+<p>一旦系统把“会说得像真话的内容”当成外部知识，污染就会沿着检索链路被放大。</p>
+</blockquote>
+<p>旅行营销软文和假新闻在这里的共同点是：</p>
+<ul>
+<li>都擅长伪装成可信文本</li>
+<li>都会利用表面相关性进入召回结果</li>
+<li>都可能在摘要阶段被压缩成“像结论的话”</li>
+</ul>
+<h3 id="3-PoisonedRAG-论文告诉我们：知识库本身就是攻击面"><a href="#3-PoisonedRAG-论文告诉我们：知识库本身就是攻击面" class="headerlink" title="3. PoisonedRAG 论文告诉我们：知识库本身就是攻击面"></a>3. PoisonedRAG 论文告诉我们：知识库本身就是攻击面</h3><p><a target="_blank" rel="noopener" href="https://arxiv.org/abs/2402.07867">PoisonedRAG: https://arxiv.org/abs/2402.07867</a> 讨论的不是普通 SEO，而是更偏安全攻击的问题：</p>
+<ul>
+<li>攻击者只要往知识库里注入少量恶意文本</li>
+<li>就可能诱导 RAG 系统对特定问题输出攻击者想要的答案</li>
+</ul>
+<p>论文报告的结果很强：在一个含有数百万文本的知识库里，每个目标问题只注入 <code>5</code> 条恶意文本，攻击成功率就能达到 <code>90%</code></p>
+<p>这篇论文和旅行营销文场景不是一回事，但它说明了一个非常关键的结构性事实：</p>
+<blockquote>
+<p><code>RAG 的外部知识库不是中立背景板，而是核心攻击面。</code></p>
+</blockquote>
+<p>如果一个旅行问答系统把网页、攻略、笔记、商家文案都混成统一知识源，那么“批量营销文”虽然不一定是安全论文意义上的恶意攻击，效果上却非常像一种 <code>慢变量的知识库投毒</code>。</p>
+<h3 id="4-两篇-model-collapse-论文告诉我们：污染不只是当下检索问题，还是长期训练问题"><a href="#4-两篇-model-collapse-论文告诉我们：污染不只是当下检索问题，还是长期训练问题" class="headerlink" title="4. 两篇 model collapse 论文告诉我们：污染不只是当下检索问题，还是长期训练问题"></a>4. 两篇 model collapse 论文告诉我们：污染不只是当下检索问题，还是长期训练问题</h3><p><a target="_blank" rel="noopener" href="https://arxiv.org/abs/2305.17493">The Curse of Recursion: Training on Generated Data Makes Models Forget: https://arxiv.org/abs/2305.17493</a> 提出：</p>
+<ul>
+<li>当模型持续吃进模型生成的数据时，原始分布尾部会逐步消失</li>
+<li>这种退化不是局部噪声，而是更深层的 <code>model collapse</code></li>
+</ul>
+<p><a target="_blank" rel="noopener" href="https://arxiv.org/abs/2307.01850">Self-Consuming Generative Models Go MAD: https://arxiv.org/abs/2307.01850</a> 也给出相近判断：</p>
+<ul>
+<li>如果每一代训练都没有足够新鲜的真实数据补充</li>
+<li>模型的质量或多样性会持续下降</li>
+</ul>
+<p>这两篇论文讨论的重点偏训练分布，不是检索系统本身。但它们对今天内容生态的提醒很重：</p>
+<blockquote>
+<p>如果互联网上越来越多内容本来就是 AI 批量生成的，而这些内容又反过来被抓取、索引、微调、蒸馏、总结，那么污染会从“检索层问题”慢慢演化成“训练层问题”。</p>
+</blockquote>
+<p>换句话说：</p>
+<ul>
+<li>今天 AI 搜索引用旅行营销软文，可能先伤害的是 <code>答案可信度</code></li>
+<li>明天这些内容继续回流训练，伤害的就会是 <code>整个语料分布</code></li>
+</ul>
+<h3 id="5-RetrieverGuard-论文告诉我们：防线不能只放在生成阶段"><a href="#5-RetrieverGuard-论文告诉我们：防线不能只放在生成阶段" class="headerlink" title="5. RetrieverGuard 论文告诉我们：防线不能只放在生成阶段"></a>5. RetrieverGuard 论文告诉我们：防线不能只放在生成阶段</h3><p><a target="_blank" rel="noopener" href="https://aclanthology.org/2025.findings-naacl.249/">RetrieverGuard: https://aclanthology.org/2025.findings-naacl.249/</a> 的思路很值得借鉴。</p>
+<p>它的重点不是“等模型回答完再补锅”，而是：</p>
+<ul>
+<li>让检索模型本身具备识别误导性 AI 生成文本的能力</li>
+<li>提高被召回文本的真实性</li>
+<li>在更早的阶段降低假内容进入答案合成的概率</li>
+</ul>
+<p>这篇论文的启发非常直接：</p>
+<blockquote>
+<p>对抗数据污染，不能只在最终答案阶段做免责声明，而要把“检索前和检索中”的真实性控制前移。</p>
+</blockquote>
+<h2 id="所以问题到底出在哪一层"><a href="#所以问题到底出在哪一层" class="headerlink" title="所以问题到底出在哪一层"></a>所以问题到底出在哪一层</h2><p>我更倾向把这件事分成四层。</p>
+<h3 id="1-训练层污染"><a href="#1-训练层污染" class="headerlink" title="1. 训练层污染"></a>1. 训练层污染</h3><p>互联网上 AI 内容越来越多，真实经验、真实表达、真实长尾分布被稀释。</p>
+<p>影响是：</p>
+<ul>
+<li>模型学到的“常见说法”越来越像模板化内容</li>
+<li>对真实、稀疏、个体化经验的表征能力下降</li>
+</ul>
+<h3 id="2-索引层污染"><a href="#2-索引层污染" class="headerlink" title="2. 索引层污染"></a>2. 索引层污染</h3><p>抓取系统把：</p>
+<ul>
+<li>内容农场</li>
+<li>伪经验贴</li>
+<li>批量商单文</li>
+<li>改写后的导流内容</li>
+</ul>
+<p>一起写进索引库，这会导致候选集合从一开始就是脏的</p>
+<h3 id="3-检索排序层污染"><a href="#3-检索排序层污染" class="headerlink" title="3. 检索排序层污染"></a>3. 检索排序层污染</h3><p>很多污染内容并不靠“事实正确”胜出，而是靠：</p>
+<ul>
+<li>关键词密度高</li>
+<li>句式标准</li>
+<li>结构完整</li>
+<li>多站重复出现</li>
+</ul>
+<p>这会让它们在 <code>BM25</code>、embedding 检索、混合检索里都占便宜。</p>
+<h3 id="4-生成层污染"><a href="#4-生成层污染" class="headerlink" title="4. 生成层污染"></a>4. 生成层污染</h3><p>生成模型很擅长做一件危险的事，把多个相似但不可靠的来源，压缩成一段非常像共识的答案，这一步会把“重复营销”洗成“总结建议”。</p>
+<h2 id="真正有效的防护，不是一个点子，而是一条防护链"><a href="#真正有效的防护，不是一个点子，而是一条防护链" class="headerlink" title="真正有效的防护，不是一个点子，而是一条防护链"></a>真正有效的防护，不是一个点子，而是一条防护链</h2><p>如何有效的防治，下面是一些方法论</p>
+<h3 id="第一道防线：先做来源分级，不要把所有网页当成平权证据"><a href="#第一道防线：先做来源分级，不要把所有网页当成平权证据" class="headerlink" title="第一道防线：先做来源分级，不要把所有网页当成平权证据"></a>第一道防线：先做来源分级，不要把所有网页当成平权证据</h3><p>对高风险领域，比如：旅行、医疗、金融、招聘、留学等建议先做 <code>source tiering</code>：</p>
+<ul>
+<li><code>Tier 1</code>：政府、景区官方、权威媒体、长期稳定机构站点</li>
+<li><code>Tier 2</code>：高信誉社区、头部垂直站、长期真实作者</li>
+<li><code>Tier 3</code>：未知来源、自媒体站、导流站、聚合站</li>
+</ul>
+<p>规则上不要只看“能不能抓到”，而要看：</p>
+<ul>
+<li>域名信誉</li>
+<li>历史稳定性</li>
+<li>作者身份可追溯性</li>
+<li>是否频繁出现导流字段</li>
+<li>是否大量发布模板化内容</li>
+</ul>
+<p>如果这一层没做，后面的 <code>citation</code> 再漂亮，也只是给低质量来源贴参考文献。</p>
+<h3 id="第二道防线：入库前做模板化污染治理"><a href="#第二道防线：入库前做模板化污染治理" class="headerlink" title="第二道防线：入库前做模板化污染治理"></a>第二道防线：入库前做模板化污染治理</h3><p>对旅行营销文，最常见的问题不是单篇完全造假，而是：</p>
+<ul>
+<li>同模板批量生成</li>
+<li>多账号分发</li>
+<li>相似段落改写</li>
+<li>联系方式和 CTA 反复出现</li>
+</ul>
+<p>所以入库前至少要做这些事情：</p>
+<ol>
+<li><code>near-duplicate clustering</code> 把高度相似的内容聚成簇，而不是让 30 篇近似文在检索里看起来像 30 个独立证据。</li>
+<li><code>模板信号检测</code> 比如固定段落骨架、固定 FAQ、固定“需要定制路线可咨询”等句型。</li>
+<li><code>导流字段识别</code>包括手机号、微信号、二维码提示词、报名入口、咨询口令、私信引导等。</li>
+<li><code>商业意图打标</code> 哪怕不直接删除，也要把“内容有明显导流风险”作为检索降权特征。</li>
+</ol>
+<p>这一步的核心思想是：</p>
+<blockquote>
+<p>不要把“同一批营销内容的 100 次重发表”误当成“100 个独立来源的一致结论”。</p>
+</blockquote>
+<h3 id="第三道防线：检索时不要只按相关性排，还要按可信度排"><a href="#第三道防线：检索时不要只按相关性排，还要按可信度排" class="headerlink" title="第三道防线：检索时不要只按相关性排，还要按可信度排"></a>第三道防线：检索时不要只按相关性排，还要按可信度排</h3><p>很多系统最大的问题是检索做相关性,可信度留给生成模型自己悟,这通常不够。</p>
+<p>更稳的做法是让排序分数至少由下面几部分组成：</p>
+<ul>
+<li>主题相关性</li>
+<li>来源信誉</li>
+<li>内容新鲜度</li>
+<li>与其他独立高信誉来源的一致性</li>
+<li>是否疑似模板化营销内容</li>
+<li>是否包含高风险导流字段</li>
+</ul>
+<p>在旅行场景里，还可以额外做两个约束：</p>
+<ul>
+<li>当用户问“攻略&#x2F;避坑&#x2F;路线”时，优先召回 <code>经验信息</code>，不优先召回 <code>交易导向页面</code></li>
+<li>当召回文本包含联系方式时，把它视为 <code>风险信号</code>，而不是普通实体</li>
+</ul>
+<p>这点很重要。因为“电话”“微信”“咨询方式”在营销系统里是转化目标，但在问答系统里，往往应该被视为污染物。</p>
+<h3 id="第四道防线：生成阶段强制证据约束，证据不够就别给结论"><a href="#第四道防线：生成阶段强制证据约束，证据不够就别给结论" class="headerlink" title="第四道防线：生成阶段强制证据约束，证据不够就别给结论"></a>第四道防线：生成阶段强制证据约束，证据不够就别给结论</h3><p>生成阶段至少要做三件事。</p>
+<h4 id="1-强制-citation-grounding"><a href="#1-强制-citation-grounding" class="headerlink" title="1. 强制 citation grounding"></a>1. 强制 citation grounding</h4><p>每个关键建议都要能落到：</p>
+<ul>
+<li>哪个来源</li>
+<li>来源级别是什么</li>
+<li>是否多个独立来源一致支持</li>
+</ul>
+<p>如果只是多个低质量近重复页面互相重复，不应被当成高置信证据。</p>
+<h4 id="2-对“联系方式”“报名入口”“机构名推荐”启用高风险策略"><a href="#2-对“联系方式”“报名入口”“机构名推荐”启用高风险策略" class="headerlink" title="2. 对“联系方式”“报名入口”“机构名推荐”启用高风险策略"></a>2. 对“联系方式”“报名入口”“机构名推荐”启用高风险策略</h4><p>如果用户没明确问：</p>
+<ul>
+<li>联系方式</li>
+<li>代理机构</li>
+<li>报名入口</li>
+</ul>
+<p>系统就不应该主动把这些字段作为核心答案输出。更稳妥的策略是默认省略或只在明确声明“以下信息来自商业推广&#x2F;第三方页面，需自行核实”时展示</p>
+<h4 id="3-低证据密度时拒答或降格回答"><a href="#3-低证据密度时拒答或降格回答" class="headerlink" title="3. 低证据密度时拒答或降格回答"></a>3. 低证据密度时拒答或降格回答</h4><p>比如只回答官方购票渠道怎么找,如何判断攻略是否是广告,你应该核对哪些信息,而不是在脏证据上硬凑一个“最佳旅行方案”。</p>
+<h3 id="第五道防线：高风险垂类必须保留人工闭环"><a href="#第五道防线：高风险垂类必须保留人工闭环" class="headerlink" title="第五道防线：高风险垂类必须保留人工闭环"></a>第五道防线：高风险垂类必须保留人工闭环</h3><p>很多人喜欢把“人工审核”理解成系统不够智能。但在高风险垂类里，它其实是必要的止损点。</p>
+<p>建议把下面几类样本进入人工队列：</p>
+<ul>
+<li>高流量高转化 query</li>
+<li>包含联系方式的召回结果</li>
+<li>单一机构在多个候选文档中异常高频出现</li>
+<li>多篇内容结构相似但域名不同</li>
+<li>新站点突然高频进入前排</li>
+</ul>
+<p>人工复核的目标不是逐条改答案，而是反哺这些资产：</p>
+<ul>
+<li>灰名单域名库</li>
+<li>模板短语库</li>
+<li>导流句式特征库</li>
+<li>高风险 query 列表</li>
+<li>检索降权规则</li>
+</ul>
+<h2 id="一个简单的治理框架方法论和思考"><a href="#一个简单的治理框架方法论和思考" class="headerlink" title="一个简单的治理框架方法论和思考"></a>一个简单的治理框架方法论和思考</h2><p>可以把整条链路写成：</p>
+<p><code>采集 -&gt; 溯源 -&gt; 去重聚类 -&gt; 营销/导流识别 -&gt; 可信度打分 -&gt; 风险感知检索 -&gt; 证据约束生成 -&gt; 高风险复核 -&gt; 反馈回灌</code></p>
+<p>其中最容易被忽略、但实际最关键的点有三个：</p>
+<ul>
+<li><strong>把“联系方式”从普通字段提升为风险字段</strong></li>
+<li><strong>把“多篇相似内容”从共识信号改判为模板污染信号</strong></li>
+<li><strong>把“能回答”改成“有足够可信证据才回答”</strong></li>
+</ul>
+<h3 id="GEO-不等于作弊，但它暴露了生成式搜索的新竞争面"><a href="#GEO-不等于作弊，但它暴露了生成式搜索的新竞争面" class="headerlink" title="GEO 不等于作弊，但它暴露了生成式搜索的新竞争面"></a>GEO 不等于作弊，但它暴露了生成式搜索的新竞争面</h3><p><code>GEO</code> 论文本身并不是攻击论文。它讨论的是内容如何在生成式引擎里获得更高可见性。</p>
+<p>但它提醒我们：</p>
+<ul>
+<li>AI 搜索已经不是“只返回链接”</li>
+<li>而是在争夺“谁被模型看见、谁被模型总结、谁被模型引用”</li>
+</ul>
+<p>这意味着<strong>内容操纵的收益会变高</strong>。</p>
+<h3 id="最危险的不是纯假内容，而是半真半假的高相关营销内容"><a href="#最危险的不是纯假内容，而是半真半假的高相关营销内容" class="headerlink" title="最危险的不是纯假内容，而是半真半假的高相关营销内容"></a>最危险的不是纯假内容，而是半真半假的高相关营销内容</h3><p>纯假新闻有时反而更容易被识别。  真正难处理的是：</p>
+<ul>
+<li>有一部分真实信息</li>
+<li>有很强关键词相关性</li>
+<li>语言极像经验贴</li>
+<li>最后悄悄落到商业导流</li>
+</ul>
+<p>这类内容特别适合污染 <code>旅行、本地生活、消费决策</code> 类问答。</p>
+<h3 id="未来最大的风险是“检索污染”和“训练污染”相互放大"><a href="#未来最大的风险是“检索污染”和“训练污染”相互放大" class="headerlink" title="未来最大的风险是“检索污染”和“训练污染”相互放大"></a>未来最大的风险是“检索污染”和“训练污染”相互放大</h3><p>今天被 AI 搜索引用的内容，明天可能被更多系统抓去再训练、再蒸馏、再总结。所以这不是一次性质量问题，而是一个生态循环问题。</p>
+<p>这也是为什么 <code>The Curse of Recursion</code> 和 <code>Go MAD</code> 这两篇论文虽然不专门研究旅行营销，却仍然非常值得一起看。</p>
+<h2 id="写在最后"><a href="#写在最后" class="headerlink" title="写在最后"></a>写在最后</h2><blockquote>
+<p><code>GEO</code> 时代的数据污染防护，核心不是“识别几条假新闻”，而是阻止低可信、强模板、强导流、可批量扩散的内容，进入 AI 的证据链。</p>
+</blockquote>
+<p>对旅行营销场景来说，真正要防的不是“网上有人打广告”这件事本身，而是：</p>
+<ul>
+<li>广告先伪装成经验</li>
+<li>再伪装成证据</li>
+<li>最后被 AI 伪装成结论</li>
+</ul>
+<p>只要这条链不断，用户看到的就不再是搜索结果，而是被污染后的“自动共识”。</p>
+<h2 id="博文部分内容参考"><a href="#博文部分内容参考" class="headerlink" title="博文部分内容参考"></a>博文部分内容参考</h2><p>© 文中涉及参考链接内容版权归原作者所有，如有侵权请告知 :)</p>
+<hr>
+<ul>
+<li>GEO: Generative Engine Optimization<br><a target="_blank" rel="noopener" href="https://doi.org/10.1145/3637528.3671900">https://doi.org/10.1145/3637528.3671900</a></li>
+<li>Princeton 页面（含论文摘要与出版信息）<br><a target="_blank" rel="noopener" href="https://collaborate.princeton.edu/en/publications/geo-generative-engine-optimization/">https://collaborate.princeton.edu/en/publications/geo-generative-engine-optimization/</a></li>
+<li>On the Risk of Misinformation Pollution with Large Language Models<br><a target="_blank" rel="noopener" href="https://aclanthology.org/2023.findings-emnlp.97/">https://aclanthology.org/2023.findings-emnlp.97/</a></li>
+<li>PoisonedRAG: Knowledge Corruption Attacks to Retrieval-Augmented Generation of Large Language Models<br><a target="_blank" rel="noopener" href="https://arxiv.org/abs/2402.07867">https://arxiv.org/abs/2402.07867</a></li>
+<li>The Curse of Recursion: Training on Generated Data Makes Models Forget<br><a target="_blank" rel="noopener" href="https://arxiv.org/abs/2305.17493">https://arxiv.org/abs/2305.17493</a></li>
+<li>Self-Consuming Generative Models Go MAD<br><a target="_blank" rel="noopener" href="https://arxiv.org/abs/2307.01850">https://arxiv.org/abs/2307.01850</a></li>
+<li>RetrieverGuard: Empowering Information Retrieval to Combat LLM-Generated Misinformation<br><a target="_blank" rel="noopener" href="https://aclanthology.org/2025.findings-naacl.249/">https://aclanthology.org/2025.findings-naacl.249/</a></li>
+</ul>
+<hr>
+<p>© 2018-至今 <a href="mailto:&#108;&#x69;&#x72;&#x75;&#105;&#108;&#111;&#110;&#103;&#101;&#114;&#64;&#x67;&#x6d;&#x61;&#x69;&#x6c;&#x2e;&#99;&#111;&#x6d;">&#108;&#x69;&#x72;&#x75;&#105;&#108;&#111;&#110;&#103;&#101;&#114;&#64;&#x67;&#x6d;&#x61;&#x69;&#x6c;&#x2e;&#99;&#111;&#x6d;</a>, 保持署名-非商用-相同方式共享(CC BY-NC-SA 4.0)</p>
+</div><div class="article-licensing box"><div class="licensing-title"><p>GEO时代的数据污染怎么防：从旅行营销假内容到AI搜索可信度治理</p><p><a href="https://liruilongs.github.io/2026/04/15/待发布/GEO时代的数据污染怎么防：从旅行营销假内容到AI搜索可信度治理/">https://liruilongs.github.io/2026/04/15/待发布/GEO时代的数据污染怎么防：从旅行营销假内容到AI搜索可信度治理/</a></p></div><div class="licensing-meta level is-mobile"><div class="level-left"><div class="level-item is-narrow"><div><h6>作者</h6><a href="https://liruilongs.github.io"><p>山河已无恙</p></a></div></div><div class="level-item is-narrow"><div><h6>发布于</h6><p>2026-04-15</p></div></div><div class="level-item is-narrow"><div><h6>更新于</h6><p>2026-04-15</p></div></div><div class="level-item is-narrow"><div><h6>许可协议</h6><p><a class="icon" rel="noopener" target="_blank" title="Creative Commons" href="https://creativecommons.org/"><i class="fab fa-creative-commons"></i></a><a class="icon" rel="noopener" target="_blank" title="Attribution" href="https://creativecommons.org/licenses/by/4.0/"><i class="fab fa-creative-commons-by"></i></a><a class="icon" rel="noopener" target="_blank" title="Noncommercial" href="https://creativecommons.org/licenses/by-nc/4.0/"><i class="fab fa-creative-commons-nc"></i></a></p></div></div></div></div></div><div class="recommend-area"><div class="recommend-post"><span class="is-size-6 has-text-grey has-mr-7"># 相关文章</span><br><span>  1.<a class="is-size-6" href="/2026/04/09/%E5%BE%85%E5%8F%91%E5%B8%83/%E8%AE%BA%E6%96%87%E5%AD%A6%E4%B9%A0/Grimlock%E8%AE%BA%E6%96%87%E5%AD%A6%E4%B9%A0%EF%BC%9A%E5%A6%82%E4%BD%95%E7%94%A8eBPF%E5%92%8C%E5%8F%AF%E4%BF%A1%E9%80%9A%E9%81%93%E4%BF%9D%E6%8A%A4%E9%AB%98%E8%87%AA%E6%B2%BBAgent%E9%80%9A%E4%BF%A1/" target="_blank">Grimlock论文学习：如何用eBPF和可信通道保护高自治Agent通信</a><br></span><span>  2.<a class="is-size-6" href="/2026/04/09/%E5%BE%85%E5%8F%91%E5%B8%83/%E8%AE%BA%E6%96%87%E5%AD%A6%E4%B9%A0/XOA%E8%AE%BA%E6%96%87%E5%AD%A6%E4%B9%A0%EF%BC%9A%E4%BB%8E%E6%9E%B6%E6%9E%84%E4%B8%8A%E9%9A%94%E7%A6%BBPrompt%20Injection%E7%9A%84AI-Agent%E6%96%B9%E6%A1%88/" target="_blank">XOA论文学习：从架构上隔离Prompt Injection的AI-Agent方案</a><br></span><span>  3.<a class="is-size-6" href="/2026/04/09/%E5%BE%85%E5%8F%91%E5%B8%83/%E8%AE%BA%E6%96%87%E5%AD%A6%E4%B9%A0/Fuyun%E8%AE%BA%E6%96%87%E5%AD%A6%E4%B9%A0%EF%BC%9ALLM-Agent%E5%A6%82%E4%BD%95%E5%81%9AServerless%E8%B5%84%E6%BA%90%E9%85%8D%E7%BD%AE/" target="_blank">Fuyun论文学习：LLM Agent如何做Serverless资源配置</a><br></span><span>  4.<a class="is-size-6" href="/2026/04/09/%E5%BE%85%E5%8F%91%E5%B8%83/%E8%AE%BA%E6%96%87%E5%AD%A6%E4%B9%A0/FMOS%E8%AE%BA%E6%96%87%E5%AD%A6%E4%B9%A0%EF%BC%9A%E4%B8%BA%E4%BB%80%E4%B9%88%E5%9F%BA%E7%A1%80%E6%A8%A1%E5%9E%8B%E9%9C%80%E8%A6%81%E4%B8%80%E4%B8%AA%E8%87%AA%E8%BF%9B%E5%8C%96%E7%9A%84%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F%E5%B1%82/" target="_blank">FMOS论文学习：为什么基础模型需要一个自进化的操作系统层</a><br></span><span>  5.<a class="is-size-6" href="/2026/04/09/%E5%BE%85%E5%8F%91%E5%B8%83/%E8%AE%BA%E6%96%87%E5%AD%A6%E4%B9%A0/Branch-Context%E8%AE%BA%E6%96%87%E5%AD%A6%E4%B9%A0%EF%BC%9A%E4%B8%BAAI-Agent%E6%8E%A2%E7%B4%A2%E5%BC%8F%E6%89%A7%E8%A1%8C%E8%AE%BE%E8%AE%A1%E6%96%B0%E7%9A%84OS%E5%8E%9F%E8%AF%AD/" target="_blank">为AI Agent探索式执行设计新的OS原语,上下文分支</a><br></span><span>  6.<a class="is-size-6" href="/2026/04/09/%E5%BE%85%E5%8F%91%E5%B8%83/%E8%AE%BA%E6%96%87%E5%AD%A6%E4%B9%A0/VibeWAF%E8%AE%BA%E6%96%87%E5%AD%A6%E4%B9%A0%EF%BC%9A%E8%AE%A9LLM%E7%BB%99WAF%E8%87%AA%E5%8A%A8%E9%95%BF%E8%A7%84%E5%88%99%EF%BC%8C%E5%88%B0%E5%BA%95%E5%8F%AF%E4%B8%8D%E5%8F%AF%E8%A1%8C/" target="_blank">VibeWAF论文学习：让LLM给WAF自动长规则，到底可不可行</a><br></span><span>  7.<a class="is-size-6" href="/2026/04/09/%E5%BE%85%E5%8F%91%E5%B8%83/%E8%AE%BA%E6%96%87%E5%AD%A6%E4%B9%A0/Skill-OS%E8%AE%BA%E6%96%87%E5%AD%A6%E4%B9%A0%EF%BC%9A%E4%B8%BA%E4%BB%80%E4%B9%88Skill%E4%BC%9A%E6%88%90%E4%B8%BAAgent%E6%97%B6%E4%BB%A3%E7%9A%84%E6%96%B0App/" target="_blank">Skill OS论文学习：为什么Skill会成为Agent时代的新App</a><br></span><span>  8.<a class="is-size-6" href="/2026/04/09/%E5%BE%85%E5%8F%91%E5%B8%83/DMI%E8%AE%BA%E6%96%87%E5%AD%A6%E4%B9%A0%EF%BC%9A%E4%B8%BA%E4%BB%80%E4%B9%88LLM%20Agent%E4%B8%8D%E8%AF%A5%E7%9B%B4%E6%8E%A5%E6%93%8D%E4%BD%9CGUI/" target="_blank">DMI论文学习：为什么LLM Agent不该直接操作GUI</a><br></span></div><div class="recommend-post"><span class="is-size-6 has-text-grey has-mr-7"># 推荐文章</span><br><span>  1.<a class="is-size-6" href="/2021/08/27/K8s/%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/%E3%80%8AKubernetes%E6%9D%83%E5%A8%81%E6%8C%87%E5%8D%97-%E4%BB%8EDocker%E5%88%B0Kubernetes%E5%AE%9E%E8%B7%B5%E5%85%A8%E6%8E%A5%E8%A7%A6%E3%80%8B%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/" target="_blank">《Kubernetes权威指南:从Docker到Kubernetes实践全接触》读书笔记</a><br></span><span>  2.<a class="is-size-6" href="/2024/10/10/Git/Git-%E6%8F%90%E4%BA%A4%E4%BB%A3%E7%A0%81-reference-broken-%E9%97%AE%E9%A2%98%E5%A4%84%E7%90%86/" target="_blank">Git 提交代码 reference broken 问题处理</a><br></span><span>  3.<a class="is-size-6" href="/2022/11/19/Git/%E5%85%B3%E4%BA%8E-Git-%E9%87%8D%E5%86%99%E5%8E%86%E5%8F%B2%E7%9A%84%E4%B8%80%E4%BA%9B%E7%AC%94%E8%AE%B0/" target="_blank">关于 Git 重写历史的一些笔记</a><br></span><span>  4.<a class="is-size-6" href="/2022/08/02/Git/%E5%85%B3%E4%BA%8EGit%E5%88%86%E6%94%AF%E5%8F%98%E5%9F%BA%E6%93%8D%E4%BD%9C%E7%9A%84%E4%B8%80%E4%BA%9B%E7%AC%94%E8%AE%B0/" target="_blank">关于Git分支变基操作的一些笔记</a><br></span><span>  5.<a class="is-size-6" href="/2022/07/26/Git/%E5%85%B3%E4%BA%8EGit%E5%88%86%E6%94%AF%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86%E7%9A%84%E4%B8%80%E4%BA%9B%E7%AC%94%E8%AE%B0/" target="_blank">关于Git分支基础知识的一些笔记</a><br></span><span>  6.<a class="is-size-6" href="/2022/08/02/Git/%E5%85%B3%E4%BA%8EGit%E5%88%86%E6%94%AF%E5%B7%A5%E4%BD%9C%E6%B5%81%E7%9A%84%E4%B8%80%E4%BA%9B%E7%AC%94%E8%AE%B0/" target="_blank">关于Git分支工作流的一些笔记</a><br></span></div></div><link rel="stylesheet" href="https://cdnjs.loli.net/ajax/libs/social-share.js/1.0.16/css/share.min.css"><div class="social-share"></div><script src="https://cdnjs.loli.net/ajax/libs/social-share.js/1.0.16/js/social-share.min.js"></script></article></div><div class="card"><div class="card-content"><h3 class="menu-label has-text-centered">喜欢这篇文章？打赏一下作者吧</h3><div class="buttons is-centered"><a class="button donate" data-type="alipay"><span class="icon is-small"><i class="fab fa-alipay"></i></span><span>支付宝</span><span class="qrcode"><img src="/img/alipay%EF%BF%A5.png" alt="支付宝"></span></a><a class="button donate" data-type="wechat"><span class="icon is-small"><i class="fab fa-weixin"></i></span><span>微信</span><span class="qrcode"><img src="/img/wechat%EF%BF%A5.png" alt="微信"></span></a></div></div></div><nav class="post-navigation mt-4 level is-mobile"><div class="level-end"><a class="article-nav-next level level-item link-muted" href="/2026/04/14/rhca/RH442_BPF/BPF/eBPF%E5%AD%A6%E4%B9%A0%E8%B7%AF%E7%BA%BF/BPF-eBPF%20%E5%BC%80%E5%8F%91%E8%B7%AF%E7%BA%BF%E4%B8%89%EF%BC%9Aebpf-go%E3%80%81bpf2go%20%E4%B8%8E%20Go%20%E5%B7%A5%E7%A8%8B%E9%9B%86%E6%88%90/"><span class="level-item">BPF-eBPF 开发路线三：ebpf-go、bpf2go 与 Go 工程集成</span><i class="level-item fas fa-chevron-right"></i></a></div></nav><!--!--><div class="card"><div class="card-content"><div class="title is-5">评论</div><div id="comment-container"></div><link rel="stylesheet" href="https://cdnjs.loli.net/ajax/libs/gitalk/1.6.0/gitalk.css"><script> $.getScript('/js/gitalk.min.js', function () { 
+            var gitalk = new Gitalk({
+            language:'zh-CN',
+            id: 'e2ad90e58798c7166af464c8f8ddeee8',
+            repo: 'blog_comment',
+            owner: 'LIRUILONGS',
+            clientID: '9fdc9739266d48d5f62e',
+            clientSecret: 'c1cc33697d099a2197650ec9dadcb16bd4904655',
+            admin: ["LIRUILONGS"],
+            createIssueManually: true,
+            distractionFreeMode: true,
+            perPage: 10,
+            pagerDirection: 'last',
+            proxy: 'https://cors-anywhere.azm.workers.dev/https://github.com/login/oauth/access_token',
+            
+            enableHotKey: true,
+            isLocked: false
+        })
+        gitalk.render('comment-container')});</script></div></div></div><div class="column column-left is-4-tablet is-4-desktop is-3-widescreen  order-1 is-sticky"><div class="card widget" id="toc" data-type="toc"><div class="card-content"><div class="menu"><h3 class="menu-label">目录</h3><ul class="menu-list"><li><a class="is-flex is-mobile" href="#写在前面"><span class="mr-2">1</span><span>写在前面</span></a></li><li><a class="is-flex is-mobile" href="#一句话先说结论"><span class="mr-2">2</span><span>一句话先说结论</span></a></li><li><a class="is-flex is-mobile" href="#旅行营销文为什么会污染-AI-答案"><span class="mr-2">3</span><span>旅行营销文为什么会污染 AI 答案</span></a></li><li><a class="is-flex is-mobile" href="#名词解释"><span class="mr-2">4</span><span>名词解释</span></a></li><li><a class="is-flex is-mobile" href="#相关论文到底告诉了我们什么"><span class="mr-2">5</span><span>相关论文到底告诉了我们什么</span></a><ul class="menu-list"><li><a class="is-flex is-mobile" href="#1-GEO-论文告诉我们：生成式搜索的“可见性”本身就是可以被优化的"><span class="mr-2">5.1</span><span>1. GEO 论文告诉我们：生成式搜索的“可见性”本身就是可以被优化的</span></a></li><li><a class="is-flex is-mobile" href="#2-misinformation-pollution-论文告诉我们：错误内容会显著拖垮问答系统"><span class="mr-2">5.2</span><span>2. misinformation pollution 论文告诉我们：错误内容会显著拖垮问答系统</span></a></li><li><a class="is-flex is-mobile" href="#3-PoisonedRAG-论文告诉我们：知识库本身就是攻击面"><span class="mr-2">5.3</span><span>3. PoisonedRAG 论文告诉我们：知识库本身就是攻击面</span></a></li><li><a class="is-flex is-mobile" href="#4-两篇-model-collapse-论文告诉我们：污染不只是当下检索问题，还是长期训练问题"><span class="mr-2">5.4</span><span>4. 两篇 model collapse 论文告诉我们：污染不只是当下检索问题，还是长期训练问题</span></a></li><li><a class="is-flex is-mobile" href="#5-RetrieverGuard-论文告诉我们：防线不能只放在生成阶段"><span class="mr-2">5.5</span><span>5. RetrieverGuard 论文告诉我们：防线不能只放在生成阶段</span></a></li></ul></li><li><a class="is-flex is-mobile" href="#所以问题到底出在哪一层"><span class="mr-2">6</span><span>所以问题到底出在哪一层</span></a><ul class="menu-list"><li><a class="is-flex is-mobile" href="#1-训练层污染"><span class="mr-2">6.1</span><span>1. 训练层污染</span></a></li><li><a class="is-flex is-mobile" href="#2-索引层污染"><span class="mr-2">6.2</span><span>2. 索引层污染</span></a></li><li><a class="is-flex is-mobile" href="#3-检索排序层污染"><span class="mr-2">6.3</span><span>3. 检索排序层污染</span></a></li><li><a class="is-flex is-mobile" href="#4-生成层污染"><span class="mr-2">6.4</span><span>4. 生成层污染</span></a></li></ul></li><li><a class="is-flex is-mobile" href="#真正有效的防护，不是一个点子，而是一条防护链"><span class="mr-2">7</span><span>真正有效的防护，不是一个点子，而是一条防护链</span></a><ul class="menu-list"><li><a class="is-flex is-mobile" href="#第一道防线：先做来源分级，不要把所有网页当成平权证据"><span class="mr-2">7.1</span><span>第一道防线：先做来源分级，不要把所有网页当成平权证据</span></a></li><li><a class="is-flex is-mobile" href="#第二道防线：入库前做模板化污染治理"><span class="mr-2">7.2</span><span>第二道防线：入库前做模板化污染治理</span></a></li><li><a class="is-flex is-mobile" href="#第三道防线：检索时不要只按相关性排，还要按可信度排"><span class="mr-2">7.3</span><span>第三道防线：检索时不要只按相关性排，还要按可信度排</span></a></li><li><a class="is-flex is-mobile" href="#第四道防线：生成阶段强制证据约束，证据不够就别给结论"><span class="mr-2">7.4</span><span>第四道防线：生成阶段强制证据约束，证据不够就别给结论</span></a><ul class="menu-list"><li><a class="is-flex is-mobile" href="#1-强制-citation-grounding"><span class="mr-2">7.4.1</span><span>1. 强制 citation grounding</span></a></li><li><a class="is-flex is-mobile" href="#2-对“联系方式”“报名入口”“机构名推荐”启用高风险策略"><span class="mr-2">7.4.2</span><span>2. 对“联系方式”“报名入口”“机构名推荐”启用高风险策略</span></a></li><li><a class="is-flex is-mobile" href="#3-低证据密度时拒答或降格回答"><span class="mr-2">7.4.3</span><span>3. 低证据密度时拒答或降格回答</span></a></li></ul></li><li><a class="is-flex is-mobile" href="#第五道防线：高风险垂类必须保留人工闭环"><span class="mr-2">7.5</span><span>第五道防线：高风险垂类必须保留人工闭环</span></a></li></ul></li><li><a class="is-flex is-mobile" href="#一个简单的治理框架方法论和思考"><span class="mr-2">8</span><span>一个简单的治理框架方法论和思考</span></a><ul class="menu-list"><li><a class="is-flex is-mobile" href="#GEO-不等于作弊，但它暴露了生成式搜索的新竞争面"><span class="mr-2">8.1</span><span>GEO 不等于作弊，但它暴露了生成式搜索的新竞争面</span></a></li><li><a class="is-flex is-mobile" href="#最危险的不是纯假内容，而是半真半假的高相关营销内容"><span class="mr-2">8.2</span><span>最危险的不是纯假内容，而是半真半假的高相关营销内容</span></a></li><li><a class="is-flex is-mobile" href="#未来最大的风险是“检索污染”和“训练污染”相互放大"><span class="mr-2">8.3</span><span>未来最大的风险是“检索污染”和“训练污染”相互放大</span></a></li></ul></li><li><a class="is-flex is-mobile" href="#写在最后"><span class="mr-2">9</span><span>写在最后</span></a></li><li><a class="is-flex is-mobile" href="#博文部分内容参考"><span class="mr-2">10</span><span>博文部分内容参考</span></a></li></ul></div></div><style>.menu-list > li > a.is-active + .menu-list { display: block; }.menu-list > li > a + .menu-list { display: none; }</style><script src="/js/toc.js" defer></script></div><div class="card widget" data-type="profile"><div class="card-content"><nav class=""><div class="level-item has-text-centered flex-shrink-1"><div><figure class="image is-128x128 mx-auto mb-2"><img class="avatar" src="/img/%E5%BE%AE%E4%BF%A1%E5%85%AC%E4%BC%97%E5%8F%B7.jpg" alt="山河已无恙"></figure><p class="title is-size-4 is-block" style="line-height:inherit;">山河已无恙</p><p class="is-size-6 is-block">爱自己，是终生浪漫的开始</p><p class="is-size-6 is-flex justify-content-center"><i class="fas fa-map-marker-alt mr-1"></i><span>中国·呼和浩特</span></p></div></div></nav><nav class="level is-mobile"><div class="level-item has-text-centered is-marginless"><div><p class="heading">文章</p><a href="/archives"><p class="title">472</p></a></div></div><div class="level-item has-text-centered is-marginless"><div><p class="heading">分类</p><a href="/categories"><p class="title">146</p></a></div></div><div class="level-item has-text-centered is-marginless"><div><p class="heading">标签</p><a href="/tags"><p class="title">217</p></a></div></div></nav><div class="level"><a class="level-item button is-primary is-rounded" href="https://mp.weixin.qq.com/s?__biz=MzkyNjIxNTYwMw==&amp;mid=2247496480&amp;idx=1&amp;sn=a9971fed3962ef2a1aeda1f0bda65f86&amp;chksm=c2380ffcf54f86eaba8daac6caca72a70f38e61a8d25dc2a66d3a17b87c02530e326dcaea14b#rd" target="_blank" rel="noopener">关注我</a></div><div class="level is-mobile"><a class="level-item button is-transparent is-marginless" target="_blank" rel="noopener" title="Github" href="https://github.com/LIRUILONGS"><i class="fab fa-github"></i></a><a class="level-item button is-transparent is-marginless" target="_blank" rel="noopener" title="CSDN" href="https://liruilong.blog.csdn.net/"><i class="fa fa-code"></i></a><a class="level-item button is-transparent is-marginless" target="_blank" rel="noopener" title="Email" href="mailto:1224965096@qq.com"><i class="fa fa-envelope"></i></a></div></div></div><div class="card widget" data-type="links"><div class="card-content"><div class="menu"><h3 class="menu-label">链接</h3><ul class="menu-list"><li><a class="level is-mobile" href="https://liruilong.blog.csdn.net/?t=1&amp;type=blog" target="_blank" rel="noopener"><span class="level-left"><span class="level-item">CSDN</span></span><span class="level-right"><span class="level-item tag">liruilong.blog.csdn.net</span></span></a></li><li><a class="level is-mobile" href="https://www.cnblogs.com/liruilong/" target="_blank" rel="noopener"><span class="level-left"><span class="level-item">博客园</span></span><span class="level-right"><span class="level-item tag">www.cnblogs.com</span></span></a></li><li><a class="level is-mobile" href="https://github.com/LIRUILONGS" target="_blank" rel="noopener"><span class="level-left"><span class="level-item">Githup</span></span><span class="level-right"><span class="level-item tag">github.com</span></span></a></li><li><a class="level is-mobile" href="https://gitee.com/liruilonger" target="_blank" rel="noopener"><span class="level-left"><span class="level-item">码云</span></span><span class="level-right"><span class="level-item tag">gitee.com</span></span></a></li></ul></div></div></div><div class="card widget"><div class="card-content"><h3 class="menu-label">最新评论</h3><span class="body_hot_comment">加载中，最新评论有1分钟缓存...</span></div></div><div class="card widget"><div class="card-content"><h3 class="menu-label">最新文章</h3><article class="media"><div class="media-content"><p class="date"><time dateTime="2026-04-15T08:30:00.000Z">2026-04-15</time></p><p class="title"><a href="/2026/04/15/%E5%BE%85%E5%8F%91%E5%B8%83/GEO%E6%97%B6%E4%BB%A3%E7%9A%84%E6%95%B0%E6%8D%AE%E6%B1%A1%E6%9F%93%E6%80%8E%E4%B9%88%E9%98%B2%EF%BC%9A%E4%BB%8E%E6%97%85%E8%A1%8C%E8%90%A5%E9%94%80%E5%81%87%E5%86%85%E5%AE%B9%E5%88%B0AI%E6%90%9C%E7%B4%A2%E5%8F%AF%E4%BF%A1%E5%BA%A6%E6%B2%BB%E7%90%86/">GEO时代的数据污染怎么防：从旅行营销假内容到AI搜索可信度治理</a></p><p class="categories"><a href="/categories/AI-Agent/">AI Agent</a></p></div></article><article class="media"><div class="media-content"><p class="date"><time dateTime="2026-04-14T02:40:00.000Z">2026-04-14</time></p><p class="title"><a href="/2026/04/14/rhca/RH442_BPF/BPF/eBPF%E5%AD%A6%E4%B9%A0%E8%B7%AF%E7%BA%BF/BPF-eBPF%20%E5%BC%80%E5%8F%91%E8%B7%AF%E7%BA%BF%E4%B8%89%EF%BC%9Aebpf-go%E3%80%81bpf2go%20%E4%B8%8E%20Go%20%E5%B7%A5%E7%A8%8B%E9%9B%86%E6%88%90/">BPF-eBPF 开发路线三：ebpf-go、bpf2go 与 Go 工程集成</a></p><p class="categories"><a href="/categories/BPF/">BPF</a></p></div></article><article class="media"><div class="media-content"><p class="date"><time dateTime="2026-04-14T02:30:00.000Z">2026-04-14</time></p><p class="title"><a href="/2026/04/14/rhca/RH442_BPF/BPF/eBPF%E5%AD%A6%E4%B9%A0%E8%B7%AF%E7%BA%BF/BPF-eBPF%20%E5%BC%80%E5%8F%91%E8%B7%AF%E7%BA%BF%E4%BA%8C%EF%BC%9Alibbpf%E3%80%81CO-RE%20%E4%B8%8E%20libbpf-bootstrap%20%E5%AE%9E%E6%88%98/">BPF-eBPF 开发路线二：libbpf、CO-RE 与 libbpf-bootstrap 实战</a></p><p class="categories"><a href="/categories/BPF/">BPF</a></p></div></article><article class="media"><div class="media-content"><p class="date"><time dateTime="2026-04-14T02:20:00.000Z">2026-04-14</time></p><p class="title"><a href="/2026/04/14/rhca/RH442_BPF/BPF/eBPF%E5%AD%A6%E4%B9%A0%E8%B7%AF%E7%BA%BF/BPF-eBPF%20%E5%BC%80%E5%8F%91%E8%B7%AF%E7%BA%BF%E4%B8%80%EF%BC%9ABCC%20%E5%85%A5%E9%97%A8%E3%80%81%E5%B7%A5%E5%85%B7%E4%BD%BF%E7%94%A8%E4%B8%8E%E8%87%AA%E5%AE%9A%E4%B9%89%E8%84%9A%E6%9C%AC/">BPF-eBPF 开发路线一：BCC 入门、工具使用与自定义脚本</a></p><p class="categories"><a href="/categories/BPF/">BPF</a></p></div></article><article class="media"><div class="media-content"><p class="date"><time dateTime="2026-04-14T02:10:00.000Z">2026-04-14</time></p><p class="title"><a href="/2026/04/14/rhca/RH442_BPF/BPF/eBPF%E5%AD%A6%E4%B9%A0%E8%B7%AF%E7%BA%BF/BPF-eBPF%20%E5%AE%9E%E6%88%98%E5%85%A5%E9%97%A8%EF%BC%9A%E7%8E%AF%E5%A2%83%E5%87%86%E5%A4%87%E3%80%81%E6%9C%80%E5%B0%8F%E5%AE%9E%E9%AA%8C%E4%B8%8E%E6%8E%92%E9%94%99%E6%80%9D%E8%B7%AF/">BPF-eBPF 实战入门：环境准备、最小实验与排错思路</a></p><p class="categories"><a href="/categories/BPF/">BPF</a></p></div></article></div></div><div class="card widget"><div class="card-content"><div class="menu"><h3 class="menu-label">分类</h3><ul class="menu-list"><li><a class="level is-mobile is-marginless" href="/categories/AI-Agent/"><span class="level-start"><span class="level-item">AI Agent</span></span><span class="level-end"><span class="level-item tag">10</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/AIGC/"><span class="level-start"><span class="level-item">AIGC</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/AdaFace/"><span class="level-start"><span class="level-item">AdaFace</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/Ajax/"><span class="level-start"><span class="level-item">Ajax</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/Ansible/"><span class="level-start"><span class="level-item">Ansible</span></span><span class="level-end"><span class="level-item tag">23</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/AppCube/"><span class="level-start"><span class="level-item">AppCube</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/BPF/"><span class="level-start"><span class="level-item">BPF</span></span><span class="level-end"><span class="level-item tag">11</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/Bind9/"><span class="level-start"><span class="level-item">Bind9</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/CI-CD/"><span class="level-start"><span class="level-item">CI/CD</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/CSS/"><span class="level-start"><span class="level-item">CSS</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li><a class="level is-mobile is-marginless" href="/categories/"><span class="level-start"><span class="level-item">查看全部&gt;&gt;</span></span></a></ul></div></div></div><div class="card widget"><div class="card-content"><div class="menu"><h3 class="menu-label">归档</h3><ul class="menu-list"><li><a class="level is-mobile is-marginless" href="/archives/2026/04/"><span class="level-start"><span class="level-item">四月 2026</span></span><span class="level-end"><span class="level-item tag">16</span></span></a></li><li><a class="level is-mobile is-marginless" href="/archives/2026/03/"><span class="level-start"><span class="level-item">三月 2026</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li><li><a class="level is-mobile is-marginless" href="/archives/2025/11/"><span class="level-start"><span class="level-item">十一月 2025</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li><li><a class="level is-mobile is-marginless" href="/archives/2025/10/"><span class="level-start"><span class="level-item">十月 2025</span></span><span class="level-end"><span class="level-item tag">3</span></span></a></li><li><a class="level is-mobile is-marginless" href="/archives/2025/08/"><span class="level-start"><span class="level-item">八月 2025</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li><a class="level is-mobile is-marginless" href="/archives/"><span class="level-start"><span class="level-item">查看全部&gt;&gt;</span></span></a></ul></div></div></div><div class="card widget"><div class="card-content"><div class="menu"><h3 class="menu-label">标签</h3><div class="field is-grouped is-grouped-multiline"><div class="control"><a class="tags has-addons" href="/tags/Kubernetes/"><span class="tag">Kubernetes</span><span class="tag is-grey-lightest">98</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Linux/"><span class="tag">Linux</span><span class="tag is-grey-lightest">71</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Ansible/"><span class="tag">Ansible</span><span class="tag is-grey-lightest">25</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Ceph/"><span class="tag">Ceph</span><span class="tag is-grey-lightest">22</span></a></div><div class="control"><a class="tags has-addons" href="/tags/LLM/"><span class="tag">LLM</span><span class="tag is-grey-lightest">17</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Python/"><span class="tag">Python</span><span class="tag is-grey-lightest">15</span></a></div><div class="control"><a class="tags has-addons" href="/tags/BPF/"><span class="tag">BPF</span><span class="tag is-grey-lightest">12</span></a></div><div class="control"><a class="tags has-addons" href="/tags/AI-Agent/"><span class="tag">AI Agent</span><span class="tag is-grey-lightest">9</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Docker/"><span class="tag">Docker</span><span class="tag is-grey-lightest">9</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Git/"><span class="tag">Git</span><span class="tag is-grey-lightest">8</span></a></div><div class="control"><a class="tags has-addons" href="/tags/JAVA/"><span class="tag">JAVA</span><span class="tag is-grey-lightest">8</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%E5%8D%8E%E4%B8%BA%E4%BA%91/"><span class="tag">华为云</span><span class="tag is-grey-lightest">8</span></a></div><div class="control"><a class="tags has-addons" href="/tags/CPU/"><span class="tag">CPU</span><span class="tag is-grey-lightest">7</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Go/"><span class="tag">Go</span><span class="tag is-grey-lightest">7</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Mysql/"><span class="tag">Mysql</span><span class="tag is-grey-lightest">7</span></a></div><div class="control"><a class="tags has-addons" href="/tags/eBPF/"><span class="tag">eBPF</span><span class="tag is-grey-lightest">7</span></a></div><div class="control"><a class="tags has-addons" href="/tags/OpenShift/"><span class="tag">OpenShift</span><span class="tag is-grey-lightest">6</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%E5%AE%89%E5%85%A8/"><span class="tag">安全</span><span class="tag is-grey-lightest">6</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%E6%91%84%E5%BD%B1%E6%9B%9D%E5%85%89/"><span class="tag">摄影曝光</span><span class="tag is-grey-lightest">6</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%E7%A8%8B%E5%BA%8F%E4%BA%BA%E7%94%9F/"><span class="tag">程序人生</span><span class="tag is-grey-lightest">6</span></a></div></div><div class="field is-grouped is-grouped-multiline"><a class="tags has-addons" href="/tags/"><span class="tag">查看全部&gt;&gt;</span></a></div></div></div></div><div class="card widget" data-type="subscribe-email"><div class="card-content"><div class="menu"><h3 class="menu-label">订阅更新</h3><form action="https://feedburner.google.com/fb/a/mailverify" method="post" target="popupwindow" onsubmit="window.open(&#039;https://feedburner.google.com/fb/a/mailverify?uri=&#039;,&#039;popupwindow&#039;,&#039;scrollbars=yes,width=550,height=520&#039;);return true"><input type="hidden" value="" name="uri"><input type="hidden" name="loc" value="en_US"><div class="field has-addons"><div class="control has-icons-left is-expanded"><input class="input" name="email" type="email" placeholder="Email"><span class="icon is-small is-left"><i class="fas fa-envelope"></i></span></div><div class="control"><input class="button" type="submit" value="订阅"></div></div></form></div></div></div><!--!--><div class="column-right-shadow is-hidden-widescreen is-sticky"></div></div></div></div></section><footer class="footer"><div class="container"><div class="level"><div class="level-start"><a class="footer-logo is-block mb-2" href="/"><img src="/img/logo.png" alt="山河已无恙" height="28"></a><p class="size-small"><span>&copy; 2026 山河已无恙</span>  Powered by <a href="https://hexo.io/" target="_blank">Hexo</a> &amp; <a href="https://github.com/ppoffice/hexo-theme-icarus" target="_blank">Icarus</a> &amp; <a href="https://github.com/removeif/hexo-theme-amazing" target="_blank">Amazing</a> <br><span>© <a href="http://www.beian.miit.gov.cn/" target="_blank">备案中</a><br></span><span>© 版权说明：[本网站所有内容均收集于互联网或自己创作,<br />&nbsp;&nbsp;&nbsp;&nbsp;方便于网友与自己学习交流，如有侵权，请<a href="/message" target="_blank">留言</a>，立即处理]<br /></span><span><span id="statistic-times">loading...</span><script>function createTime(time) {
+            var n = new Date(time);
+            now.setTime(now.getTime() + 250),
+                days = (now - n) / 1e3 / 60 / 60 / 24,
+                dnum = Math.floor(days),
+                hours = (now - n) / 1e3 / 60 / 60 - 24 * dnum,
+                hnum = Math.floor(hours),
+            1 == String(hnum).length && (hnum = "0" + hnum),
+                minutes = (now - n) / 1e3 / 60 - 1440 * dnum - 60 * hnum,
+                mnum = Math.floor(minutes),
+            1 == String(mnum).length && (mnum = "0" + mnum),
+                seconds = (now - n) / 1e3 - 86400 * dnum - 3600 * hnum - 60 * mnum,
+                snum = Math.round(seconds),
+            1 == String(snum).length && (snum = "0" + snum),
+                document.getElementById("statistic-times").innerHTML = "❤️本站自 <strong>"+time.split(" ")[0].replace(/\//g,".")+"</strong> 已运行 <strong>" + dnum + "</strong> 天 <strong>" + hnum + "</strong> 小时 <strong>" + mnum + "</strong> 分 <strong>" + snum + "</strong> 秒！❤️";
+        }var now = new Date();setInterval("createTime('2021/6/26 21:27:00')", 250,"");</script><br></span><div class="size-small"><span>❤️感谢 <strong><span id="busuanzi_value_site_uv">99+</span></strong> 小伙伴的 <strong><span id="busuanzi_value_site_pv">99+</span></strong> 次光临！❤️</span></div></p></div><div class="level-end"><div class="field has-addons"><p class="control"><a class="button is-transparent is-large" target="_blank" rel="noopener" title="Creative Commons" href="https://creativecommons.org/"><i class="fab fa-creative-commons"></i></a></p><p class="control"><a class="button is-transparent is-large" target="_blank" rel="noopener" title="Attribution 4.0 International" href="https://creativecommons.org/licenses/by/4.0/"><i class="fab fa-creative-commons-by"></i></a></p><p class="control"><a class="button is-transparent is-large" target="_blank" rel="noopener" title="Download on GitHub" href="https://github.com/removeif/hexo-theme-amazing"><i class="fab fa-github"></i></a></p></div><div class="sideMusic"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/aplayer/dist/APlayer.min.css"><script src="/js/APlayer.min.js"></script><script src="https://cdn.jsdelivr.net/npm/meting@2/dist/Meting.min.js"></script><meting-js style="width: auto;height: 2000px;" server="netease" type="playlist" id="2364053447" theme="#2980b9" loop="all" autoplay="false" order="list" storageName="aplayer-setting" lrctype="0" list-max-height="400px" fixed="true"></meting-js></div></div></div></div></footer><script src="https://cdnjs.loli.net/ajax/libs/moment.js/2.22.2/moment-with-locales.min.js"></script><script src="https://cdnjs.loli.net/ajax/libs/clipboard.js/2.0.4/clipboard.min.js" async></script><script>moment.locale("zh-CN");</script><script>var IcarusThemeSettings = {
+            article: {
+                highlight: {
+                    clipboard: true,
+                    fold: 'unfolded'
+                }
+            }
+        };</script><script src="/js/column.js"></script><!--!--><script src="/js/animation.js"></script><a id="back-to-top" title="回到顶端" href="javascript:;"><i class="fas fa-chevron-up"></i></a><script src="/js/back_to_top.js" defer></script><!--!--><script src="https://cdnjs.loli.net/ajax/libs/lightgallery/1.6.8/js/lightgallery.min.js" defer></script><script src="https://cdnjs.loli.net/ajax/libs/justifiedGallery/3.7.0/js/jquery.justifiedGallery.min.js" defer></script><script>window.addEventListener("load", () => {
+            if (typeof $.fn.lightGallery === 'function') {
+                $('.article').lightGallery({ selector: '.gallery-item' });
+            }
+            if (typeof $.fn.justifiedGallery === 'function') {
+                if ($('.justified-gallery > p > .gallery-item').length) {
+                    $('.justified-gallery > p > .gallery-item').unwrap();
+                }
+                $('.justified-gallery').justifiedGallery();
+            }
+        });</script><!--!--><!--!--><link rel="stylesheet" href="https://cdnjs.loli.net/ajax/libs/KaTeX/0.11.1/katex.min.css"><script src="https://cdnjs.loli.net/ajax/libs/KaTeX/0.11.1/katex.min.js" defer></script><script src="https://cdnjs.loli.net/ajax/libs/KaTeX/0.11.1/contrib/auto-render.min.js" defer></script><script src="https://cdnjs.loli.net/ajax/libs/KaTeX/0.11.1/contrib/mhchem.js" defer></script><script>window.addEventListener("load", function() {
+            document.querySelectorAll('[role="article"] > .content').forEach(function(element) {
+                renderMathInElement(element);
+            });
+        });</script><script type="text/x-mathjax-config">MathJax.Hub.Config({
+            'HTML-CSS': {
+                matchFontHeight: false
+            },
+            SVG: {
+                matchFontHeight: false
+            },
+            CommonHTML: {
+                matchFontHeight: false
+            },
+            tex2jax: {
+                inlineMath: [
+                    ['$','$'],
+                    ['\\(','\\)']
+                ]
+            }
+        });</script><script src="https://cdnjs.loli.net/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-MML-AM_CHTML" defer></script><div id="outdated"><h6>Your browser is out-of-date!</h6><p>Update your browser to view this website correctly.&amp;npsb;<a id="btnUpdateBrowser" target="_blank" rel="noopener" href="http://outdatedbrowser.com/">Update my browser now </a></p><p class="last"><a href="#" id="btnCloseUpdateBrowser" title="Close">×</a></p></div><script src="https://cdnjs.loli.net/ajax/libs/outdated-browser/1.1.5/outdatedbrowser.min.js" defer></script><script>window.addEventListener("load", function () {
+            outdatedBrowser({
+                bgColor: '#f25648',
+                color: '#ffffff',
+                lowerThan: 'object-fit' // display on IE11 or below
+            });
+        });</script><!--!--><script src="/js/main.js" defer></script><script>$.getScript('/js/comment-issue-data.js',function(){loadIssueData('9fdc9739266d48d5f62e','c1cc33697d099a2197650ec9dadcb16bd4904655','LIRUILONGS','blog_comment',false);})</script><div class="searchbox"><div class="searchbox-container"><div class="searchbox-header"><div class="searchbox-input-container"><input class="searchbox-input" type="text" placeholder="想要查找什么..."></div><a class="searchbox-close" href="javascript:;">×</a></div><div class="searchbox-body"></div></div></div><script src="/js/insight.js" defer></script><script>document.addEventListener('DOMContentLoaded', function () {
+            loadInsight({"contentUrl":"/content.json"}, {"hint":"想要查找什么...","untitled":"(无标题)","posts":"文章","pages":"页面","categories":"分类","tags":"标签"});
+        });</script><script src="https://cdn.jsdelivr.net/npm/pjax@0.2.8/pjax.js"></script><script type="text/javascript">var pjax = new Pjax({
+            elements: "a",//代表点击链接就更新
+            selectors: [  //代表要更新的节点
+                ".section",
+                "title"
+            ],
+            cache: true,
+            cacheBust:false
+        })
+
+        function loadBusuanzi(){
+        $.getScript("//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js", function () {});
+        }
+
+        function loadMathJax() { //加载mathjax
+            $.getScript("//cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.4/MathJax.js?config=TeX-MML-AM_CHTML", function () {
+                MathJax.Hub.Config({ tex2jax: { inlineMath: [['$', '$'], ['\(', '\)']] } });
+                var math = document.getElementsByClassName("entry-content")[0];
+                MathJax.Hub.Queue(["Typeset", MathJax.Hub, math]);
+            });
+        };
+
+        // 开始 PJAX 执行的函数
+        document.addEventListener('pjax:send', function () {
+        });
+        
+        // PJAX 完成之后执行的函数，可以和上面的重载放在一起
+        document.addEventListener('pjax:complete', function () {
+            $(".section").css({opacity:1});
+            if(true){
+                $.getScript('/js/comment-issue-data.js',function(){loadIssueData('9fdc9739266d48d5f62e','c1cc33697d099a2197650ec9dadcb16bd4904655','LIRUILONGS','blog_comment',false);});
+            }
+            if(false){
+                loadMathJax();
+            }
+            loadMainJs(jQuery, window.moment, window.ClipboardJS, window.IcarusThemeSettings);
+            loadBackTop();
+            loadBusuanzi();
+            if(typeof loadBanner == 'function'){
+                loadBanner();
+            }
+        });</script></body></html>

@@ -1,0 +1,68 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="820" viewBox="0 0 1200 820">
+  <rect width="1200" height="820" fill="#f8fafc"/>
+  <rect x="50" y="40" width="1100" height="740" rx="28" fill="#ffffff" stroke="#dbe3ee" stroke-width="2"/>
+  <text x="600" y="90" text-anchor="middle" font-size="34" font-family="Microsoft YaHei, PingFang SC, sans-serif" fill="#1f2937">油门、升降、副翼、方向舵 与 欧拉角的映射</text>
+  <text x="600" y="124" text-anchor="middle" font-size="18" font-family="Microsoft YaHei, PingFang SC, sans-serif" fill="#6b7280">适合多旋翼手转固定翼时建立“输入 -> 飞机响应”这层脑内映射</text>
+
+  <rect x="95" y="180" width="280" height="110" rx="18" fill="#fee2e2" stroke="#f87171" stroke-width="2"/>
+  <text x="235" y="225" text-anchor="middle" font-size="28" font-family="Microsoft YaHei, PingFang SC, sans-serif" fill="#b91c1c">油门 Throttle</text>
+  <text x="235" y="262" text-anchor="middle" font-size="21" font-family="Microsoft YaHei, PingFang SC, sans-serif" fill="#7f1d1d">增加推力 / 空速 / 总能量</text>
+
+  <rect x="95" y="325" width="280" height="110" rx="18" fill="#e0f2fe" stroke="#38bdf8" stroke-width="2"/>
+  <text x="235" y="370" text-anchor="middle" font-size="28" font-family="Microsoft YaHei, PingFang SC, sans-serif" fill="#0369a1">升降 Elevator</text>
+  <text x="235" y="407" text-anchor="middle" font-size="21" font-family="Microsoft YaHei, PingFang SC, sans-serif" fill="#0c4a6e">主要改变俯仰</text>
+
+  <rect x="95" y="470" width="280" height="110" rx="18" fill="#fef3c7" stroke="#fbbf24" stroke-width="2"/>
+  <text x="235" y="515" text-anchor="middle" font-size="28" font-family="Microsoft YaHei, PingFang SC, sans-serif" fill="#b45309">副翼 Aileron</text>
+  <text x="235" y="552" text-anchor="middle" font-size="21" font-family="Microsoft YaHei, PingFang SC, sans-serif" fill="#78350f">主要改变滚转</text>
+
+  <rect x="95" y="615" width="280" height="110" rx="18" fill="#dcfce7" stroke="#4ade80" stroke-width="2"/>
+  <text x="235" y="660" text-anchor="middle" font-size="28" font-family="Microsoft YaHei, PingFang SC, sans-serif" fill="#15803d">方向舵 Rudder</text>
+  <text x="235" y="697" text-anchor="middle" font-size="21" font-family="Microsoft YaHei, PingFang SC, sans-serif" fill="#166534">主要改变偏航</text>
+
+  <rect x="820" y="180" width="280" height="110" rx="18" fill="#fee2e2" stroke="#f87171" stroke-width="2"/>
+  <text x="960" y="222" text-anchor="middle" font-size="28" font-family="Microsoft YaHei, PingFang SC, sans-serif" fill="#b91c1c">速度 / 能量通道</text>
+  <text x="960" y="258" text-anchor="middle" font-size="21" font-family="Microsoft YaHei, PingFang SC, sans-serif" fill="#7f1d1d">不是欧拉角</text>
+
+  <rect x="820" y="325" width="280" height="110" rx="18" fill="#e0f2fe" stroke="#38bdf8" stroke-width="2"/>
+  <text x="960" y="367" text-anchor="middle" font-size="28" font-family="Microsoft YaHei, PingFang SC, sans-serif" fill="#0369a1">俯仰 Pitch</text>
+  <text x="960" y="404" text-anchor="middle" font-size="21" font-family="Microsoft YaHei, PingFang SC, sans-serif" fill="#0c4a6e">theta</text>
+
+  <rect x="820" y="470" width="280" height="110" rx="18" fill="#fef3c7" stroke="#fbbf24" stroke-width="2"/>
+  <text x="960" y="512" text-anchor="middle" font-size="28" font-family="Microsoft YaHei, PingFang SC, sans-serif" fill="#b45309">滚转 Roll</text>
+  <text x="960" y="549" text-anchor="middle" font-size="21" font-family="Microsoft YaHei, PingFang SC, sans-serif" fill="#78350f">phi</text>
+
+  <rect x="820" y="615" width="280" height="110" rx="18" fill="#dcfce7" stroke="#4ade80" stroke-width="2"/>
+  <text x="960" y="657" text-anchor="middle" font-size="28" font-family="Microsoft YaHei, PingFang SC, sans-serif" fill="#15803d">偏航 Yaw</text>
+  <text x="960" y="694" text-anchor="middle" font-size="21" font-family="Microsoft YaHei, PingFang SC, sans-serif" fill="#166534">psi</text>
+
+  <line x1="375" y1="235" x2="820" y2="235" stroke="#ef4444" stroke-width="8"/>
+  <polygon points="835,235 805,218 805,252" fill="#ef4444"/>
+
+  <line x1="375" y1="380" x2="820" y2="380" stroke="#0ea5e9" stroke-width="8"/>
+  <polygon points="835,380 805,363 805,397" fill="#0ea5e9"/>
+
+  <line x1="375" y1="525" x2="820" y2="525" stroke="#f59e0b" stroke-width="8"/>
+  <polygon points="835,525 805,508 805,542" fill="#f59e0b"/>
+
+  <line x1="375" y1="670" x2="820" y2="670" stroke="#22c55e" stroke-width="8"/>
+  <polygon points="835,670 805,653 805,687" fill="#22c55e"/>
+
+  <rect x="430" y="180" width="325" height="545" rx="18" fill="#f8fafc" stroke="#cbd5e1" stroke-width="2"/>
+  <text x="592" y="218" text-anchor="middle" font-size="26" font-family="Microsoft YaHei, PingFang SC, sans-serif" fill="#111827">映射理解</text>
+
+  <text x="460" y="268" font-size="22" font-family="Microsoft YaHei, PingFang SC, sans-serif" fill="#991b1b">油门：</text>
+  <text x="460" y="302" font-size="20" font-family="Microsoft YaHei, PingFang SC, sans-serif" fill="#334155">主要给飞机“能量”，决定有没有足够速度去爬升、转弯、复飞。</text>
+
+  <text x="460" y="380" font-size="22" font-family="Microsoft YaHei, PingFang SC, sans-serif" fill="#0c4a6e">升降：</text>
+  <text x="460" y="414" font-size="20" font-family="Microsoft YaHei, PingFang SC, sans-serif" fill="#334155">最直接对应俯仰角变化，也会连带影响升力、速度趋势和下滑角。</text>
+
+  <text x="460" y="492" font-size="22" font-family="Microsoft YaHei, PingFang SC, sans-serif" fill="#92400e">副翼：</text>
+  <text x="460" y="526" font-size="20" font-family="Microsoft YaHei, PingFang SC, sans-serif" fill="#334155">最直接对应滚转角，滚转建立后飞机才会自然带出转弯。</text>
+
+  <text x="460" y="604" font-size="22" font-family="Microsoft YaHei, PingFang SC, sans-serif" fill="#166534">方向舵：</text>
+  <text x="460" y="638" font-size="20" font-family="Microsoft YaHei, PingFang SC, sans-serif" fill="#334155">最直接对应偏航角，常用于地面滑跑、协调转弯、修正机头方向。</text>
+
+  <rect x="455" y="675" width="275" height="34" rx="10" fill="#eef6ff"/>
+  <text x="592" y="698" text-anchor="middle" font-size="18" font-family="Microsoft YaHei, PingFang SC, sans-serif" fill="#1e3a8a">口诀：油门管能量，升降管俯仰，副翼管滚转，方向舵管偏航</text>
+</svg>

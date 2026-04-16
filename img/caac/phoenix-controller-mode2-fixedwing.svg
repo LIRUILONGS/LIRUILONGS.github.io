@@ -1,0 +1,54 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="760" viewBox="0 0 1200 760">
+  <rect width="1200" height="760" fill="#f7f8fb"/>
+  <rect x="50" y="40" width="1100" height="680" rx="28" fill="#ffffff" stroke="#d8deea" stroke-width="2"/>
+  <text x="600" y="95" text-anchor="middle" font-size="34" font-family="Microsoft YaHei, PingFang SC, sans-serif" fill="#1f2937">固定翼遥控器示意图（Mode 2）</text>
+  <text x="600" y="130" text-anchor="middle" font-size="18" font-family="Microsoft YaHei, PingFang SC, sans-serif" fill="#6b7280">默认按国内常见 Mode 2 习惯绘制：左手油门/方向，右手升降/副翼</text>
+
+  <rect x="180" y="180" width="360" height="360" rx="28" fill="#f3f6fb" stroke="#cbd5e1" stroke-width="2"/>
+  <rect x="660" y="180" width="360" height="360" rx="28" fill="#f3f6fb" stroke="#cbd5e1" stroke-width="2"/>
+
+  <circle cx="360" cy="360" r="120" fill="#ffffff" stroke="#94a3b8" stroke-width="3"/>
+  <circle cx="840" cy="360" r="120" fill="#ffffff" stroke="#94a3b8" stroke-width="3"/>
+  <circle cx="360" cy="360" r="14" fill="#0f766e"/>
+  <circle cx="840" cy="360" r="14" fill="#0f766e"/>
+
+  <line x1="360" y1="250" x2="360" y2="470" stroke="#cbd5e1" stroke-width="2"/>
+  <line x1="250" y1="360" x2="470" y2="360" stroke="#cbd5e1" stroke-width="2"/>
+  <line x1="840" y1="250" x2="840" y2="470" stroke="#cbd5e1" stroke-width="2"/>
+  <line x1="730" y1="360" x2="950" y2="360" stroke="#cbd5e1" stroke-width="2"/>
+
+  <text x="360" y="205" text-anchor="middle" font-size="28" font-family="Microsoft YaHei, PingFang SC, sans-serif" fill="#111827">左摇杆</text>
+  <text x="840" y="205" text-anchor="middle" font-size="28" font-family="Microsoft YaHei, PingFang SC, sans-serif" fill="#111827">右摇杆</text>
+
+  <line x1="360" y1="120" x2="360" y2="240" stroke="#ef4444" stroke-width="7"/>
+  <polygon points="360,110 346,136 374,136" fill="#ef4444"/>
+  <text x="360" y="158" text-anchor="middle" font-size="22" font-family="Microsoft YaHei, PingFang SC, sans-serif" fill="#ef4444">推杆：油门增加</text>
+
+  <line x1="250" y1="360" x2="140" y2="360" stroke="#2563eb" stroke-width="7"/>
+  <polygon points="130,360 156,346 156,374" fill="#2563eb"/>
+  <text x="160" y="330" text-anchor="middle" font-size="22" font-family="Microsoft YaHei, PingFang SC, sans-serif" fill="#2563eb">左打：方向舵左</text>
+
+  <line x1="470" y1="360" x2="580" y2="360" stroke="#2563eb" stroke-width="7"/>
+  <polygon points="590,360 564,346 564,374" fill="#2563eb"/>
+  <text x="560" y="330" text-anchor="middle" font-size="22" font-family="Microsoft YaHei, PingFang SC, sans-serif" fill="#2563eb">右打：方向舵右</text>
+
+  <line x1="840" y1="250" x2="840" y2="145" stroke="#7c3aed" stroke-width="7"/>
+  <polygon points="840,135 826,161 854,161" fill="#7c3aed"/>
+  <text x="840" y="174" text-anchor="middle" font-size="22" font-family="Microsoft YaHei, PingFang SC, sans-serif" fill="#7c3aed">推杆：低头</text>
+
+  <line x1="840" y1="470" x2="840" y2="575" stroke="#7c3aed" stroke-width="7"/>
+  <polygon points="840,585 826,559 854,559" fill="#7c3aed"/>
+  <text x="840" y="620" text-anchor="middle" font-size="22" font-family="Microsoft YaHei, PingFang SC, sans-serif" fill="#7c3aed">拉杆：抬头</text>
+
+  <line x1="730" y1="360" x2="620" y2="360" stroke="#f59e0b" stroke-width="7"/>
+  <polygon points="610,360 636,346 636,374" fill="#f59e0b"/>
+  <text x="650" y="330" text-anchor="middle" font-size="22" font-family="Microsoft YaHei, PingFang SC, sans-serif" fill="#f59e0b">左打：左滚转</text>
+
+  <line x1="950" y1="360" x2="1060" y2="360" stroke="#f59e0b" stroke-width="7"/>
+  <polygon points="1070,360 1044,346 1044,374" fill="#f59e0b"/>
+  <text x="1030" y="330" text-anchor="middle" font-size="22" font-family="Microsoft YaHei, PingFang SC, sans-serif" fill="#f59e0b">右打：右滚转</text>
+
+  <rect x="150" y="585" width="900" height="90" rx="18" fill="#eef6ff" stroke="#bfdbfe" stroke-width="2"/>
+  <text x="180" y="625" font-size="22" font-family="Microsoft YaHei, PingFang SC, sans-serif" fill="#1e3a8a">多旋翼手最容易混淆的点：</text>
+  <text x="180" y="660" font-size="21" font-family="Microsoft YaHei, PingFang SC, sans-serif" fill="#334155">固定翼里右手不是“横着挪位置”那么简单，而是在控制机翼倾斜和机头俯仰；左手油门也不是悬停高度控制。</text>
+</svg>

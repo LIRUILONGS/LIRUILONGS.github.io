@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="760" viewBox="0 0 1200 760">
+  <rect width="1200" height="760" fill="#f7fafc"/>
+  <rect x="55" y="40" width="1090" height="680" rx="28" fill="#ffffff" stroke="#dbe3ee" stroke-width="2"/>
+  <text x="600" y="92" text-anchor="middle" font-size="34" font-family="Microsoft YaHei, PingFang SC, sans-serif" fill="#1f2937">飞机机头朝外时的方向感示意</text>
+  <text x="600" y="128" text-anchor="middle" font-size="18" font-family="Microsoft YaHei, PingFang SC, sans-serif" fill="#6b7280">此时你看到的“左”和“右”，通常和飞机本体方向一致，最适合初学阶段建立手感</text>
+
+  <circle cx="600" cy="385" r="210" fill="#f8fafc" stroke="#cbd5e1" stroke-width="3"/>
+  <line x1="600" y1="170" x2="600" y2="600" stroke="#dbe3ee" stroke-width="2" stroke-dasharray="10 10"/>
+  <line x1="390" y1="385" x2="810" y2="385" stroke="#dbe3ee" stroke-width="2" stroke-dasharray="10 10"/>
+
+  <ellipse cx="600" cy="390" rx="48" ry="170" fill="#dbeafe" stroke="#2563eb" stroke-width="4"/>
+  <polygon points="600,180 572,235 628,235" fill="#2563eb"/>
+  <rect x="455" y="340" width="290" height="32" rx="16" fill="#93c5fd" stroke="#2563eb" stroke-width="4"/>
+  <polygon points="530,505 480,565 535,548" fill="#2563eb"/>
+  <polygon points="670,505 720,565 665,548" fill="#2563eb"/>
+
+  <line x1="600" y1="150" x2="600" y2="95" stroke="#ef4444" stroke-width="8"/>
+  <polygon points="600,80 584,110 616,110" fill="#ef4444"/>
+  <text x="600" y="58" text-anchor="middle" font-size="26" font-family="Microsoft YaHei, PingFang SC, sans-serif" fill="#ef4444">机头朝外</text>
+
+  <line x1="450" y1="325" x2="330" y2="250" stroke="#f59e0b" stroke-width="7"/>
+  <polygon points="318,242 338,272 351,248" fill="#f59e0b"/>
+  <text x="255" y="238" text-anchor="middle" font-size="24" font-family="Microsoft YaHei, PingFang SC, sans-serif" fill="#f59e0b">左转</text>
+  <text x="255" y="272" text-anchor="middle" font-size="20" font-family="Microsoft YaHei, PingFang SC, sans-serif" fill="#475569">看见它往左偏</text>
+
+  <line x1="750" y1="325" x2="870" y2="250" stroke="#f59e0b" stroke-width="7"/>
+  <polygon points="882,242 849,248 862,272" fill="#f59e0b"/>
+  <text x="945" y="238" text-anchor="middle" font-size="24" font-family="Microsoft YaHei, PingFang SC, sans-serif" fill="#f59e0b">右转</text>
+  <text x="945" y="272" text-anchor="middle" font-size="20" font-family="Microsoft YaHei, PingFang SC, sans-serif" fill="#475569">看见它往右偏</text>
+
+  <circle cx="600" cy="645" r="16" fill="#0f172a"/>
+  <text x="600" y="688" text-anchor="middle" font-size="24" font-family="Microsoft YaHei, PingFang SC, sans-serif" fill="#0f172a">你的位置</text>
+
+  <rect x="155" y="575" width="315" height="90" rx="16" fill="#fff7ed" stroke="#fdba74" stroke-width="2"/>
+  <text x="180" y="615" font-size="22" font-family="Microsoft YaHei, PingFang SC, sans-serif" fill="#9a3412">记忆要点</text>
+  <text x="180" y="650" font-size="20" font-family="Microsoft YaHei, PingFang SC, sans-serif" fill="#7c2d12">机头朝外时，左右判断最直观，优先在这个阶段练平飞和转弯。</text>
+
+  <rect x="730" y="575" width="315" height="90" rx="16" fill="#eef6ff" stroke="#93c5fd" stroke-width="2"/>
+  <text x="755" y="615" font-size="22" font-family="Microsoft YaHei, PingFang SC, sans-serif" fill="#1d4ed8">多旋翼手提示</text>
+  <text x="755" y="650" font-size="20" font-family="Microsoft YaHei, PingFang SC, sans-serif" fill="#1e40af">固定翼不能像多旋翼那样“停住再想”，要保持速度、再做小修正。</text>
+</svg>
